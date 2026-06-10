@@ -46,7 +46,7 @@ Observe: Claude reads the relevant files, then presents a plan whose body is the
 
 ## Step 3 — Human gate: checklist review (3:30)
 
-Do NOT approve yet. The facilitator will paste the Spec Review Checklist into meeting chat at the start of this step. Check the proposed spec against all 7 items. Keep the checklist in the chat window or a scratch note outside the repo.
+Do NOT approve yet. The facilitator will post a short checklist into meeting chat at the start of this step. Use it as a starting point, then read the spec on its own terms: are there gaps the checklist doesn't cover? Do the behaviors described match what you'd actually want to build?
 
 If an item fails, paste the corrective prompt listed next to that item (still in plan mode). Iterate **at most twice**, then move on even if one minor item is imperfect. Two rounds is the budget; this gate is yours to run.
 
@@ -80,7 +80,7 @@ Observe: Claude reads the spec and edits three files (`server/main.py`, `client/
 
 - Confirm each edit traces to a line in your approved spec. If you cannot point at the spec line that asked for a change, flag it — ask Claude to justify or remove it.
 - Confirm the diff stays inside the spec's boundaries: no files beyond the ones the spec names, no rework of existing code the spec never mentions.
-- Keep the chat-posted Spec Review Checklist open and read the diff against it. The same items you gated the spec on are the items the implementation must honor.
+- The same items you gated the spec on are the items the implementation must honor.
 
 Accept each edit after reading it.
 
@@ -114,7 +114,7 @@ You are done when you can check off any **two** of:
 - [ ] `specs/purchase-orders.md` exists (open in an editor or listed by `git status`).
 - [ ] A multi-file diff (`main.py` + `BacklogDetailModal.vue` + `Dashboard.vue`) accepted in the Claude Code transcript.
 
-**Minimum artifact (nobody leaves empty-handed):** `specs/purchase-orders.md` exists and passed the chat-posted checklist. A participant who never reaches Step 5 still has a reviewed, approved spec.
+**Minimum artifact (nobody leaves empty-handed):** `specs/purchase-orders.md` exists and was reviewed and approved. A participant who never reaches Step 5 still has a reviewed, approved spec.
 
 **Optional chat signal** (doubles as the facilitator's completion read): paste ONE line into meeting chat — the 200 status line from the Step 6 verification, or your three-file diffstat.
 
