@@ -1,10 +1,16 @@
 # Capstone — Your Task, The Whole Loop
 
-**Module 06** | Solo: one person, one machine, one session | **30 minutes**
+**Module 06** | Solo: one person, one machine, one session | **30 minutes** | Runs if earlier labs finish on time
 
 ---
 
 In Lab 5's rubric close you named a task you ask Claude for 2-5 times a week. That task is your capstone candidate.
+
+Check your Lab 5 rubric placement before you start. If you placed your task in a skill or hook, build that artifact here — spec the skill or hook file and run the loop below on it. If you placed it as a one-off session, run the loop on the task directly.
+
+---
+
+Fill this in as you go — it takes under 5 minutes and you can tab back to it between steps: https://forms.gle/GM1HcFEqrokHe6KV6
 
 ---
 
@@ -26,7 +32,10 @@ What it should do when you are done:
 
 Post that statement in meeting chat at **T+5**.
 
-**Fallback task** (use this if you do not have a suitable real task, or if you want a warm-up before your own work): on a `capstone-work` branch cut from main, fix the `/api/tasks` console 404 you have seen all day. You choose the resolution: spec whether to implement `GET /api/tasks` (returns an empty list, no frontend changes needed) or to remove the dead call in `client/src/App.vue` near line 149 (no backend changes needed). Choosing is the spec exercise. Both resolutions are valid; your Acceptance Checks determine which one passes.
+**No suitable real task?** Two alternatives:
+
+- **Complete an extra credit item from any earlier lab you skipped.** Each lab card names its extra credit items. Pick one, write your two-line task statement around it, and run the loop below. The lab repo is your codebase.
+- **Fix the `/api/tasks` console 404** you have seen all day. On a `capstone-work` branch cut from main, spec whether to implement `GET /api/tasks` (returns an empty list, no frontend changes needed) or to remove the dead call in `client/src/App.vue` near line 149 (no backend changes needed). Choosing is the spec exercise. Both resolutions are valid; your Acceptance Checks determine which one passes.
 
 ---
 
