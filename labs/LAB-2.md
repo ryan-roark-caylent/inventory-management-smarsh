@@ -38,8 +38,6 @@ Find the memory-files line in the output. Locate the token figure attributed to 
 
 **Write that number down as your BEFORE figure** (paper or scratch note).
 
-Expected ballpark: **[TOK-A]** tokens. That cost is paid at the start of every session, before you type a single prompt.
-
 ---
 
 ## Step 2 — Find the drift `2:00–6:00`
@@ -113,7 +111,7 @@ Then:
 
 Find the CLAUDE.md token figure again. **Write it down as your AFTER figure.**
 
-The drop should be roughly **[TOK-A − TOK-C]** tokens from your BEFORE.
+Your AFTER should be lower than your BEFORE. The drop comes almost entirely from deleting the Deployment section in step 4 — step 3 added a handful of accurate endpoint lines, but the deleted section was roughly six times larger.
 
 **Optional completion signal:** paste `Lab 2: <BEFORE> -> <AFTER> tokens` into the meeting chat. The stream of deltas is how the facilitator reads completion across the room; react to other people's numbers.
 
@@ -161,7 +159,7 @@ Post the problem in meeting chat; a TA will reply or pull you into a breakout ro
 
 | Failure | Self-serve move |
 |---|---|
-| `/context` output looks unfamiliar; can't find the memory-files figure | Look for a line that starts with "memory-files" or similar. The ballpark is **[TOK-A]** tokens. Post in chat if you can't locate it. |
+| `/context` output looks unfamiliar; can't find the memory-files figure | Look for a line that starts with "memory-files" or similar. Post in chat if you can't locate it. |
 | Step 2 audit is vague or wanders into the whole file | Re-paste with this fallback: `List the routes defined by @app.get in server/main.py, then list the endpoints named in the API Endpoints section of @CLAUDE.md, then show me only the differences between the two lists.` |
 | Step 3 diff touches sections outside API Endpoints | Press Esc, re-paste the step-3 prompt unchanged. If it happens twice, post in chat. |
 | CLAUDE.md is mangled after a bad accept | Run `git checkout origin/lab-2-start -- CLAUDE.md` to restore the starting file, then redo from step 3. Takes about 90 seconds. |
