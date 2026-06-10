@@ -164,7 +164,7 @@ Post the problem in meeting chat; a TA will reply or pull you into a breakout ro
 | `/context` output looks unfamiliar; can't find the memory-files figure | Look for a line that starts with "memory-files" or similar. The ballpark is **[TOK-A]** tokens. Post in chat if you can't locate it. |
 | Step 2 audit is vague or wanders into the whole file | Re-paste with this fallback: `List the routes defined by @app.get in server/main.py, then list the endpoints named in the API Endpoints section of @CLAUDE.md, then show me only the differences between the two lists.` |
 | Step 3 diff touches sections outside API Endpoints | Press Esc, re-paste the step-3 prompt unchanged. If it happens twice, post in chat. |
-| CLAUDE.md is mangled after a bad accept | Run `git checkout lab-2-start -- CLAUDE.md` to restore the starting file, then redo from step 3. Takes about 90 seconds. |
+| CLAUDE.md is mangled after a bad accept | Run `git checkout origin/lab-2-start -- CLAUDE.md` to restore the starting file, then redo from step 3. Takes about 90 seconds. |
 | Session context is confused about file state | `/clear`, then re-point: `Read CLAUDE.md and server/main.py, then ...` followed by the step prompt. The file system is the durable state, not the conversation. |
 | Branch is in bad shape with less than 5 minutes left | `/reset-branch`, then: `git fetch origin` on one line, then `git checkout -b lab-2-work-retry origin/lab-2-start` on the next line; jump to step 4 so you still produce a diff and an AFTER number. |
 | Hard stuck, time expiring | Post in chat. The TA will send a rescue command. |
