@@ -20,32 +20,27 @@ tests/
 
 ### Run all tests
 ```bash
-cd tests
-uv run pytest -v
+uv run --project server pytest tests/backend/ -v
 ```
 
 ### Run specific test file
 ```bash
-cd tests
-uv run pytest backend/test_inventory.py -v
+uv run --project server pytest tests/backend/test_inventory.py -v
 ```
 
 ### Run specific test class
 ```bash
-cd tests
-uv run pytest backend/test_inventory.py::TestInventoryEndpoints -v
+uv run --project server pytest tests/backend/test_inventory.py::TestInventoryEndpoints -v
 ```
 
 ### Run specific test
 ```bash
-cd tests
-uv run pytest backend/test_inventory.py::TestInventoryEndpoints::test_get_all_inventory -v
+uv run --project server pytest tests/backend/test_inventory.py::TestInventoryEndpoints::test_get_all_inventory -v
 ```
 
 ### Run with coverage (requires pytest-cov)
 ```bash
-cd tests
-uv run pytest --cov=../server --cov-report=html
+uv run --project server pytest tests/backend/ --cov=server --cov-report=html
 ```
 
 ## Test Coverage
@@ -149,8 +144,7 @@ To integrate with CI/CD pipelines:
 # Example GitHub Actions
 - name: Run API Tests
   run: |
-    cd tests
-    uv run pytest -v --tb=short
+    uv run --project server pytest tests/backend/ -v --tb=short
 ```
 
 ## Notes

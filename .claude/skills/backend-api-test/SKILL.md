@@ -375,8 +375,8 @@ assert abs(calculated - expected) < 0.01
 - Circuit Boards
 - Sensors
 - Power Supplies
-- Connectors
-- Mechanical Components
+- Actuators
+- Controllers
 
 ### Order Statuses
 - Delivered
@@ -404,24 +404,26 @@ assert abs(calculated - expected) < 0.01
 
 ## Running Tests
 
+Run from the repository root.
+
 ```bash
 # Run all backend tests
-pytest tests/backend/
+uv run --project server pytest tests/backend/
 
 # Run specific test file
-pytest tests/backend/test_orders.py
+uv run --project server pytest tests/backend/test_orders.py
 
 # Run specific test class
-pytest tests/backend/test_orders.py::TestOrdersEndpoints
+uv run --project server pytest tests/backend/test_orders.py::TestOrdersEndpoints
 
 # Run specific test method
-pytest tests/backend/test_orders.py::TestOrdersEndpoints::test_get_all_orders
+uv run --project server pytest tests/backend/test_orders.py::TestOrdersEndpoints::test_get_all_orders
 
 # Run with verbose output
-pytest tests/backend/ -v
+uv run --project server pytest tests/backend/ -v
 
 # Run with coverage
-pytest tests/backend/ --cov=server
+uv run --project server pytest tests/backend/ --cov=server
 ```
 
 ## Example: Complete Test File Template
