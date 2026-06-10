@@ -96,7 +96,7 @@ Then launch plain (again human-typed; same reason as Step 1):
 claude
 ```
 
-If prompted to approve the project's MCP servers, approve. Then:
+If prompted to approve the project's MCP servers, approve. The project ships `.mcp.json` at the repo root with the Playwright server defined. Plain `claude` reads it automatically; the approval prompt is Claude asking you to confirm it before connecting. Then:
 
 ```
 /mcp
@@ -137,17 +137,17 @@ Answer these questions against your scratch note:
 1. What did Round 1's evidence prove, and what could it never prove?
 2. What did Round 2 catch that Round 1 missed?
 3. Round 2's console showed two kinds of errors. Which were planted noise and which was the finding?
-4. Was Playwright MCP worth its tokens for this task? Name a task where CLI-only is the right call.
+4. Was Playwright MCP worth its tokens for this task? (Use the delta you computed — that is the per-session overhead of the Playwright server.) Name a task where CLI-only is the right call.
 
 **Optional completion signal:** post your token delta and the verdict-flip line (the one page that changed from Round 1 to Round 2) in meeting chat. The stream of posts is how the facilitator reads completion across the room.
 
-**Rubric close** (from `labs/lab-5-rubric.md`):
+**Rubric close:**
 
 1. Write down one task you ask Claude for 2–5 times a week.
 2. Place it in exactly one box: CLAUDE.md / Skill / Hook / Subagent / MCP server.
 3. Write a one-sentence defense. The wrong answer is "all of the above."
 
-Cross-check your choice against the four pre-mapped Perforce scenarios on the rubric card. Nothing gets committed in this lab's core path; your scratch note is the artifact.
+Nothing gets committed in this lab's core path; your scratch note is the artifact.
 
 ---
 
