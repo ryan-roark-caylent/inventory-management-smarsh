@@ -74,6 +74,8 @@
 
 2. **Observe:** Claude reads `server/main.py`, finds the summary endpoint, and proposes an edit. A **permission prompt** appears before any file changes. That prompt is the default permission mode doing its job: nothing touches your files until you approve it. Do NOT approve yet; go to Step 4.
 
+   > **No prompt appeared and the edit is already applied?** You are in `accept edits` mode — check the mode indicator at the bottom of the screen and press **Shift+Tab** until it shows default mode. Approving the prompt IS the "accept" in this lab's loop; there is no separate accept step afterward. If an edit slipped through, review it with `git diff` instead, and redo this lab's gate on the next prompt.
+
 ---
 
 ## Step 4 — Read the diff. All of it. (3 min)
