@@ -38,7 +38,7 @@ Now open `tests/README.md`. It claims **51 tests total** and lists `tests/backen
 
 **Write down in a scratch note:** documented test count vs actual test count.
 
-**Self-check 1:** `[ ] skill loaded` ← watch for this in step 2.
+**Self-check 1:** `[ ] after step 2 completes, ask Claude: "Did you use the backend-api-test skill?"`
 
 ---
 
@@ -50,7 +50,7 @@ Paste into Claude Code:
 tests/backend/test_orders.py is missing even though tests/README.md documents it. Restore it.
 ```
 
-**Observe:** before Claude writes any code, the **backend-api-test skill loads**. Watch the transcript for the skill name appearing — you did not ask for the skill; the task matched its trigger ("writing or modifying tests in tests/backend"). Claude generates the file following the skill's conventions: a `TestOrdersEndpoints` class, the `client` fixture, case-insensitive string comparisons, a 404 test.
+**Observe:** before Claude writes any code, the **backend-api-test skill may load**. Watch the transcript for the skill name — you did not ask for it; the task matched its trigger ("writing or modifying tests in tests/backend"). Whether it auto-fires or not is the lesson: CLAUDE.md triggers are description-matched, not deterministic. Claude generates the file following the skill's conventions: a `TestOrdersEndpoints` class, the `client` fixture, case-insensitive string comparisons, a 404 test.
 
 **If the skill does not auto-trigger,** use this fallback prompt instead:
 
@@ -60,7 +60,13 @@ Use the backend-api-test skill to restore tests/backend/test_orders.py.
 
 Naming the skill forces the load. The lesson still lands; note in chat that triggers are description-matched, not guaranteed.
 
-**Mark your self-check:** `[x] skill loaded`
+Once the file is accepted, paste into Claude Code:
+
+```
+Did you use the backend-api-test skill?
+```
+
+**Mark your self-check:** `[x] skill used (Claude confirmed)`
 
 **Read the diff before accepting — check these four things:**
 
@@ -101,7 +107,7 @@ Now paste into Claude Code:
 Use the code-reviewer agent to review client/src/views/Reports.vue.
 ```
 
-**Observe:** Claude dispatches the **code-reviewer subagent** (watch the Task tool call in the transcript). The agent uses read-only tools (Read, Grep, Glob) — it has no ability to edit anything. It comes back with findings.
+**Observe:** Claude dispatches the **code-reviewer subagent** (watch the Task tool call in the transcript). The agent runs in its own context window — this is intentional: it has no access to your session's reasoning history, which prevents momentum bias from carrying into the review, and keeps your main context clean. The agent uses read-only tools (Read, Grep, Glob) — it has no ability to edit anything. It comes back with findings.
 
 The guaranteed finding: **index used as the v-for `:key` in Reports.vue**, a direct violation of the CLAUDE.md rule you read 60 seconds ago. That is your second self-check.
 
@@ -156,7 +162,7 @@ Self-verifiable in 10 seconds:
 
 2. **Reports.vue has no `:key="index"` left**: the reviewer's second-pass output says the issue is resolved, or `git diff main -- client/src/views/Reports.vue` shows exactly three `:key` changes.
 
-3. Both self-checks confirmed: `[x] skill loaded` and `[x] reviewer found the index-key violation`.
+3. Both self-checks confirmed: `[x] skill used (Claude confirmed)` and `[x] reviewer found the index-key violation`.
 
 ---
 
@@ -198,7 +204,7 @@ Self-verifiable in 10 seconds:
 }
 ```
 
-2. Exit Claude Code and relaunch it at the repo root. Then run `/hooks` and confirm the PostToolUse entry is listed.
+2. Exit Claude Code and relaunch it at the repo root. Then run `/hooks` and confirm the PostToolUse entry is listed. While you're here, scroll the full output — it shows every hook event type available (PreToolUse, PostToolUse, Stop, and others). This is the quickest way to see all the places you can inject harness behavior.
 
 3. Trigger it with a change that breaks a test on purpose. Paste:
 
