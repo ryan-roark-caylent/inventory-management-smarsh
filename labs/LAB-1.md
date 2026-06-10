@@ -89,9 +89,9 @@
    total_backlog_items = len(backlog_items)
    ```
 
-3. **The green line** (what replaces it). Read it. The right shape: still one line, and it mirrors the pattern the surrounding summary stats already use.
+3. **The green line(s)** (what replaces it). Read every insertion. The right shape: one or two lines that call `apply_filters(backlog_items, warehouse, category)` directly — the same helper the surrounding stats already use. Claude may produce this as a single inline call or as two lines (assign then count); both are correct if they call `apply_filters`.
 
-4. **The sanity check:** does the new line use the same helper and the same arguments as the filtered stats a few lines above it? If yes, accept. If Claude proposed anything broader (multiple files, multiple hunks, a refactor), reject it, press Esc twice to rewind, and re-paste the Step 3 prompt.
+4. **The sanity check:** does the replacement call `apply_filters` with `warehouse` and `category` — the same helper and arguments the filtered stats use a few lines above? If yes, accept. If the replacement builds a SKU set from inventory (`{item["sku"] for item in ...}`) or touches any other file, reject it, press Esc twice to rewind, and re-paste the Step 3 prompt. A SKU-join looks plausible but breaks the unfiltered count (Step 5 will catch it either way).
 
 Accept the edit. The whole review took about ten seconds. That is the entire cost of knowing exactly what changed.
 
