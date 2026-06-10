@@ -5,10 +5,10 @@ Get-NetTCPConnection -LocalPort 3000, 8001 -ErrorAction SilentlyContinue | ForEa
 }
 
 # Start the backend server
-Start-Process -FilePath "uv" -ArgumentList "run", "python", "main.py" -WorkingDirectory "server" -WindowStyle Minimized
+Start-Process -FilePath "cmd.exe" -ArgumentList "/c uv run python main.py" -WorkingDirectory (Resolve-Path "server") -WindowStyle Minimized
 
 # Start the frontend server
-Start-Process -FilePath "npm" -ArgumentList "run", "dev" -WorkingDirectory "client" -WindowStyle Minimized
+Start-Process -FilePath "cmd.exe" -ArgumentList "/c npm run dev" -WorkingDirectory (Resolve-Path "client") -WindowStyle Minimized
 
 Write-Host "Servers started:"
 Write-Host "Backend: http://localhost:8001"
