@@ -147,7 +147,7 @@ Relaunch, then retry.
 uv run --project server pytest tests/backend/ -q
 ```
 
-With the `<` off-by-one it fails on `test_dashboard_low_stock_items_calculation`. With `<=` it passes.
+On `lab-6-start` this run is RED (one `test_dashboard_low_stock_items_calculation` failure is expected — that is the defect your hook should catch). Once your fix is correct, the suite goes GREEN. If you get stuck on the fix itself, use the full reset below.
 
 **Full reset (last resort).** Land every answer artifact:
 
