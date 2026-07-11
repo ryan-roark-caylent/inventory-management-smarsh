@@ -186,7 +186,7 @@ Extra credit is optional and does not affect Quiz 1 or done criteria.
 **The spec uses invented field names (not real repo fields).**
 Ask Claude to read the server code before rewriting the spec, and confirm you are looking at the actual `InventoryItem` model and existing endpoint shapes. If the output still drifts, check out the reference branch to see a finished example:
 ```
-git stash
+git stash -u
 git checkout lab-2-solution
 ```
 Open `specs/low-stock-alerting.md` and `docs/lab-2/reference-risks.md`. You now have a complete, sharp spec on your screen. Return to your work:
@@ -201,7 +201,7 @@ Remove any "is this good?" phrasing from your prompt. Ask specifically for weakn
 **You ran out of time or hit a wall.**
 Check out the reference and read the finished spec so you leave having seen the target:
 ```
-git stash
+git stash -u
 git checkout lab-2-solution
 ```
 Open `specs/low-stock-alerting.md`, `docs/lab-2/reference-risks.md`, and `docs/lab-2/reference-plan.md`. Return when ready:
