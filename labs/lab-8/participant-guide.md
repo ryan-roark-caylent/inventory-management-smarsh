@@ -242,7 +242,7 @@ Use the CLI fallback: `gh issue create --title "Code review: server/inventory_op
 Check out the solution branch to see a finished review and the fixed function:
 
 ```
-git stash
+git stash -u
 ```
 
 ```
