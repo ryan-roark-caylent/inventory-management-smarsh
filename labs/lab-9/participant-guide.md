@@ -264,7 +264,7 @@ Your share-back is the `PROMPT-LIBRARY.md` commit (your contributed, peer-runnab
 
 **You're out of time or blocked.** Check out the reference state so you leave having seen what the finished lab looks like:
 ```
-git stash
+git stash -u
 ```
 ```
 git checkout lab-9-solution
