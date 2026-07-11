@@ -116,7 +116,7 @@ Note: the `code-reviewer` agent runs in its own context window. It has read-only
 1. total_inventory_items ignores filters - server/main.py (get_dashboard_summary)
    - Problem: len(inventory_items) counts the global list; filtered_inventory is already
      computed above but unused here
-   - Fix: len(filtered_inventory)
+   - Fix: [you determine this in Step 4]
 2. total_backlog_items ignores filters - server/main.py line 200 (get_dashboard_summary)
    - Problem: len(backlog_items) counts the global backlog list with no warehouse/category filter
    - Note: backlog items carry no warehouse or category fields, so a filter here is

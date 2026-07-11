@@ -206,7 +206,7 @@ def get_dashboard_summary(
         "pending_orders": pending_orders,
         "total_backlog_items": total_backlog_items,
         "total_orders_value": sum(order["total_value"] for order in filtered_orders),
-        "total_inventory_items": total_inventory_items,   # NEW field, planted bug
+        "total_inventory_items": total_inventory_items,
     }
 
 @app.get("/api/spending/summary")
