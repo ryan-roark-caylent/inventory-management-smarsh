@@ -67,6 +67,7 @@ class InventoryItem(BaseModel):
     unit_cost: float
     location: str
     last_updated: str
+    supplier: str
 
 class Order(BaseModel):
     id: str

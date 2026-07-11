@@ -92,6 +92,11 @@
                   </span>
                 </div>
               </div>
+
+              <div class="info-item">
+                <div class="info-label">Supplier</div>
+                <div class="info-value">{{ inventoryItem.supplier || '—' }}</div>
+              </div>
             </div>
           </div>
 
