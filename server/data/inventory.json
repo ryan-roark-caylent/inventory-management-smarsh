@@ -382,5 +382,17 @@
     "unit_cost": 185.50,
     "location": "Warehouse C-11",
     "last_updated": "2025-09-21T15:20:00"
+  },
+  {
+    "id": "33",
+    "sku": "SNS-099",
+    "name": "Boundary Threshold Sensor",
+    "category": "Sensors",
+    "warehouse": "London",
+    "quantity_on_hand": 60,
+    "reorder_point": 60,
+    "unit_cost": 18.50,
+    "location": "Warehouse B-07",
+    "last_updated": "2025-09-30T10:30:00"
   }
 ]
