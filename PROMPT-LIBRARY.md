@@ -33,3 +33,16 @@ output format. Best as a slash command (recurring, team-wide).
 > Review this and tell me what's wrong.
 **Example:** (none provided)
 **Note:** this entry is here on purpose so you can see why it fails a cold run.
+
+### gen-endpoint-tests-v2   (reference contribution)
+**When to use it:** pytest coverage for any GET endpoint that lacks tests.
+**Body:**
+> Generate pytest tests for the GET <ENDPOINT> in server/main.py. Cover: the
+> happy path (items returned), an empty-data case (pass a filter value that
+> matches nothing, expect []), and one bad-filter case (unrecognized filter
+> value, expect []). Follow the patterns in tests/backend/test_inventory.py.
+> Return only the test file contents.
+**Example:** for /api/inventory, produces test_inventory_filters.py with 3 tests
+asserting the real JSON shape and empty-result behavior.
+**Note:** clears reuse (any filterable endpoint) + reliability (self-contained). Abstraction:
+prompt in the library; invoke as a scoped run via @test-writer for repeatable coverage runs.
