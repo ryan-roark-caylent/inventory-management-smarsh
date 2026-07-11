@@ -1,5 +1,7 @@
 # CLAUDE.md - Server
 
+> Always run the full test suite before claiming a change works. (also stated in root CLAUDE.md)
+
 This file provides guidance to Claude Code (claude.ai/code) when working with the FastAPI backend.
 
 ## Running the Server

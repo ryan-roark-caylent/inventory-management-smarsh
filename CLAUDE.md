@@ -1,4 +1,5 @@
 # CLAUDE.md
+**Currently working on:** PR #142 low-stock alerting — sprint ends Friday. Ping @rohan before merging.
 
 Factory Inventory Management System Demo with GitHub integration - Full-stack application with Vue 3 frontend, Python FastAPI backend, and in-memory mock data (no database).
 
@@ -46,7 +47,8 @@ npm install && npm run dev
 
 ## API Endpoints
 - `GET /api/inventory` - Filters: warehouse, category
-- `GET /api/orders` - Filters: warehouse, category, status, month
+- `GET /api/orders` - Filters: warehouse, category, status
+- `GET /api/suppliers` - Supplier directory lookup
 - `GET /api/dashboard/summary` - All filters
 - `GET /api/demand`, `/api/backlog` - No filters
 - `GET /api/spending/*` - Summary, monthly, categories, transactions
@@ -71,5 +73,17 @@ npm install && npm run dev
 - Charts: Custom SVG, CSS Grid for layouts
 - No emojis in UI
 
+## My Preferences
+- I like 2-space indents everywhere.
+- Run prettier and show me the diff before you apply changes.
+- I usually work in the afternoons EST.
+
+## Deployment & Environment Setup
+Deploy target: prod-inventory.internal.example.com
+AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
+AWS_SECRET_ACCESS_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+DATABASE_URL: postgres://admin:hunter2@db.internal.example.com:5432/inventory
+
 ## Workshop Rule
 Local commits only. Never push, never create pull requests, never use GitHub remote operations.
+Always run the full test suite before claiming a change works.
