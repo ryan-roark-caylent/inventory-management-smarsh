@@ -227,7 +227,7 @@ Not required for any quiz or done-criteria. Use these if you finish early.
 Explicit invocation always works: type `/<your-name>` directly to continue the lab. To study a description that does trigger, check out the solution branch's skill and read its `description:` field:
 
 ```
-git checkout lab-6-solution -- .claude/skills/gen-tests/SKILL.md
+git checkout origin/lab-6-solution -- .claude/skills/gen-tests/SKILL.md
 ```
 
 Read the description. You still see the point: what's in the description is what does the routing. Then delete that file and keep building yours, or continue from the solution as your base.
@@ -240,7 +240,7 @@ Read the description. You still see the point: what's in the description is what
 4. If still stuck, land the known-good config and relaunch:
 
    ```
-   git checkout lab-6-solution -- .claude/settings.json
+   git checkout origin/lab-6-solution -- .claude/settings.json
    ```
 
 **Pytest errors or can't tell red from green.**
@@ -256,7 +256,7 @@ Your PostToolUse hook should surface a `test_dashboard_low_stock_items_calculati
 Land every answer artifact and inspect it:
 
 ```
-git checkout lab-6-solution -- .claude/skills .claude/settings.json rubric-decision.md
+git checkout origin/lab-6-solution -- .claude/skills .claude/settings.json rubric-decision.md
 ```
 
 You end up with a working skill, a wired hook, and a rubric decision. The point of the lab is there to read.
