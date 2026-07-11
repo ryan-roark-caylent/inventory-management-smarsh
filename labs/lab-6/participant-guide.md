@@ -250,7 +250,7 @@ Run the suite by hand:
 uv run --project server pytest tests/backend/ -q
 ```
 
-With the off-by-one change active, it fails on `test_dashboard_low_stock_items_calculation`. With the original comparison, it passes.
+Your PostToolUse hook should surface a `test_dashboard_low_stock_items_calculation` failure in stderr once the planted change is active, and green once it is resolved. If you cannot tell red from green here, that is the signal your hook is not wired correctly yet, not that your fix is wrong.
 
 **Full reset (last resort).**
 Land every answer artifact and inspect it:
