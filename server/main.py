@@ -198,13 +198,15 @@ def get_dashboard_summary(
     low_stock_items = len([item for item in filtered_inventory if item["quantity_on_hand"] <= item["reorder_point"]])
     pending_orders = len([order for order in filtered_orders if order["status"] in ["Processing", "Backordered"]])
     total_backlog_items = len(backlog_items)
+    total_inventory_items = len(inventory_items)   # BUG: should use len(filtered_inventory)
 
     return {
         "total_inventory_value": round(total_inventory_value, 2),
         "low_stock_items": low_stock_items,
         "pending_orders": pending_orders,
         "total_backlog_items": total_backlog_items,
-        "total_orders_value": sum(order["total_value"] for order in filtered_orders)
+        "total_orders_value": sum(order["total_value"] for order in filtered_orders),
+        "total_inventory_items": total_inventory_items,   # NEW field, planted bug
     }
 
 @app.get("/api/spending/summary")
