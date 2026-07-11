@@ -73,3 +73,6 @@ npm install && npm run dev
 
 ## Workshop Rule
 Local commits only. Never push, never create pull requests, never use GitHub remote operations.
+
+## Backend Conventions
+- Backend functions use descriptive snake_case names; no abbreviations like do_x().
