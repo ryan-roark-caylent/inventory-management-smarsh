@@ -143,15 +143,15 @@ Then, in `review-findings.md`, add a "human vs subagent" section noting:
 
 Confirm your Trust Spectrum verdict for each issue now that you have two opinions. State the ownership conclusion explicitly: any gap is yours to own, not the subagent's to clear.
 
-**Expected output — a representative subagent report (your actual run will vary):**
+**Expected output — the *shape* of a subagent report (contents will differ from yours, and that is the point):**
 
 ```
-CRITICAL  Correctness — `available > needed` is an off-by-one; equal stock is fulfillable. Use >=.
-MEDIUM    Naming — `do_inv` is non-descriptive; prefer check_backlog_fulfillment.
-INFO      Missing return-type annotations on _lookup and do_inv; add type hints per PEP 484.
+CRITICAL  Correctness — <the reviewer flags a comparison/boundary concern>
+MEDIUM    Naming — <the reviewer comments on a function name>
+INFO      <a lower-severity style or typing note>
 ```
 
-The specific findings the subagent raises are non-deterministic. The subagent has no shell access and cannot verify that a package does not exist. Its silence on any issue is not exoneration.
+The subagent returns severity-tagged findings like the shape above, but **which** issues it raises is non-deterministic and will not perfectly match the four you found by reading. That mismatch is the lesson: the subagent has no shell access and cannot verify that a package does not exist, so its silence on any issue is not exoneration. Compare its list to yours and decide what you still own.
 
 **Success signal:** `review-findings.md` has a "human vs subagent" section showing both finding sets, at least one difference noted, and every issue has a final verdict, cited standard, and the ownership conclusion stated.
 
