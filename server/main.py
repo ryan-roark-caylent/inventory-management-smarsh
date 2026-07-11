@@ -198,7 +198,7 @@ def get_dashboard_summary(
     low_stock_items = len([item for item in filtered_inventory if item["quantity_on_hand"] <= item["reorder_point"]])
     pending_orders = len([order for order in filtered_orders if order["status"] in ["Processing", "Backordered"]])
     total_backlog_items = len(backlog_items)
-    total_inventory_items = len(inventory_items)
+    total_inventory_items = len(filtered_inventory)
 
     return {
         "total_inventory_value": round(total_inventory_value, 2),
