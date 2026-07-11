@@ -1,26 +1,6 @@
 # CLAUDE.md
-**Currently working on:** PR #142 low-stock alerting — sprint ends Friday. Ping @rohan before merging.
 
-Factory Inventory Management System Demo with GitHub integration - Full-stack application with Vue 3 frontend, Python FastAPI backend, and in-memory mock data (no database).
-
-## Critical Tool Usage Rules
-
-### Subagents
-Use the Task tool with these specialized subagents for appropriate tasks:
-
-- **vue-expert**: Use for Vue 3 frontend features, UI components, styling, and client-side functionality
-  - Examples: Creating components, fixing reactivity issues, performance optimization, complex state management
-  - **MANDATORY RULE: ANY time you need to create or significantly modify a .vue file, you MUST delegate to vue-expert**
-- **code-reviewer**: Use after writing significant code to review quality and best practices
-- **Explore**: Use for understanding codebase structure, searching for patterns, or answering questions about how components work
-- **general-purpose**: Use for complex multi-step tasks or when other agents don't fit
-
-### Skills
-- **backend-api-test** skill: Use when writing or modifying tests in `tests/backend` directory with pytest and FastAPI TestClient
-
-### MCP Tools
-- **ALWAYS use Playwright MCP tools** (`mcp__playwright__*`) for browser testing
-  - Test against: `http://localhost:3000` (frontend), `http://localhost:8001` (API)
+Factory Inventory Management System Demo — Full-stack application with Vue 3 frontend, Python FastAPI backend, and in-memory mock data (no database).
 
 ## Stack
 - **Frontend**: Vue 3 + Composition API + Vite (port 3000)
@@ -37,35 +17,32 @@ uv run python main.py
 # Frontend
 cd client
 npm install && npm run dev
+
+# Tests
+uv run pytest ../tests/backend/ -q
 ```
 
 ## Key Patterns
 
-**Filter System**: 4 filters (Time Period, Warehouse, Category, Order Status) apply to all data via query params
-**Data Flow**: Vue filters → `client/src/api.js` → FastAPI → In-memory filtering → Pydantic validation → Computed properties
-**Reactivity**: Raw data in refs (`allOrders`, `inventoryItems`), derived data in computed properties
+**Filter System**: 4 filters (Time Period, Warehouse, Category, Order Status) apply to all data via query params.
+**Data Flow**: Vue filters → `client/src/api.js` → FastAPI → In-memory filtering → Pydantic validation → Computed properties.
+**Reactivity**: Raw data in refs (`allOrders`, `inventoryItems`), derived data in computed properties.
+
+## Always / Never Rules
+
+- **Never** use `:key="index"` in a `v-for` — use a stable ID (`item.id`, `sku`, `month.month`, `q.quarter`). `Reports.vue` does this wrong at lines 28, 51, and 82.
+- **Never** hardcode `http://localhost:8001` in a component — route all API calls through `client/src/api.js`.
+- **Always** apply filters before counting or aggregating — `total_backlog_items` in `main.py` counts the unfiltered global list.
 
 ## API Endpoints
-- `GET /api/inventory` - Filters: warehouse, category
-- `GET /api/orders` - Filters: warehouse, category, status
-- `GET /api/suppliers` - Supplier directory lookup
-- `GET /api/dashboard/summary` - All filters
-- `GET /api/demand`, `/api/backlog` - No filters
-- `GET /api/spending/*` - Summary, monthly, categories, transactions
 
-## Common Issues
-1. Use unique keys in v-for (not `index`) - use `sku`, `month`, etc.
-2. Validate dates before `.getMonth()` calls
-3. Update Pydantic models when changing JSON data structure
-4. Inventory filters don't support month (no time dimension)
-5. Revenue goals: $800K/month single, $9.6M YTD all months
+See @server/main.py for the authoritative route list and filters.
 
 ## File Locations
 - Views: `client/src/views/*.vue`
 - API Client: `client/src/api.js`
 - Backend: `server/main.py`, `server/mock_data.py`
 - Data: `server/data/*.json`
-- Styles: `client/src/App.vue`
 
 ## Design System
 - Colors: Slate/gray (#0f172a, #64748b, #e2e8f0)
@@ -73,17 +50,9 @@ npm install && npm run dev
 - Charts: Custom SVG, CSS Grid for layouts
 - No emojis in UI
 
-## My Preferences
-- I like 2-space indents everywhere.
-- Run prettier and show me the diff before you apply changes.
-- I usually work in the afternoons EST.
-
-## Deployment & Environment Setup
-Deploy target: prod-inventory.internal.example.com
-AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
-AWS_SECRET_ACCESS_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-DATABASE_URL: postgres://admin:hunter2@db.internal.example.com:5432/inventory
-
 ## Workshop Rule
 Local commits only. Never push, never create pull requests, never use GitHub remote operations.
 Always run the full test suite before claiming a change works.
+
+# Session Context
+**Currently working on:** PR #142 low-stock alerting — sprint ends Friday. Ping @rohan before merging.
