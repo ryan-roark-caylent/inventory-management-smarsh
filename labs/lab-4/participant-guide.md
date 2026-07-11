@@ -233,7 +233,7 @@ Run `uv run --project server pytest tests/backend/ -v`, copy the first failing a
 Check out the reference solution to see the finished contract and code, then read the diff:
 
 ```
-git stash
+git stash -u
 git fetch origin
 git checkout origin/lab-4-solution -- specs/purchase-orders.md
 ```
