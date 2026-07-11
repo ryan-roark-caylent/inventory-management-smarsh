@@ -120,6 +120,37 @@ class CreatePurchaseOrderRequest(BaseModel):
     expected_delivery_date: str
     notes: Optional[str] = None
 
+class PurchaseOrderPublic(BaseModel):
+    id: str
+    backlog_item_id: str
+    supplier_name: str
+    quantity: int
+    expected_delivery_date: str
+    status: str
+    created_date: str
+    notes: Optional[str] = None
+    # unit_cost intentionally excluded — internal cost field
+
+@app.post("/api/purchase-orders", response_model=PurchaseOrderPublic)
+def create_purchase_order(req: CreatePurchaseOrderRequest):
+    if req.quantity <= 0:
+        raise HTTPException(status_code=422, detail="quantity must be a positive integer")
+    if not any(b["id"] == req.backlog_item_id for b in backlog_items):
+        raise HTTPException(status_code=404, detail="backlog item not found")
+    po = {
+        "id": f"PO-{len(purchase_orders) + 1000}",
+        "backlog_item_id": req.backlog_item_id,
+        "supplier_name": req.supplier_name,
+        "quantity": req.quantity,
+        "unit_cost": req.unit_cost,
+        "expected_delivery_date": req.expected_delivery_date,
+        "status": "pending",
+        "created_date": "2026-07-10",
+        "notes": req.notes,
+    }
+    purchase_orders.append(po)
+    return po  # response_model strips unit_cost
+
 # API endpoints
 @app.get("/")
 def root():
