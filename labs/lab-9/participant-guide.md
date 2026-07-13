@@ -2,7 +2,7 @@
 
 **Track 3 (AI Teammate) | Lab 9 of 9 | Depends on: Labs 6, 7, 8**
 
-Adoption is an artifact you commit, not a feeling you report. This lab closes the programme by turning your personal Claude skills into team assets: a prompt library entry anyone can run cold, a subagent anyone can invoke by name, a CLAUDE.md template for a repo type unlike this one, and a 30-day plan specific enough for a teammate to check on.
+Adoption is a portable artifact you hand off, not a feeling you report. This lab closes the programme by turning your personal Claude skills into things your team can pick up and use: a library entry a teammate can run cold, a subagent anyone can invoke by name, a starter CLAUDE.md for a repo type unlike this one, and a handoff note specific enough for a teammate to hold you to. You keep all four in your worktree and carry them back to your team. Nothing is committed to the repo.
 
 You'll work entirely in the Claude Code terminal. No app server and no browser are needed on the core path.
 
@@ -14,44 +14,42 @@ Your completion and mastery quizzes are in the LMS.
 
 Most programme rollouts fail on the bridge back to Monday: no plan, no library, no champion, so engineers revert to old habits under sprint pressure. A Smarsh champion's job is to keep the good path the easy path. A curated library other engineers pull from, a subagent other engineers invoke by name, a CLAUDE.md pattern that transfers across repo types, and a plan someone can check: this lab produces those four artifacts against the real repo.
 
+This lab runs longer than a 101 exercise because it carries competencies with zero Academy coverage: library curation behind a quality gate, subagent authoring, CLAUDE.md-by-repo-type, and adoption planning.
+
 ---
 
 ## Where the concept clicks
 
-Step 1 is the moment. You'll cold-run two seeded library entries in separate fresh sessions, simulating a teammate who's never seen this repo. Watch what each one does. The gap you observe is the quality gate. Everything else in the lab builds on what you see there.
+Step 1 is the moment. You'll cold-run two seeded library entries in separate fresh sessions, standing in for a teammate who has never seen this repo. The question you're answering: an entry worked for YOU because you had the repo in your head; will it work COLD for someone who doesn't? That gap is the quality gate. Everything else in the lab builds on what you see there.
 
 ---
 
 ## Track callback (Labs 6, 7, 8)
 
-In Lab 6 you built and triggered a skill and applied the 5-abstraction rubric (CLAUDE.md / skill / hook / subagent / MCP). In Lab 7 you invoked pre-built subagents and saw how scoping narrows what a model can reach. In Lab 8 you ran the 5-point review checklist and made a Trust-Spectrum call with a cited justification. This lab turns those personal skills into team assets: you contribute one to a shared library behind a quality gate, you author a new subagent, and you write the plan that keeps the team using them. No app servers and no browser are needed on the core path.
+In Lab 6 you built and triggered a skill and applied the 5-abstraction rubric (CLAUDE.md / skill / hook / subagent / MCP). In Lab 7 you invoked pre-built subagents and saw how scoping narrows what a model can reach. In Lab 8 you ran the 5-point review checklist and made a Trust-Spectrum call with a cited justification. This lab turns those personal skills into team assets: you contribute one to a shared library behind a quality gate, you author a new subagent, and you write the note that keeps the team using them.
 
 ---
 
-## Before you start
+## Step 0 — Confirm your worktree and orient
 
-> **Windows:** This lab runs entirely in the Claude Code terminal UI. No browser step, no MCP on the core path, and no `settings.json` change are needed. The only multi-line commands are the Step 0 git commands. Run them as separate lines, never joined.
->
-> **macOS:** The same applies. All shell commands are POSIX-compatible and run in Terminal or iTerm2. No browser flag or port-kill command is needed on the core path.
+You should already be on `lab-9-work` (in your per-lab worktree) from the MindTickle pre-work module. Confirm it:
 
----
+```
+git worktree list
+```
+```
+git status
+```
 
-## Step 0: Branch and orient
+You should see you're on `lab-9-work` with a clean tree. If you are not set up, follow the worktree-setup step in the MindTickle pre-work module, then come back.
 
-1. In a terminal at the repo root, run these as two separate commands:
-   ```
-   git fetch origin
-   ```
-   ```
-   git checkout -b lab-9-work origin/lab-9-start
-   ```
-   The fetch is not optional. The lab branches were pushed at repo freeze, after your homework clone.
+1. **Switch to Sonnet.** Smarsh defaults to Haiku; this lab is tuned for Sonnet. Run `/model sonnet` (or `/model` and pick Sonnet). The Step 1 behaviors assume Sonnet.
 
-2. Open `PROMPT-LIBRARY.md` at the repo root and read both seeded entries and the entry template at the top.
+2. Open `PROMPT-LIBRARY.md` at the repo root. Read both seeded entries and the `## How to add an entry` template block.
 
-3. Open `docs/lab-9/candidate-prompts.md`. It contains three reusable prompt candidates you can draw from in Step 2 and the reuse/reliability rating rubric.
+3. Open `docs/lab-9/candidate-prompts.md` for the reuse/reliability rubric and three candidate prompts you can draw from in Step 2.
 
-**You know this worked when:** `PROMPT-LIBRARY.md` shows exactly two entries (`gen-endpoint-tests` and `quick-review`) under a `## How to add an entry` template block.
+**You know you're oriented when:** `PROMPT-LIBRARY.md` shows exactly two entries — `gen-endpoint-tests` (a complete one) and `quick-review` (a deliberately thin one) — under a `## How to add an entry` template block, and you understand the rubric scores reuse and reliability 0-2 each.
 
 Expected library header:
 ```
@@ -62,8 +60,8 @@ Shared, peer-tested prompts for this repo. An entry earns a place only if a
 teammate can run it COLD and get the same result the author got.
 
 ## How to add an entry
-Each entry needs: a name, when to use it, the prompt body, one example of
-expected output, and a one-line note on why it clears the reuse + reliability bar.
+The library is an INDEX. It tells a teammate what reusable Claude assets exist
+and how to reach them...
 
 ## Entries
 
@@ -73,63 +71,59 @@ expected output, and a one-line note on why it clears the reuse + reliability ba
 ...
 ```
 
----
-
-## Step 1: Cold-run the quality gate (POINT STEP)
-
-1. Start a **fresh** Claude Code session (`claude`) at the repo root. Do not pre-load any files or give Claude any other context. You are simulating a teammate who has never seen this repo's specifics.
-
-2. Paste the body of the **weak** seeded entry (`quick-review`) exactly as written into the fresh session and run it. Watch what Claude does when the prompt does not name a target, a checklist, or an output shape.
-
-3. Start another fresh Claude Code session. Paste the body of the **strong** entry (`gen-endpoint-tests`) exactly as written. Watch what it produces.
-
-4. In a scratch note, rate each entry on **reuse** (does it generalize past the author's one case?) and **reliability** (does it work cold, without hand-holding?) using the rubric in `docs/lab-9/candidate-prompts.md`. Write one sentence on the single thing the weak entry assumed that a teammate would not have.
-
-**You know this worked when:** the weak entry made Claude ask a clarifying question or pick an arbitrary target, and the strong entry did not. You can name the missing context in one sentence.
-
-Expected weak-entry behavior:
-> **Claude (fresh session):** "I don't see any code in our conversation yet. Which file or endpoint would you like me to review, and what should I check for: correctness, style, security, all of the above?"
-
-Expected strong-entry behavior:
-> **Claude:** "Here is `tests/backend/test_inventory_filters.py`:" *(then a runnable test file that imports the TestClient fixture and asserts on the real response shape)*
+> **Docs pointer:** anything this card references as "see the pre-work" lives in your **MindTickle pre-work module**, not in this repo.
 
 ---
 
-## Step 2: Contribute one entry that clears the bar
+## Step 1 — Prove it transfers cold (POINT STEP)
 
-1. Pick **one** prompt from `docs/lab-9/candidate-prompts.md` (or one of your own from an earlier lab) that you would recommend to a teammate. Decide its **abstraction** using the library-entry abstraction menu: is this best as a one-off library **prompt**, a slash **command** (`.claude/commands/`), a **skill** (`.claude/skills/`), or a **CLAUDE.md rule**? Apply the scale test: what if there were 10,000 of these in a long-lived monorepo?
+The question this step answers: **an entry worked for YOU because you had the repo in your head. Will it work COLD for a teammate who doesn't?** That's the bar for putting anything in a shared library.
 
-   Note: Lab 6's full rubric also includes hook, subagent, and MCP. Those are valid in that broader context but do not map to shareable library entries. You will author a proper subagent in Step 3.
+1. Start a **fresh** Claude Code session (`claude`) at the repo root. Load no files and give no other context — you're standing in for a teammate who has never seen this repo's specifics.
 
-2. Rewrite the prompt so it clears the gate you applied in Step 1: it must name its target, its inputs, and show one example of expected output. Follow the entry template at the top of `PROMPT-LIBRARY.md`.
+2. Paste the body of the **weak** seeded entry (`quick-review`) exactly as written and run it. Note precisely what Claude had to GUESS to proceed — which file, which checklist, which output shape — and whether you could predict the same guess would happen on someone else's machine.
 
-3. Add your entry to `PROMPT-LIBRARY.md` under `## Entries`, including a one-line note recording the abstraction you chose and why.
+3. Start another fresh session (quit and relaunch `claude`). Paste the body of the **strong** entry (`gen-endpoint-tests`) exactly as written. Note what it did NOT have to guess.
 
-4. Commit:
-   ```
-   git add PROMPT-LIBRARY.md
-   ```
-   ```
-   git commit -m "library: add <your-entry-name> with reuse+reliability notes"
-   ```
+4. Rate each entry on **reuse** (does it generalize past one case?) and **reliability** (does it produce the intended result cold, without guessing?) using the rubric in `docs/lab-9/candidate-prompts.md`. Think through the specific context the weak entry made Claude supply on its own — the thing that would differ for a teammate — then move on.
 
-**You know this worked when:** `git show --stat HEAD` lists `PROMPT-LIBRARY.md`, and your entry has a name, a trigger/usage line, a body, one example, and an abstraction note.
+**You know this worked when:** you can point to at least one thing the weak entry forced Claude to infer (a target, a checklist, or an output format) and explain why that inference is a transfer risk even if the run "looked fine," and you can say why the strong entry has no such gap.
 
-Expected commit summary:
-```
-$ git show --stat HEAD
-    library: add gen-endpoint-tests with reuse+reliability notes
- PROMPT-LIBRARY.md | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
-```
+> A capable model may produce a usable result from the weak entry by inferring a target — for example, inspecting recent git history and reviewing the last-touched file. That's the point, not a bug. Reliability here means "no guessing required," not "it errored." On a teammate's machine with different history, that silent guess changes.
+
+> **Teach-the-feature:** starting a truly fresh session matters here. If you keep files open or context loaded, you're not simulating a cold teammate. Quit and relaunch `claude` between the two runs.
+
+Expected behavior:
+> **Weak entry, cold session** — Claude proceeds by INFERRING a target: "I'll review the most recently changed file, `server/main.py` — here's what I found…" You never told it which file; it guessed.
+> **Strong entry, cold session** — Claude produces `tests/backend/test_inventory_filters.py` with no guessing, because the entry named the endpoint, the cases, the pattern file, and the output format. Same result for anyone who runs it.
 
 ---
 
-## Step 3: Author a reusable subagent (ADOPTION CLIMAX)
+## Step 2 — Build one shareable item and register it
 
-This step turns what the team can prompt for into what the team can invoke by name. A subagent scopes a model to one job with a specific tool allowlist: safer, more predictable, and more shareable than a loose prompt.
+1. Pick **one** item you'd genuinely recommend to a teammate — one of `docs/lab-9/candidate-prompts.md`, or something of your own from an earlier lab. Decide its **form**: a reusable **prompt**, a slash **command** (`.claude/commands/`), a **skill** (`.claude/skills/`), or a **CLAUDE.md rule**. Apply the scale test: what if 10,000 of these lived in a long-lived monorepo?
 
-1. Choose your subagent from the **repo-grounded menu** in `docs/lab-9/subagent-menu.md`, or propose your own with equivalent scope.
+   Note: Lab 6's full rubric also includes hook, subagent, and MCP. Those are valid in that broader context but do not map to shareable library entries. You'll author a proper subagent in Step 3.
+
+2. **Build and run it once.** Ask Claude to help you author your chosen form (drive Claude — don't hand-write it), then execute it on a real target in this repo to confirm it works cold and does what you intend.
+
+3. **Register a pointer in `PROMPT-LIBRARY.md`.** The library is an INDEX, not a store of definitions:
+   - If your item is a **prompt**, put the prompt body inline in the entry.
+   - If it's a **command / skill / CLAUDE.md rule**, put a one-line pointer to where it lives (e.g. `See .claude/commands/<name>.md`) — do NOT paste the definition into the library.
+
+   Every entry carries: a name, when to use it, the pointer (inline body or path), one example of expected output, and a one-line note on the form you chose and why it clears the reuse + reliability bar.
+
+**You know this worked when:** your chosen item exists and you ran it successfully at least once; `PROMPT-LIBRARY.md` has a new entry that either contains your prompt inline or points to your command/skill by path, with a name, usage line, example, and a form-and-why note. All local — nothing committed.
+
+> **Why a pointer, not a paste:** you wouldn't paste a whole skill definition into a prose library — it'd rot out of sync with the real file. The library's job is to tell a teammate *what exists and how to reach it*. Prompts are short enough to live inline; everything else is referenced by path. (This is the same move Step 3 makes when your entry points at `@<subagent>`.)
+
+---
+
+## Step 3 — Author a reusable subagent (Adoption capstone)
+
+This step turns what the team can *prompt for* into what the team can *invoke by name*. A subagent scopes a model to one job with a specific tool allowlist — safer, more predictable, more shareable than a loose prompt. (This is the lab-local capstone — the culminating build of THIS lab.)
+
+1. Choose your subagent from the repo-grounded menu (full descriptions in `docs/lab-9/subagent-menu.md`), or propose your own with equivalent scope:
 
    | Option | File to create | Allowed tools | One job |
    |--------|----------------|---------------|---------|
@@ -138,27 +132,21 @@ This step turns what the team can prompt for into what the team can invoke by na
    | `vue-auditor` | `.claude/agents/vue-auditor.md` | Read, Glob, Grep | Audit the named Vue component in `client/src/`; report only, no edits |
    | your own | `.claude/agents/<your-name>.md` | narrower than full default | one scoped job you'd use on this repo |
 
-2. Ask Claude to draft the agent `.md` file for your choice. The file must have:
+   > **Naming note:** `vue-auditor` (this menu, which you'd author) is a different agent from the pre-existing `vue-expert` already in `.claude/agents/` — different name, different job. Don't overwrite `vue-expert`.
+
+2. Ask Claude to draft the agent `.md` file for your choice (drive Claude). It must have:
    - YAML frontmatter: `name`, `description` (one line stating when to invoke it), `tools` (comma-separated), `model: sonnet`
-   - A **one-job system prompt** that names its target path and redirects or declines tasks outside that scope
+   - A **one-job system prompt** that names its target path and declines tasks outside that scope
 
-   Edit the draft until it is useful. A system prompt that says "help with code" is not a one-job agent.
+   Edit the draft until it's genuinely one-job. "Help with code" is not a one-job agent.
 
-3. Compare your file's shape to the existing agents in `.claude/agents/`: `code-reviewer.md`, `security-auditor.md`, and `vue-expert.md` are the reference format.
+3. Compare your file's shape to the existing agents (`code-reviewer.md`, `security-auditor.md`, `vue-expert.md`) — that's the reference format.
 
 4. Write the file to `.claude/agents/<name>.md`.
 
-5. Update your `PROMPT-LIBRARY.md` entry from Step 2 to reference the subagent: add a note line such as `Invoke as a scoped run via @<name>.`
+5. Update your `PROMPT-LIBRARY.md` entry from Step 2 to point at the subagent — add a note line such as `Invoke as a scoped run via @<name>.`
 
-6. Commit:
-   ```
-   git add .claude/agents/<name>.md PROMPT-LIBRARY.md
-   ```
-   ```
-   git commit -m "library: add <name> subagent + link from PROMPT-LIBRARY entry"
-   ```
-
-**You know this worked when:** `.claude/agents/<name>.md` has valid YAML frontmatter (name, description, tools, model) and a one-job system prompt that names a target path; `PROMPT-LIBRARY.md` references `@<name>` or the agent file in your entry; `git show --stat HEAD` shows both files.
+**You know this worked when:** `.claude/agents/<name>.md` has valid YAML frontmatter (name, description, tools, model) and a one-job system prompt that names a target path; your `PROMPT-LIBRARY.md` entry references `@<name>`. All local — nothing committed.
 
 Reference frontmatter shape:
 ```yaml
@@ -172,40 +160,34 @@ model: sonnet
 
 ---
 
-## Step 4: CLAUDE.md template by repo type
+## Step 4 — A starter CLAUDE.md for a different repo type
 
-1. Open `docs/lab-9/repo-type-briefs.md`. Three short briefs cover repo types **unlike** inventory-management: a Java/Spring microservice, a shared Python library, and a data-pipeline repo. Pick one.
+1. Open `docs/lab-9/repo-type-briefs.md` — three briefs for repo types **unlike** inventory-management (Java/Spring microservice, shared Python library, data-pipeline repo). Pick one.
 
-2. Ask Claude to draft a **CLAUDE.md template section** for that repo type, then edit it yourself. It must differ from the inventory-management CLAUDE.md in ways that fit the target: build/test commands, conventions, and always/never rules specific to that repo type.
+2. Ask Claude to draft a **starter CLAUDE.md for that repo type** — a fresh CLAUDE.md as if you were bootstrapping that repo, with its own build/test commands, conventions, and always/never rules. Then edit it. It should be recognizably wrong for inventory-management.
 
-3. Write the draft to `docs/lab-9/claude-md-template-<repo-type>.md` and add two bullets at the bottom: **two things that change** vs the inventory-management template and why.
+3. Write the draft to `docs/lab-9/claude-md-<repo-type>.md` and add two bullets at the bottom: two things that change vs the inventory-management CLAUDE.md, and why.
 
-**You know this worked when:** the template names build/test commands and conventions that would be wrong for inventory-management (for example: `mvn test` and controller/service layering for Spring, or semantic-versioning and public-API-stability rules for a shared library), and your two "what changes" bullets are concrete.
+**You know this worked when:** the file names build/test commands and conventions that would be wrong here (e.g. `mvn test` + controller/service layering for Spring; semantic-versioning + public-API-stability rules for a shared library), and your two "what changes" bullets are concrete, not "it's different."
 
 ---
 
-## Step 5: 30-day plan and real metrics
+## Step 5 — Write the team-handoff note
 
-1. Open `docs/lab-9/30-day-plan-template.md`. Write `30-day-plan.md` at the repo root with three commitments:
-   - **This week:** one concrete action (for example: "run the `gen-endpoint-tests` entry to add empty-data and bad-filter cases for `/api/spending/categories`, which only has happy-path coverage in `test_misc_endpoints.py`, this sprint").
-   - **This month:** one team-facing action (for example: "get two teammates to each contribute one library entry").
-   - **Teach a colleague:** one commitment naming a person or a session (for example: "run a 30-minute show-and-tell for my squad on the 5-point review checklist").
+This is the artifact you carry back. Your change champion will ask to see it.
 
-   Each commitment must carry a **number, a task, or a name**. "Use Claude more" is not a commitment.
+1. Open `docs/lab-9/30-day-plan-template.md`. Write `TEAM-HANDOFF.md` at the repo root with three commitments:
+   - **This week:** one concrete action (e.g. "run my `gen-endpoint-tests` entry to add empty-data and bad-filter cases for `/api/spending/categories`, which only has happy-path coverage today").
+   - **This month:** one team-facing action (e.g. "get two teammates to each contribute one library entry").
+   - **Teach a colleague:** one commitment naming a person or a session (e.g. "run a 30-minute show-and-tell for my squad on the 5-point review checklist").
 
-2. Define **two real adoption metrics** (leading indicators of behavior change) and **explicitly exclude two vanity metrics**, with one sentence each on what the real metric tells you that the vanity metric does not.
+   Each must carry a **number, a task, or a name** — "use Claude more" isn't a commitment.
 
-3. Reference the champion cadence **pattern** (office hours and regular show-and-tell as the sustaining mechanism), not fixed calendar dates. This programme is async.
+2. Pick **two real adoption metrics** from the seeded menu in the template (or propose your own leading indicator), and name **two vanity metrics** you'll deliberately NOT track — one sentence each on what the real metric tells you that the vanity one doesn't.
 
-4. Commit:
-   ```
-   git add 30-day-plan.md docs/lab-9/claude-md-template-*.md
-   ```
-   ```
-   git commit -m "adoption: 30-day plan, metrics, and repo-type CLAUDE.md template"
-   ```
+3. Reference the champion cadence as a **pattern** (office hours + regular show-and-tell), not fixed dates — this programme is async.
 
-**You know this worked when:** `git log --oneline -3` shows your three commits, and `30-day-plan.md` has three commitments each carrying a number/task/name plus the two-real / two-vanity metric split.
+**You know this worked when:** `TEAM-HANDOFF.md` exists in your worktree with three commitments each carrying a number/task/name, plus a two-real / two-vanity metric split with a one-line justification each.
 
 Expected metric section shape:
 ```
@@ -213,7 +195,7 @@ Expected metric section shape:
 Real (leading):
 - <metric 1> — what it tells you:
 - <metric 2> — what it tells you:
-Excluded (vanity):
+Avoided (vanity):
 - <vanity metric 1> — why it misleads:
 - <vanity metric 2> — why it misleads:
 ```
@@ -224,29 +206,37 @@ Excluded (vanity):
 
 You're done when all five are true:
 
-1. You cold-ran both seeded entries and can name, in one sentence, the context the weak entry assumed.
-2. `PROMPT-LIBRARY.md` has your committed entry with a name, usage line, body, one example, and an abstraction note.
-3. `.claude/agents/<name>.md` is committed with valid YAML frontmatter (name, description, tools, model) and a one-job system prompt; `PROMPT-LIBRARY.md` references it.
-4. `docs/lab-9/claude-md-template-<repo-type>.md` exists with a template for a different repo type and two concrete "what changes" bullets.
-5. `30-day-plan.md` is committed, with three commitments each carrying a number/task/name and a two-real / two-vanity metric split.
+1. You cold-ran both seeded entries and can name, in one sentence, the context the weak entry made Claude guess.
+2. `PROMPT-LIBRARY.md` has your new entry with a name, usage line, a form/pointer (prompt inline or artifact path), one example, and a form-and-why note. Local, not committed.
+3. `.claude/agents/<name>.md` exists with valid YAML frontmatter (name, description, tools, model) and a one-job system prompt; `PROMPT-LIBRARY.md` references `@<name>`. Local, not committed.
+4. `docs/lab-9/claude-md-<repo-type>.md` exists with a starter CLAUDE.md for a different repo type and two concrete "what changes" bullets.
+5. `TEAM-HANDOFF.md` exists with three commitments each carrying a number/task/name and a two-real / two-vanity metric split.
+
+Expected end state (local, uncommitted):
+```
+$ git status --short
+ M PROMPT-LIBRARY.md
+?? .claude/agents/<name>.md
+?? docs/lab-9/claude-md-<repo-type>.md
+?? TEAM-HANDOFF.md
+```
 
 ---
 
-## Share-back
+## Carry it back
 
-Your share-back is the `PROMPT-LIBRARY.md` commit (your contributed, peer-runnable entry referencing your authored subagent) and the committed `30-day-plan.md`. The person-specific signal is which prompt you contributed, which subagent you authored and why you scoped it that way, the repo type you templated, and the metrics you picked.
+You now have four local artifacts in your `lab-9-work` worktree: your `PROMPT-LIBRARY.md` entry (pointing at your built item and your subagent), your `.claude/agents/<name>.md`, your `docs/lab-9/claude-md-<repo-type>.md`, and your `TEAM-HANDOFF.md`. Nothing is committed — this is yours to hand off. Your change champion closes the loop: they'll ask which entry you contributed, which subagent you scoped and why, which repo type you templated, and what's in your handoff note. That conversation is the actual handover.
 
 ---
 
 ## Extra credit (not required for done criteria)
 
 1. **Promote your entry to a real command.** Take the prompt you contributed and package it as a `.claude/commands/<name>.md` slash command with a description tuned for triggering, then invoke it with `/<name>` on a real endpoint. Record whether the command form was worth it over the plain prompt.
-   > **Windows:** if you add anything under `.claude/settings.json` while wiring the command, relaunch Claude Code before testing it.
-   > **macOS:** same: relaunch Claude Code (quit with Cmd+Q and reopen) after `.claude/settings.json` changes.
+   > **Windows / macOS (identical):** if you add anything under `.claude/settings.json` while wiring the command, relaunch Claude Code before testing it.
 
 2. **Cold-run a peer's entry (async-safe).** In the async cohort thread, swap library entries with another participant, run theirs cold, and post a reuse/reliability rating. This is the test-a-neighbor gate done live, without a synchronous session.
 
-3. **Write the second repo-type template.** Do Step 4 again for a second repo type from the brief set and enumerate what a single one-size CLAUDE.md would get wrong for both.
+3. **Write the second repo-type starter CLAUDE.md.** Do Step 4 again for a second repo type from the brief set and enumerate what a single one-size CLAUDE.md would get wrong for both.
 
 4. **Turn the library into a reviewed-merge process.** Write a two-line `## Contribution rules` section for `PROMPT-LIBRARY.md`: open contribution, reviewed merge, and one reuse/reliability check every entry must pass.
 
@@ -256,26 +246,27 @@ Your share-back is the `PROMPT-LIBRARY.md` commit (your contributed, peer-runnab
 
 ## If you're stuck
 
-**The strong seeded entry also makes Claude ask questions.** You may have pasted only part of it. Reopen `PROMPT-LIBRARY.md`, copy the **entire** body of `gen-endpoint-tests` including every line (the endpoint name, the cases to cover, the pattern file, and the output format line), and paste it into a truly fresh `claude` session with no other files open or context loaded.
+**The strong seeded entry also makes Claude guess.** You may have pasted only part of it. Reopen `PROMPT-LIBRARY.md`, copy the **entire** body of `gen-endpoint-tests` including every line (the endpoint name, the cases to cover, the pattern file, and the output format line), and paste it into a truly fresh `claude` session with no other files open or context loaded.
 
-**You can't decide which abstraction your entry should be.** Ask Claude to recommend which abstraction (prompt / command / skill / CLAUDE.md rule) best fits your prompt using the scale test: "what if there were 10,000 of these in a long-lived monorepo?" Ask for one recommendation and one runner-up with a line of reasoning each. Then make the call yourself and record it in your entry's abstraction note. The choice is yours to defend.
+**You can't decide which form your entry should be.** Ask Claude to recommend which form (prompt / command / skill / CLAUDE.md rule) best fits your item using the scale test: "what if there were 10,000 of these in a long-lived monorepo?" Ask for one recommendation and one runner-up with a line of reasoning each. Then make the call yourself and record it in your entry's note. The choice is yours to defend.
 
-**You can't decide which subagent to author.** Choose `test-writer`: its tool allowlist and scope are spelled out in `docs/lab-9/subagent-menu.md`, and the reference format is in `.claude/agents/code-reviewer.md`. It is the most directly related to the lab's test-generation theme.
+**You can't decide which subagent to author.** Choose `test-writer`: its tool allowlist and scope are spelled out in `docs/lab-9/subagent-menu.md`, and the reference format is in `.claude/agents/code-reviewer.md`. It's the most directly related to the lab's test-generation theme.
 
-**You're out of time or blocked.** Check out the reference state so you leave having seen what the finished lab looks like:
+**Fully stuck or out of time.** Check out the reference artifacts from the solution branch to see finished examples. First confirm your remote points at the fork:
+
 ```
-git stash -u
-```
-```
-git checkout lab-9-solution
-```
-Open `PROMPT-LIBRARY.md`, `.claude/agents/test-writer.md`, `docs/lab-9/quality-gate-notes.md`, `docs/lab-9/claude-md-template-spring.md`, and `30-day-plan.md`. You now have a complete, peer-runnable library entry, an authored subagent, filled-in cold-run ratings, a repo-type template, and a checkable adoption plan on your screen. Return to your own work:
-```
-git checkout lab-9-work
+git remote -v
 ```
 ```
-git stash pop
+git fetch origin
 ```
+```
+git checkout origin/lab-9-solution -- PROMPT-LIBRARY.md TEAM-HANDOFF.md docs/lab-9/quality-gate-notes.md docs/lab-9/claude-md-spring.md .claude/agents/test-writer.md
+```
+
+Open `PROMPT-LIBRARY.md`, `.claude/agents/test-writer.md`, `docs/lab-9/quality-gate-notes.md`, `docs/lab-9/claude-md-spring.md`, and `TEAM-HANDOFF.md`. You'll see a complete library entry pointing at an authored subagent, filled-in cold-run ratings, a repo-type starter CLAUDE.md, and a checkable handoff note — the LOCAL end state, not a commit history. These are reference files you pulled in; delete them before your next lab so they don't carry over.
+
+**Reset everything.** Run the `/reset-branch` command (not a skill). It does `branch -D` + `reset --hard` + `clean -fd` with no confirmation, so save anything you want to keep first. With worktree-per-lab you mostly just move to the next lab's worktree.
 
 ---
 

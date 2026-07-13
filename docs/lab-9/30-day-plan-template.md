@@ -1,24 +1,43 @@
-# 30-day adoption plan (template)
+# Team handoff note (template)
+
+This is what you carry back to your team. Keep it local — do not commit it.
+Your change champion will ask you about it.
 
 Rule: every commitment must attach a NUMBER, a TASK, or a NAME. "Use Claude
 more" is not a commitment — revise it until someone could check on it.
 
 ## This week
-- <one concrete action, e.g. "run gen-endpoint-tests to add empty-data/bad-filter cases for a happy-path-only spending endpoint">
+- <one concrete action, with a number/task/name>
 
 ## This month
-- <one team-facing action, e.g. "get 2 teammates to each contribute 1 library entry">
+- <one team-facing action, with a number/task/name>
 
 ## Teach a colleague
 - <one commitment naming a person or a session>
 
 ## Adoption metrics
-Real (leading indicators of behavior change):
-- <metric 1> — what it tells you:
-- <metric 2> — what it tells you:
-Excluded (vanity):
-- <vanity metric 1> — why it misleads:
-- <vanity metric 2> — why it misleads:
+Pick TWO real metrics (leading indicators of behavior change) from the menu
+below, or propose your own leading indicator. Then name TWO vanity metrics you
+will deliberately NOT track.
+
+Candidate REAL metrics (pick 2):
+- Shared-library entry invocations per engineer per week.
+- PR cycle time on AI-assisted changes vs baseline.
+- Number of engineers who contributed a reused (not just added) library entry.
+- Share of code-review findings first surfaced by a scoped subagent.
+
+Common VANITY metrics (name 2 to avoid, say why):
+- LMS logins / % certified.
+- Raw count of prompts in the library.
+- Hours logged in Claude Code.
+- Slack reactions on tool-tips.
+
+Real (leading):
+- <metric> — what it tells you:
+- <metric> — what it tells you:
+Avoided (vanity):
+- <metric> — why it misleads:
+- <metric> — why it misleads:
 
 ## Champion cadence
 Reference the pattern (office hours + regular show-and-tell), not fixed dates —
