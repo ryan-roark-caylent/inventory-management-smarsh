@@ -1,9 +1,8 @@
 # Surface Selection Map — Lab 1
 
-## The four surfaces — one line each ("when I'd use this")
+## The three surfaces — one line each ("when I'd use this")
 - Claude.ai:
 - Claude Code:
-- Claude Cowork:
 - API / CI:
 
 ## Issue routing (fill in BEFORE opening any tool)
