@@ -171,6 +171,8 @@ Notice what you're scoping: the connected server is **one combined `claude_ai_At
 
 Now encode that reasoning directly in `.claude/settings.local.json` — this is the **deterministic guard** the runtime actually reads: **allow** only the Jira read calls, **deny** the writes and everything else. The shape (fill the exact tool names you confirm from `/mcp`):
 
+> **Why this file, and not CLAUDE.md?** `settings.local.json` is a **deterministic control** — the runtime matches every tool call against these allow/deny lists and blocks a denied call *every time*, with no model judgment involved. A `CLAUDE.md` instruction like "please only read from Jira" is the opposite: it's **non-deterministic guidance** the model may follow, misread, or be talked out of (including by a prompt injection). When you need a guarantee — especially before handing an agent autonomy — put it where the machine enforces it, not where the model interprets it. That's the whole point of this step: the guard, not good intentions, is what holds.
+
 ```jsonc
 {
   "permissions": {
