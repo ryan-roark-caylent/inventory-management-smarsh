@@ -101,7 +101,16 @@ secure. Preferred for Phase 2 if write endpoints are added.
 because this backend is read-only. It becomes relevant when write endpoints
 are introduced.
 
-## Threshold configuration
+## Decisions needed from you
+
+**Where do per-category thresholds live and get configured?** (new config
+endpoint / in-memory dict / hardcoded default / JSON file / env) — surfaced
+by the spec as an open call; resolved below.
+
+*(Also surfaced, left open as demonstration: what fires when a category has
+no configured threshold, and whether to extend `/api/inventory` vs add a new
+endpoint. The threshold-storage call is the one resolved here.)*
+
 **Decision:** an in-memory dict initialized at startup, exposed via a new
 `GET /api/config/thresholds` read endpoint and a `PUT
 /api/config/thresholds` write endpoint. Default values are hardcoded per
