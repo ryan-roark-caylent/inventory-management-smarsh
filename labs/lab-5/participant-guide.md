@@ -80,7 +80,7 @@ Apply the loop explicitly and record each step in `intervention-log.md`:
 2. **Hypothesis (required written field)** — before accepting Claude's answer, write your own one-sentence hypothesis for why a model change with no route change produces a 500. **This write is the point of the loop:** committing a prediction *before* you read the confirmation is what stops you from accepting the model's first explanation as ground truth.
 3. **Confirm / challenge** — verify against the data source: ask Claude whether `inventory.json` actually contains a `supplier` key.
 4. **Fix — your design decision:** the required-field contract is broken because the data has no `supplier`. Choose and defend one:
-   - **Path A:** backfill every record in `inventory.json` with a real supplier value (honors "required"). Plausible values are fine — e.g. one supplier per category — no research needed. Ask Claude to do it.
+   - **Path A:** backfill every record in `inventory.json` with a real supplier value (honors "required"). Plausible values are fine — e.g. one supplier per category — no research needed.
    - **Path B:** relax the field to `Optional[str] = None` (tolerates legacy records; weakens the business rule).
 
 ---
