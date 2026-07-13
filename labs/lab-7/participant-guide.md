@@ -276,5 +276,3 @@ Open both files. You'll see what a complete least-privilege scope and a signal-p
 ## Sources
 
 - [31-lab-7-remediation-design.md](../../lab-build/31-lab-7-remediation-design.md) — authoritative design (Sections 1-8)
-</content>
-</invoke>
