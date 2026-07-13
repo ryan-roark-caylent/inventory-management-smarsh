@@ -10,77 +10,71 @@ Your completion and mastery quizzes are in the LMS.
 
 By the end of this lab you'll have:
 
-- A `structured-handoff.md` (Findings / Decisions / Constraints) derived from a read-only sub-agent review
-- A `permission-scope.md` encoding the 3-part MCP permission model (Explicit Read / Explicit Write / Explicit Blocks) for a real GitHub + Jira round-trip
-- A worktree (`../inv-lab7`) proving agentic isolation holds
+- A `structured-handoff.md` (Findings / Decisions / Constraints) that Claude drafts and you scope, derived from a read-only sub-agent review
+- A `permission-scope.md` encoding a least-privilege MCP scope for Jira (read allowed, all writes blocked)
+- First-hand proof that the scope — not your click — is the safety: a Jira write DENIED under auto mode while the scoped read still works
 
-These three files are your share-back, plus the Jira issue key the live round-trip produces.
+Both files stay local in your worktree. Nothing gets committed or pushed.
 
-**The point:** a sub-agent or an MCP connection is a privilege grant, not a convenience. You right-size the delegation, scope the permissions to exactly the calls the workflow makes, and run automation inside a worktree it can't escape.
+**The point:** an MCP connection is a privilege grant, not a convenience. You scope it to exactly the calls the workflow needs, and the guard — not your click — is what stops the rest. When a write is scoped off, even auto mode can't perform it.
 
 ---
 
 ## Core path
 
-Steps 0-7 are required for done-criteria. Work at your own pace.
+Steps 0-8 are the core path. Work at your own pace.
 
 ---
 
 ### Step 0 — Pre-flight check
 
-Prerequisites for this lab (fork, clone, branch push, PR open, CI trigger, and MCP credential provisioning) were completed before you started. See `25-lab-prerequisites.md` if you need to revisit any of them.
+You should already be on `lab-7-work` (in your per-lab worktree) from the MindTickle pre-work module. If you are not, check it out now:
 
-Do the following checks before you begin:
+```
+git fetch origin
+git worktree add ../lab-7-work lab-7-start
+```
 
-1. Relaunch Claude Code so the project `.mcp.json` (GitHub + Jira servers) and `CLAUDE.md` load fresh.
+(Your pre-work module has the exact worktree setup; this is the fallback.)
 
-2. Run `/mcp` and confirm **github** and **jira** both show as connected. If either shows disconnected, your credential environment variables are not set. Stop and fix them using `25-lab-prerequisites.md` before continuing.
+Do the following before you begin:
 
-3. Confirm the PR's CI check is red. Run this command:
+1. **Switch to Sonnet.** Smarsh defaults to Haiku; this lab is tuned for Sonnet. Run `/model sonnet` (or `/model` and pick Sonnet). The point-step behaviors assume Sonnet.
 
-   ```
-   gh pr checks --repo ryan-roark-caylent/inventory-management-smarsh
-   ```
+2. **Relaunch Claude Code** so the project `.mcp.json` and `CLAUDE.md` load fresh.
 
-   `backend-tests` must show `fail`. If it still shows `pending`, wait one minute and run the command again. If `backend-tests` never appears, Actions may not be enabled on the fork. See `25-lab-prerequisites.md` for the Actions-enable step.
+3. **Confirm Jira is connected.** Run `/mcp` and confirm **jira** (Atlassian) shows connected. If it shows disconnected, your credential environment variables aren't set — fix them per the MindTickle pre-work module, then relaunch. (There is no GitHub MCP in this lab — Jira only.)
 
-4. Confirm you are on the right branch:
+4. **Note the exact Jira tool names.** In the `/mcp` view, look at the Jira server's tool list and note the exact names for "get an issue," "search issues," and "add a comment." You'll need the exact names in Step 5 — a guessed name silently mis-scopes.
 
-   ```
-   git branch --show-current
-   ```
+**Success signal:** `git branch --show-current` (or `git worktree list`) shows you on `lab-7-work`; `/model` shows Sonnet; `/mcp` lists jira as connected and you can see its tool names.
 
-   Must print `lab-7-work`.
+> **Windows / macOS (identical):** after any `.mcp.json` or settings change, relaunch Claude Code before testing MCP or permissions. MCP is configured at project scope (root `.mcp.json`), never user-global. If MCP auth opens a browser, on Windows add `--browser msedge` to that step; on macOS your default browser opens with no flag.
 
-**Success signal:** `git branch --show-current` prints `lab-7-work`; the `gh pr checks` output shows `backend-tests` as `fail`; `/mcp` lists github and jira as connected.
-
-> **Windows:** after any `.mcp.json` or settings change, relaunch Claude Code before testing MCP or permissions. MCP is configured at project scope (root `.mcp.json`), not user-global. If MCP authentication opens a browser, add `--browser msedge` to that step.
->
-> **macOS:** same relaunch rule applies after `.mcp.json` or settings changes. MCP is configured at project scope (root `.mcp.json`), not user-global. If MCP authentication opens a browser, your default browser opens automatically with no extra flag.
+> **Docs pointer:** anything this card references as "see the pre-work" lives in your **MindTickle pre-work module**, not in this repo.
 
 ---
 
-### Step 1 — Read the trigger
+### Step 1 — Read the trigger (local, read-only)
 
-Ask Claude (single agent, read-only) to run the backend test suite and explain which test fails and why. Point it at the backend tests:
+Ask Claude (single agent, read-only) to run the backend test suite and explain which test fails and why. Do not ask it to fix anything.
 
 ```
 uv run --project server pytest tests/backend/ -v
 ```
 
-Ask Claude to name the failing test and identify the specific line of code responsible. Do not ask it to fix anything yet.
+Ask Claude to name the failing test and identify the specific line of code responsible.
 
 **Expected output shape:**
 
 ```
 tests/backend/test_dashboard_filter.py::test_inventory_count_respects_filter FAILED
-tests/backend/test_dashboard.py::TestDashboardEndpoints::test_get_dashboard_summary PASSED
 ...
-=================== 1 failed, 40 passed in 0.58s ===================
-E   assert 32 < 32   # total_inventory_items returned the global count (32), not the filtered count (12)
+=================== 1 failed, 40 passed in 0.5s ===================
+E   assert <filtered count> < <global count>   # the counts are equal because the field ignores the filter
 ```
 
-**Success signal:** Claude names the failing test and points at the specific line in `server/main.py` the test targets.
+**Success signal:** Claude names the failing test and points at the specific line in `server/main.py` (`get_dashboard_summary`).
 
 ---
 
@@ -95,9 +89,11 @@ You have four tasks for this repo:
 
 Sort each into **delegate to a sub-agent** vs **keep in a single agent**. Write one line defending each decision. Then name the delegation topology for any task you delegate: which sub-agent does what, in what order.
 
-You must decide and defend: which tasks earn a sub-agent's coordination overhead, and which don't?
+Decide and defend: which tasks earn a sub-agent's coordination overhead?
 
 **Success signal:** a 4-row sort with a one-line reason per task, plus a named topology for any delegated work.
+
+> **Note:** this is judgment, not a code change — there's nothing to run here. Step 3 dispatches the reviewer that this sort tells you is worth delegating.
 
 ---
 
@@ -105,7 +101,7 @@ You must decide and defend: which tasks earn a sub-agent's coordination overhead
 
 Ask Claude to dispatch the `code-reviewer` sub-agent on the failing dashboard-summary code in `server/main.py`. Ask it to return the reviewer's findings and confirm whether any files were changed.
 
-Note: the `code-reviewer` agent runs in its own context window. It has read-only tools (Read, Grep, Glob) and cannot write files even if asked.
+> **Refresher:** the `code-reviewer` sub-agent runs in its **own context window**. Its investigation — reading files, grepping, reasoning — does not pile into your main session's context. That isolation is the point: you get the findings back without clogging your window with everything it looked at. It also has read-only tools (Read, Grep, Glob) and cannot write files even if asked.
 
 **Expected output shape:**
 
@@ -113,16 +109,10 @@ Note: the `code-reviewer` agent runs in its own context window. It has read-only
 # Code Review: dashboard summary
 **Files Reviewed**: server/main.py
 ## Critical Issues
-1. total_inventory_items ignores filters - server/main.py (get_dashboard_summary)
-   - Problem: len(inventory_items) counts the global list; filtered_inventory is already
-     computed above but unused here
-   - Fix: [you determine this in Step 4]
-2. total_backlog_items ignores filters - server/main.py line 200 (get_dashboard_summary)
-   - Problem: len(backlog_items) counts the global backlog list with no warehouse/category filter
-   - Note: backlog items carry no warehouse or category fields, so a filter here is
-     non-trivial; separate issue, out of scope for the failing test
+1. <primary finding — a count that ignores the active filters>
+2. <a secondary finding, noted as a separate known issue>
 ## Suggestions
-- CORS allow_origins=["*"] (main.py) is broad for anything beyond a demo
+- <a broad CORS setting flagged as demo-only>
 (No files were modified — reviewer has Read/Grep/Glob only.)
 ```
 
@@ -130,134 +120,107 @@ Note: the `code-reviewer` agent runs in its own context window. It has read-only
 
 ---
 
-### Step 4 — Author the structured handoff
+### Step 4 — Claude drafts the handoff, then quizzes you
 
-Instead of passing the reviewer's raw transcript to an implementer, write a one-page `structured-handoff.md` with three sections:
+Instead of writing the handoff from scratch (or passing the reviewer's raw transcript downstream), **ask Claude to draft `structured-handoff.md`** with three sections — **Findings / Decisions / Constraints** — and then to **quiz you** on the scoping calls it can't make for you:
 
-- **Findings:** what the reviewer found (primary finding + any secondary findings noted as separate known issues)
-- **Decisions:** what you will fix and why, scoped to exactly the test-targeted field; explicitly defer anything out of scope
-- **Constraints:** what the fix must not do (no new dependencies, no touching other endpoints, keep it in-memory)
+- Which finding is the one the failing test targets (the primary), and which are separate known issues to defer?
+- What is the minimal fix, and what should it deliberately NOT touch?
+- What constraints bound it (in-memory only, no new deps, don't touch other endpoints)?
 
-The handoff should be shorter than the raw transcript and contain no chat noise.
+Answer Claude's questions to lock the Decisions and Constraints yourself. The finished handoff should be shorter than the raw transcript and carry no chat noise. **This stays a local file in your worktree — it does not get sent anywhere.**
 
-Ask Claude to help you think through what belongs in each section, but make the scoping decisions yourself. What is the minimal fix that makes the failing test pass?
-
-**Success signal:** `structured-handoff.md` exists with all three sections filled; Decisions is scoped to the test-targeted field and explicitly defers anything out of scope.
+**Success signal:** `structured-handoff.md` exists with all three sections filled; Decisions is scoped to the test-targeted field and explicitly defers the out-of-scope finding; it reads as signal, not transcript.
 
 ---
 
-### Step 5 — Write `permission-scope.md` (the 3-part model) ★ Point step
+### Step 5 — Scope Jira to read-only (`permission-scope.md`) ★ Point step
 
-For the workflow "read the failing CI check on the PR, then open a Jira issue with the diagnosis," write the three permission scopes yourself and defend each:
+You're about to let an agent touch Jira. Before you do, decide exactly what it may and may not do, and write it down. For the workflow "read my most-recent Jira ticket; do nothing else to Jira," write the three scopes and defend each:
 
-- **Explicit Read:** what can the agent read, on which resource, and on which specific repo?
-- **Explicit Write:** what can the agent create or modify, on which resource, on which specific project?
-- **Explicit Blocks:** what is explicitly forbidden, even if the MCP server would allow it?
+- **Explicit Read** — Jira: read issues (get one issue / search my issues). Read-only.
+- **Explicit Write** — Jira: **BLOCKED.** No comment, no create, no transition, no edit.
+- **Explicit Blocks** — everything else: no other MCP server, no Jira admin, no deletes, no project changes.
 
-Strip anything broader than what the workflow actually needs. Each section should be a checklist of named, specific calls.
-
-Then encode the two permitted calls (one read, one write) as an allow/deny list in `.claude/settings.local.json`. Block everything else.
+Then encode it in `.claude/settings.local.json`: **allow** only the Jira read call(s); **deny** the Jira write calls and everything else.
 
 The shape your `permission-scope.md` should take:
 
 ```markdown
 ## Explicit Read
-- github: <the specific read call>  (repo: inventory-management-smarsh ONLY)
+- jira: <the specific read call(s)>   (my issues / one issue — read only)
 
 ## Explicit Write
-- jira: <the specific write call>  (project: <your project> ONLY)
+- jira: BLOCKED — no comment, no create, no transition, no edit
 
 ## Explicit Blocks
-- github: <calls you are blocking>
-- jira: <calls you are blocking>
+- jira: <write/admin/delete calls you are blocking>
+- everything else: no other MCP server, no other project, no admin
 ```
 
-Ask Claude to think through what minimal set of calls the workflow requires, but you fill in and defend the three sections yourself.
+> **Verify tool names:** open `/mcp`, find the Jira server's tool list, and confirm your allow/deny entries use the **exact** tool names it exposes. A guessed name (`get_issue` vs `jira_get_issue`) silently mis-scopes — the guard won't match and the block won't fire where you think it does.
 
-**Success signal:** `permission-scope.md` has all three sections as checkable lines; your allow list names only the single read call and the single write call; your block list names merge, delete, and any call outside your workflow.
+Ask Claude to help you enumerate the minimal read calls the workflow needs, but you fill in and defend the three sections and the allow/deny list yourself.
+
+**Success signal:** `permission-scope.md` has all three sections as checkable lines; your allow list names only the Jira read call(s); your deny list names the Jira write calls plus everything outside the workflow. The `/mcp` tool names match your entries exactly.
 
 ---
 
-### Step 6 — Run the scoped round-trip
+### Step 6 — Run it under auto mode and watch the write get DENIED ★ Point step
 
-With auto mode **off**, ask Claude to run the full workflow under your scope: read the failing CI check on your open PR via the GitHub MCP, then create exactly one Jira issue titled after the failing test with the diagnosis from your `structured-handoff.md` in the body.
+Now prove the scope is the safety — not your click.
 
-Tell Claude not to merge anything, not to touch any other repo or project, and to ask you before each MCP call.
-
-Approve each call as it fires. Observe that only the two calls your scope names are ever requested.
+1. **Enable auto mode** (you learned this earlier in the program; via `/permissions`, not Shift+Tab). With auto mode on, Claude does not stop to ask you to approve tool calls.
+2. Ask Claude to: **(a) read your most-recent Jira ticket** (fetch the single latest issue assigned to or reported by you — content doesn't matter), then **(b) add a short comment to that same ticket** (any nonsense text).
+3. Watch what happens: the **read succeeds** (it's in your Explicit Read). The **comment write is DENIED by your Explicit Block** — even though auto mode would have auto-approved anything you allowed. No human said no. The scope said no.
+4. **Then review locally with git.** Run `git status` / `git diff` in your worktree and confirm nothing changed and no local files were written by the blocked call. This is the review-after-autonomy habit: let it run, then check.
 
 **Expected output shape:**
 
 ```
-github ▸ get_pull_request(#7)  → checks: "backend-tests" = FAILING
-jira   ▸ create_issue(project=AEP, summary="test_inventory_count_respects_filter failing on PR #7")
-       → { "key": "AEP-1234", "self": "https://.../browse/AEP-1234" }
+jira ▸ get_issue(<your-latest-key>)         → returns the ticket (summary, status)   ✓ allowed
+jira ▸ add_comment(<your-latest-key>, ...)  → DENIED by permission rule (deny: jira add_comment)
+                                              (no approval prompt — auto mode was on)
+Result: read completed; comment was NOT created. Scope held with no human in the loop.
 ```
 
-(Your issue key and PR number will differ.)
+**Success signal:** Claude reports the content (or key) of your most-recent ticket from the read; the comment attempt returns a permission-denied / blocked result, not a created comment; auto mode never prompted you to approve; `git`-review shows a clean local tree.
 
-**Success signal:** the GitHub MCP returns the red check name; the Jira MCP returns a new issue key; no other MCP call was attempted. Open the issue in Jira and confirm the diagnosis appears in the body.
-
-> **Note:** if your Jira project key isn't `AEP`, the create call uses whatever project you were provisioned. The scope discipline (one project only) is what matters, not the specific key.
+> **Note:** the whole point is that this is lab-agnostic — it works against whatever real Jira project you were provisioned. The ticket content is irrelevant; the connection working (read) and the block firing (write) are the lesson.
 
 ---
 
-### Step 7 — Worktree isolation
+### Step 7 — Worktree isolation (you've been in one all along)
 
-From the repo root, run each command on its own line (no chaining):
-
-```
-git worktree add ../inv-lab7 -b inv-lab7
-```
-
-Then create a file in the new worktree:
+You didn't just run an autonomous agent — you ran it inside a **git worktree** (`lab-7-work`) the whole lab. Confirm it:
 
 ```
-touch ../inv-lab7/isolation-test.txt
+git worktree list
 ```
 
-Verify the file appears in the worktree:
+You'll see `lab-7-work` as its own working directory, separate from any other checkout. That's why the auto-mode run in Step 6 could never have escaped into another branch's files or your main checkout.
 
-```
-git -C ../inv-lab7 status --short
-```
-
-Then verify the main checkout is unaffected:
-
-```
-git status --short
-```
-
-The file must not appear in the main checkout.
+Write one sentence on why running an autonomous, MCP-connected agent inside a worktree matters (blast radius: the worst case is contained to this working tree). Then note a **qualitative** token-cost estimate for the workflow you ran — relative cost vs a single-agent task, and the biggest cost driver. No absolute number.
 
 **Expected output shape:**
 
 ```
-$ git -C ../inv-lab7 status --short
-?? isolation-test.txt
-$ git status --short
-                            # (empty — the file does not leak in)
+$ git worktree list
+/path/to/inventory-management-smarsh   <sha> [main]
+/path/to/lab-7-work                    <sha> [lab-7-work]
 ```
 
-Write one sentence explaining why the isolation holds. Then note a qualitative token-cost estimate for the full workflow you ran (relative cost compared to a single-agent task, and what the biggest cost driver is). No absolute token count needed.
-
-**Success signal:** `git status --short` in the main checkout is empty; `isolation-test.txt` exists only in `../inv-lab7`.
+**Success signal:** `git worktree list` shows `lab-7-work` as an isolated worktree; you can state in one sentence why isolation bounded the autonomous run.
 
 ---
 
-### Step 8 — Exit ticket and commit
+### Step 8 — Keep your takeaway (no commit)
 
-Commit `permission-scope.md` and `structured-handoff.md` to `lab-7-work`. Record your delegation topology decision (from Step 2) in the commit message or in a brief note in one of the files. Push to your fork.
+Your two local artifacts — `permission-scope.md` and `structured-handoff.md` — stay in your worktree as a personal takeaway. **Do not commit or push anything.**
 
-```
-git add permission-scope.md structured-handoff.md
-git commit -m "lab-7: structured handoff and permission scope"
-git push origin lab-7-work
-```
+Think through (no need to write it down): if you scoped this Jira workflow for your own team, what's the one call you'd allow and the one you'd hardest-block?
 
-Your share-back is the two committed files plus the Jira issue key from Step 6 and the worktree branch name `inv-lab7`, with your one-line qualitative token-cost note.
-
-**Success signal:** `git log --oneline -1` shows your commit; both artifacts are on `lab-7-work`.
+**Success signal:** both files exist in your worktree; you can point to the Explicit Block line that denied the write in Step 6.
 
 ---
 
@@ -265,10 +228,10 @@ Your share-back is the two committed files plus the Jira issue key from Step 6 a
 
 You have completed the core path when all four are true:
 
-1. `structured-handoff.md` exists on `lab-7-work` with Findings, Decisions, and Constraints filled.
-2. `permission-scope.md` exists with all three parts (Explicit Read, Explicit Write, Explicit Blocks) as checkable lines, and the allow list names only the single read call and the single write call.
-3. The scoped round-trip ran: the GitHub MCP read the red CI check and the Jira MCP returned a new issue key, and no broader MCP call was attempted.
-4. A worktree exists at `../inv-lab7` and `git status` in the main checkout is clean.
+1. `structured-handoff.md` exists in your worktree with Findings, Decisions, and Constraints filled; Decisions scoped to the test-targeted field.
+2. `permission-scope.md` exists with all three parts (Explicit Read, Explicit Write blocked, Explicit Blocks) as checkable lines; the allow list names only the Jira read call(s).
+3. Under auto mode, the scoped Jira read succeeded and the comment write was DENIED by your deny rule with no approval prompt.
+4. `git worktree list` shows you ran the whole lab inside `lab-7-work`; a `git`-review shows a clean local tree.
 
 ---
 
@@ -276,49 +239,42 @@ You have completed the core path when all four are true:
 
 These are not required for done-criteria or the completion quiz. Work on them if you finish early or want to go deeper.
 
-1. **Scoped `/loop` (Part 4).** Enable auto mode via `/permissions` (not Shift+Tab, which cycles to plan mode). On your open PR, run `/loop 10m` and ask it to check whether CI passed, summarize any review comments, and tell you what is blocking merge. Set an iteration cap. Confirm it never attempts a merge (your Explicit Blocks holds). Map the task to the trust spectrum first: is it read-mostly? Is the worst-case action recoverable?
+1. **Raw transcript vs structured handoff comparison.** Pass the reviewer's full raw transcript to a fresh implementer session, then pass your `structured-handoff.md` to another. Compare which produces the cleaner, more targeted fix.
 
-2. **Raw transcript vs structured handoff comparison.** Pass the reviewer's full raw transcript to a fresh implementer session, then pass your `structured-handoff.md` to another. Compare which produces the cleaner, more targeted fix.
+2. **Fix the bug locally.** In your worktree, apply the fix you scoped in your structured handoff, run pytest green, and confirm nothing else changed. (Do not commit.)
 
-3. **Idempotency.** Run the "open a Jira issue" workflow twice. Observe a duplicate issue. Add a check-before-create step (keyed on the failing test name) so the second run is a no-op.
+3. **Second sub-agent, real topology.** Dispatch `security-auditor` (haiku, read-only) on the same code and compare its findings to `code-reviewer`'s. Did the two-reviewer fan-out earn its cost?
 
-4. **Fix the bug in the worktree.** In `../inv-lab7`, apply the fix you identified in your structured handoff, run pytest green, and confirm the main checkout is untouched until you merge.
-
-5. **Second sub-agent, real topology.** Dispatch `security-auditor` (haiku, read-only) on the same diff and compare its findings to `code-reviewer`'s. Did the two-reviewer fan-out earn its cost?
+4. **Tighten the scope further.** Add a second Jira write to your deny list (a transition or an update) and re-run Step 6's write attempt against it. Confirm each named write is blocked independently.
 
 ---
 
 ## Stuck path
 
-**MCP won't connect (stuck at Step 0).** Run `/mcp` to see current status. If github or jira show disconnected, confirm your credential environment variables are set (see `25-lab-prerequisites.md`), then relaunch Claude Code. If you still can't connect, you can still complete the scoping half of the lab. Ask Claude to read `.mcp.json` and help you think through which specific GitHub and Jira calls a workflow that reads a failing CI check and opens one Jira issue would need, and which calls it should be explicitly blocked from, without calling any tool. You'll produce a valid `permission-scope.md` and still hit done-criteria 1 and 2.
+**Jira won't connect (Step 0 / 6).** Run `/mcp` to see current status. If jira shows disconnected, confirm your read-only Jira token environment variable is set (see the MindTickle pre-work module), then relaunch Claude Code. If you still can't connect, you can still complete the scoping half of the lab: ask Claude to read `.mcp.json` and help you think through which specific Jira calls a workflow that only reads your most-recent ticket would need, and which it must be blocked from, without calling any tool. You'll produce a valid `permission-scope.md` and still hit the scoping done-criteria.
 
 **Sub-agent dispatch confuses you (Step 3).** Ask Claude to dispatch the `code-reviewer` sub-agent to review the dashboard summary function in `server/main.py`, report its findings, and confirm it made no file changes. If Claude seems confused about sub-agents, confirm `.claude/agents/code-reviewer.md` exists in the repo.
 
-**Stuck on the structured handoff structure (Step 4).** Ask Claude to look at the reviewer's output and help you identify the primary finding (the one the failing test targets), any secondary findings worth noting, and what the minimal fix would need to avoid touching. You fill in the three sections; Claude can help you think through the boundaries.
+**Stuck on the handoff (Step 4).** Ask Claude to draft the three sections and quiz you on the scoping calls — the primary finding (the one the failing test targets), any secondary findings worth deferring, and what the minimal fix must avoid touching. You make the scoping calls; Claude drafts from your answers.
 
-**Stuck on permission scoping (Step 5).** Ask Claude to list the minimal set of GitHub and Jira tool calls a workflow that reads a failing CI check and creates one Jira issue would need, without calling any tool. Use that list to fill in your three sections yourself.
+**Stuck on permission scoping (Step 5).** Ask Claude to list the minimal set of Jira tool calls a workflow that only reads your most-recent ticket would need, and every Jira write/admin call that should be explicitly blocked, without calling any tool. Use that list to fill in your three sections yourself.
 
-**Fully stuck or out of time.** Check out the reference artifacts from the solution branch to see finished examples:
+**Fully stuck or out of time.** Check out the reference artifacts from the solution branch to see finished examples. First confirm your remote points at the fork:
 
 ```
+git remote -v
 git fetch origin
 git checkout origin/lab-7-solution -- permission-scope.md structured-handoff.md
 ```
 
 Open both files. You'll see what a complete least-privilege scope and a signal-preserving handoff look like. You still leave having seen the 3-part model applied.
 
-**Reset everything.** Run the `/reset-branch` skill, then redo Step 0. Remove any stray worktree with:
-
-```
-git worktree remove ../inv-lab7 --force
-```
-
-Delete `.claude/settings.local.json` before your next lab so the allow/deny list doesn't carry over.
+**Reset everything.** Run the `/reset-branch` command (not a skill). It does `branch -D` + `reset --hard` + `clean -fd` with no confirmation, so save anything you want to keep first. With worktree-per-lab you mostly just move to the next lab's worktree. Delete `.claude/settings.local.json` before your next lab so the allow/deny list doesn't carry over.
 
 ---
 
 ## Sources
 
-- [20-lab-7-design.md](../../lab-build/20-lab-7-design.md) — authoritative design (Sections 2, 3, 4, 5, 7, 9)
-
-**Date generated:** 2026-07-11
+- [31-lab-7-remediation-design.md](../../lab-build/31-lab-7-remediation-design.md) — authoritative design (Sections 1-8)
+</content>
+</invoke>

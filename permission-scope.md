@@ -1,21 +1,27 @@
-# Permission Scope — CI-to-Jira Workflow
+# Permission Scope — Jira Read-Only Workflow
 
-Workflow: read the failing CI check on a PR, then open one Jira issue with the diagnosis.
+Workflow: read my most-recent Jira ticket; do nothing else to Jira.
 
 ## Explicit Read
 
-- github: `get_pull_request`, `list_check_runs_for_ref` (or equivalent CI check status tool)
-  - Scope: repo `inventory-management-smarsh` ONLY
-  - No other repos, no file contents, no branch list
+- jira: `get_issue`, `search_issues`   (read my most-recent ticket; read only)
+  - No file contents outside the ticket, no other MCP server
 
 ## Explicit Write
 
-- jira: `create_issue`
-  - Scope: project `AEP` ONLY (one project, one create call)
-  - No transitions, no updates, no deletes
+- jira: BLOCKED — `add_comment`, `create_issue`, `transition_issue`, `update_issue` all denied
+  - There is no write in this workflow. Every Jira mutation is off.
 
 ## Explicit Blocks
 
-- github: `merge_pull_request`, `delete_branch`, `create_branch`, any other repo
-- jira: `transition_issue`, `delete_issue`, `update_issue`, any other project, admin operations
-- All other MCP tools not listed above
+- jira: `add_comment`, `create_issue`, `transition_issue`, `update_issue`, delete, admin
+- all other MCP servers and tools
+
+---
+
+> **TO-VERIFY (dry-run):** the tool names above are the LIKELY Atlassian remote-MCP names.
+> Smarsh's config may prefix them (e.g. `jira_get_issue`). Confirm the exact names via `/mcp`
+> before relying on the deny list — the block only fires if the deny entry matches the real
+> tool name the agent would call. The `mcp__jira__<tool>` prefix in `.claude/settings.local.json`
+> also depends on the exact server key in `.mcp.json` (here `jira`).
+</content>

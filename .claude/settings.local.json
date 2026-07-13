@@ -1,17 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "mcp__github__list_pull_requests",
-      "mcp__github__get_pull_request",
-      "mcp__github__list_check_runs_for_ref",
-      "mcp__jira__create_issue"
+      "mcp__jira__get_issue",
+      "mcp__jira__search_issues"
     ],
     "deny": [
-      "mcp__github__merge_pull_request",
-      "mcp__github__delete_branch",
-      "mcp__github__create_branch",
+      "mcp__jira__add_comment",
+      "mcp__jira__create_issue",
       "mcp__jira__transition_issue",
-      "mcp__jira__delete_issue",
       "mcp__jira__update_issue"
     ]
   }
