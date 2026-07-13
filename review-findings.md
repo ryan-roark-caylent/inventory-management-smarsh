@@ -46,30 +46,33 @@ The human reviewer owns every verdict. The subagent is an input, not the authori
 
 ---
 
-## Human vs Subagent Diff
+## Human vs code-reviewer vs security-auditor
 
-The `code-reviewer` subagent (read-only, no shell) was dispatched on the same file.
+Both read-only subagents (Read/Grep/Glob only, no shell) were dispatched on the SAME unfixed file, before any fix, so both had the real defects in front of them.
 
-**Issues the subagent caught:**
+**`code-reviewer` (general) caught:**
 - Issue 1 (off-by-one `>` vs `>=`) — reliably surfaced
 - Issue 4 (naming: `do_inv`) — reliably surfaced
 
-**Issues the subagent missed or did not raise:**
-- Issue 3 (hallucinated import) — the subagent cannot run `pip` or confirm package existence; it may note the unrecognized import but cannot verify it does not exist
-- Issue 2 (PII in log) — inconsistent; may or may not surface it
+**`security-auditor` caught:**
+- Issue 2 (PII in log line) — this is the agent that reliably surfaces the logged email; the general reviewer was inconsistent on it
+- May also flag the CORS `allow_origins=["*"]` wildcard in `server/main.py`
 
-**Issues the subagent raised that were not in my four:**
-- May note missing return-type annotations or lack of a docstring on `_lookup`; these are additional findings not part of the four planted defects
+**What BOTH missed:**
+- Issue 3 (hallucinated import) — neither agent can run `pip` or confirm a package exists; both are read-only with no shell. One may NOTE the unrecognized import, but neither can verify it does not exist. Silence here is a tooling limitation, not exoneration.
 
-**Conclusion:** the subagent's finding set differed from the human's four-item list. Any gap between the two lists is the human's responsibility to own. The subagent's silence on Issue 3 is not a clean bill; it is a tooling limitation. The Trust Spectrum verdict on every issue stands regardless of whether the subagent raised it.
+**What either raised outside my four:**
+- Missing return-type annotations or a docstring on `_lookup` — additional findings, not part of the four planted defects.
+
+**Conclusion:** three finding sets, none identical. Different scopes catch different subsets — the security agent surfaced the PII line the general reviewer missed, and neither could verify the hallucinated import. The union of every gap is the human's to own; a subagent's silence never clears an issue. The Trust-Spectrum verdict on each issue stands regardless of which agent raised it.
 
 ---
 
-## Sanitized Reference GitHub Issue Body
+## Sanitized Local Review Record
 
-**Title:** Code review: server/inventory_ops.py
+This is the review record kept locally in the worktree — NOT pushed anywhere. No GitHub issue, no MCP write.
 
-**Body:**
+**Subject:** Code review: server/inventory_ops.py
 
 Four issues found during read-only review of `server/inventory_ops.py`:
 
@@ -78,7 +81,7 @@ Four issues found during read-only review of `server/inventory_ops.py`:
 3. **L2 — Hallucination:** `acme_inventory_sdk` is not a real package. The module cannot be imported. Remove the import and the `optimize_stock` call. Verdict: REJECT.
 4. **L12 — Style/Naming:** Function `do_inv` is a non-descriptive abbreviation. Rename per CLAUDE.md Backend Conventions. Verdict: MODIFY.
 
-Responsible-use note: the email value from L14 is NOT reproduced in this ticket.
+Responsible-use note: the email value from L14 is NOT reproduced in this record.
 
 ---
 
@@ -90,4 +93,4 @@ Responsible-use note: the email value from L14 is NOT reproduced in this ticket.
 4. Call an internal endpoint that does not exist yet — **Needs modification.** Confirm or spec the endpoint before asking Claude to call it; speculative calls are hallucination-adjacent.
 5. AWS access keys committed in CLAUDE.md — **Never acceptable.** Committed secrets persist in git history even after removal; rotate the key immediately and treat the repo as compromised.
 
-**CORS `allow_origins=["*"]` in `server/main.py:52`** — **Needs modification.** A wildcard origin would fail a deployment security review; replace with an explicit allowlist of known origins (e.g., `["http://localhost:3000"]`).
+**CORS `allow_origins=["*"]` in `server/main.py:52`** — **Needs modification.** A wildcard origin combined with `allow_credentials=True` would fail a deployment security review; it lets any site make credentialed requests to the API. **Fix applied (Step 7):** replaced with an explicit allowlist `["http://localhost:3000"]`; the backend suite stays green.
