@@ -55,9 +55,9 @@ Ask Claude to locate everything related to purchase orders in the repo and repor
 - No @app.post("/api/purchase-orders") route exists in server/main.py
 ```
 
-**Run it and look.** Start the app (`scripts/start.ps1` on Windows, `scripts/start.sh` on macOS — this boots both servers). Open the dashboard at `http://localhost:3000`, click **Create PO** on a backlog item, and watch what happens. The feature is half-built: the button opens a modal that submits, but no backend route backs it. Open your browser dev tools (Network + Console) and confirm the create call fails — the `POST /purchase-orders` request 404s because the route does not exist yet. This is the gap you are about to close.
+**Run it and look.** Start the app (`scripts/start.ps1` on Windows, `scripts/start.sh` on macOS — this boots both servers). Open the dashboard at `http://localhost:3000`, find a backlog item, and click **Create PO**. Nothing opens. Open your browser dev tools (Console) and you will see Vue fail to resolve a `PurchaseOrderModal` component — the frontend half of this feature was never finished (the modal is referenced but never built or imported). As your survey found, the backend half is missing too: there is no `POST /api/purchase-orders` route. This lab closes the **backend** gap (building that route); the frontend modal is extra credit.
 
-**Success signal:** Claude's survey reports the models and `api.js` stub exist but there is no `POST /api/purchase-orders` route, AND you saw the create flow fail in the running app (a 404 on the POST in the Network tab, or a failed create in the console).
+**Success signal:** Claude's survey reports the models and `api.js` stub exist but there is no `POST /api/purchase-orders` route, AND you saw **Create PO** fail in the running app (the modal never opens; the Console shows Vue failing to resolve the `PurchaseOrderModal` component).
 
 ---
 
@@ -177,16 +177,9 @@ Ask Claude for the exact JSON the endpoint returns for a created PO (or reuse wh
 
 ## Step 7: Exit ticket
 
-Name which of the four integration patterns you used:
+Write one sentence tracing one diff hunk to the spec line it satisfies (for example, "the response-model change traces to the public-fields line I added in Step 6"). Keep this trace note with your spec in your worktree — it is your takeaway.
 
-- Pre-coding Planner
-- Mid-coding Pair
-- Post-coding Reviewer
-- PR Preparer
-
-Write one sentence: which diff hunk traced to which spec line. Keep this trace note with your spec in your worktree — it is your takeaway.
-
-**Success signal:** a one-line pattern name plus one diff-to-spec trace, ready to paste into the completion quiz.
+**Success signal:** one diff-to-spec trace you can point to, backed by the conformant endpoint on your screen.
 
 ---
 
@@ -213,7 +206,7 @@ These steps are not required for the completion quiz.
 
 **3. Frontend surface (browser).** Build the missing `PurchaseOrderModal.vue` and register it in `Dashboard.vue` so the "Create PO" button works end to end, then run the app and create a PO through the modal. Launch both servers with `scripts/start.ps1` (Windows) or `scripts/start.sh` (macOS). On Windows, when opening the browser with a `claude` command, add `--browser msedge`; on macOS Claude Code opens your default browser automatically.
 
-**4. PR Preparer pattern.** Use `git diff` to have Claude draft a PR description that lists the API surface change and links each change to a spec line.
+**4. Draft a PR description.** Use `git diff` to have Claude draft a PR description that lists the API surface change and links each change to a spec line.
 
 ---
 
