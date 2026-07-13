@@ -23,7 +23,3 @@ Found in `server/main.py` line 200 inside `get_dashboard_summary`. Every other f
 total_backlog_items = len(apply_filters(backlog_items, warehouse, category))
 ```
 Caveat: `BacklogItem` has no `warehouse` field, so this fix returns 0 under any warehouse filter — pattern-consistent, but not production-complete until the model is extended.
-
-## Model + effort selection
-- Trivial rename -> tier/effort: lighter tier (Haiku/Sonnet), normal effort because: single-file, low risk, no multi-step reasoning needed; burning reasoning budget here adds latency with no benefit.
-- Multi-file refactor -> tier/effort: stronger tier (Sonnet or above), higher reasoning effort because: spans files, has correctness risk, and benefits from careful planning before touching the shared API client.
