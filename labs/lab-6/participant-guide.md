@@ -1,10 +1,12 @@
 # Lab 6: Claude Skills — Build It, Trigger It, Automate Around It
 
-**What you'll have when you're done:** a skill you named and built from scratch that fires on plain-English requests without you typing `/name`, a PostToolUse hook that runs your backend test suite automatically after every edit, and a written rubric decision committing your own weekly workflow to one of the five Claude Code customization abstractions.
+**What you'll have when you're done:** a skill you named and built from scratch that fires on plain-English requests without you typing `/name`, a PostToolUse hook that runs your backend test suite automatically after every edit, and a written rubric decision committing your own weekly workflow to one of the five Claude Code customization abstractions. All of it stays local in your worktree — nothing gets pushed to the repo.
 
 **Track:** 2 (Vibecode). Builds on Lab 3 (CLAUDE.md / context) and Lab 5 (multi-step workflows + debugging loop).
 
-**Your completion and mastery quizzes are in the LMS.**
+This lab runs a little long because it carries skill-authoring and hook-wiring competencies that the Agent Skills Academy course does not cover. It sits near Lab 4 in depth.
+
+**Your completion and mastery quizzes are in the LMS (MindTickle).** Prerequisites, install steps, and worktree setup are in the MindTickle pre-work module.
 
 ---
 
@@ -12,7 +14,7 @@
 
 - Fork: `ryan-roark-caylent/inventory-management-smarsh`
 - Starting branch: `lab-6-start`
-- You need `uv` on PATH (used by the backend test runner and hook script)
+- Complete the MindTickle pre-work module first: it installs `uv` and node/npm, runs `npm install` and a client boot, and sets up your per-lab worktree.
 
 ---
 
@@ -20,26 +22,20 @@
 
 ### Step 0 — Setup
 
-Fetch and check out the starting branch, then start the servers:
+You should already be on `lab-6-work` (in your per-lab worktree) from the MindTickle pre-work module. If you are not, create it now:
 
 ```
 git fetch origin
-git checkout -b lab-6-work origin/lab-6-start
+git worktree add ../lab-6-work lab-6-start
 ```
 
-**Windows:**
-```
-scripts\start.ps1
-```
+Then `cd ../lab-6-work`.
 
-**Mac:**
-```
-scripts/start.sh
-```
+- Run `/model sonnet`. Smarsh defaults to Haiku; this lab's trigger behavior is tuned for Sonnet. (How-to: type `/model`, then pick Sonnet.)
+- Start the servers: ask Claude to run the `/start` command, or run the start script for your OS (`scripts\start.ps1` on Windows, `scripts/start.sh` on Mac). Then open the app.
+- Open a **fresh** Claude Code session so it loads this branch's `CLAUDE.md`.
 
-Alternatively, ask Claude to run the `/start` skill.
-
-Open a **fresh** Claude Code session after checkout so it loads this branch's `CLAUDE.md`.
+You are isolated by construction: because you work in the `lab-6-work` worktree the whole time, there is no branch-switch and no reset to worry about — your edits can't cross-contaminate anything.
 
 **You know it worked when:** the app loads at `http://localhost:3000` and running the backend tests manually reports all passing:
 
@@ -51,53 +47,53 @@ uv run --project server pytest tests/backend/ -q
 
 ### Step 1 — Name your skill (open-ended)
 
-The skill you're building automates this workflow: generate pytest tests for a FastAPI endpoint.
+The skill you're building automates this workflow: generate pytest tests for a FastAPI endpoint. You build exactly this skill.
 
-**You decide the name.** Call it whatever you would call it if you were adding it to your own team's repo — not necessarily `gen-tests`. Write one sentence defending your choice.
+**You decide the name.** Call it whatever you would call it if you were adding it to your own team's repo — the reference solution happens to be `gen-tests`, but you are not required to match it. Think through one reason your name is a good routing signal, then move on.
+
+> **Card aside:** a too-generic name (for example `helper` or `tests`) gives Claude a weaker routing signal. You'll feel this in Step 3.
 
 **Success signal:** a new file exists at `.claude/skills/<your-name>/SKILL.md`.
 
 ---
 
-### Step 2 — Author with a deliberately thin description
+### Step 2 — Author with a deliberately weak description
 
-Give your skill a body that does the work, but write the `description:` frontmatter as a bare title: one short phrase that names the skill but doesn't describe when to use it or provide example trigger phrases.
+Ask Claude to write the skill body so it does the real work, but set the `description:` frontmatter to a **bare title**: one short phrase that names the skill and says nothing about when to use it and gives no example phrasings (for example, `description: Generates tests.`).
 
-> **Windows:** relaunch Claude Code after saving `SKILL.md`. Skill name and description metadata load at session start — the skill is not active until you relaunch.
+> **Relaunch Claude Code after saving `SKILL.md`.** Skill name and description metadata load at session start, so the skill is not active until you relaunch — on all platforms. On Mac, quit the terminal Claude session and start a fresh one (`claude` in a new tab); on Windows, relaunch the app.
 
-> **Mac:** same — quit and relaunch Claude Code (`claude` in a new terminal tab) after saving `SKILL.md`. Skill metadata is not hot-reloaded mid-session on any platform.
+After relaunching, ask Claude, in plain English, to do exactly the task the skill covers. Do **not** type `/<your-name>`.
 
-After relaunching, ask Claude, in plain English, to do exactly the task the skill covers. Do not type `/<your-name>`.
+**Success signal (the designed failure):** Claude answers your request directly and invokes no skill at all. You will not see a `Skill(...)` line in the transcript — not your skill, not any skill. This is expected.
 
-**Success signal (the designed failure):** Claude answers your request directly and does not invoke your skill. You will not see your skill's name in the transcript. This is expected.
+> If you DO see any skill fire here, tell your champion — the branch is misconfigured.
 
 Expected transcript shape:
 ```
 > [your natural-language request about the task]
 I'll write tests for the endpoint. Here's a test file...
-(no skill invocation appears)
+(no skill invocation appears — not yours, not any)
 ```
 
 ---
 
-### Step 3 — Tune the description until it fires (point step)
+### Step 3 — Tune the description until YOUR skill fires (point step)
 
-Ask Claude to rewrite the `description:` as a routing signal: what the skill does, plus at least five example phrasings a teammate might type to invoke it. Save the file.
+Ask Claude to rewrite the `description:` as a routing signal: one sentence on what the skill does, plus **at least five example phrasings** a teammate might type to invoke it. Save the file.
 
-> **Windows:** relaunch Claude Code after each description save. The updated description is not active until the next session start. The loop is: rewrite → save → relaunch → test.
-
-> **Mac:** same — quit and relaunch Claude Code after each description save. The rewrite → save → relaunch → test loop applies on all platforms.
+> **Relaunch after each description save** (same as Step 2 — metadata loads at session start on all platforms). The loop is: rewrite → save → relaunch → test.
 
 After relaunching, re-issue the same plain-English request from Step 2. If the skill still doesn't fire, add more trigger phrasings and synonyms, save, relaunch, and retry.
 
-**Record how many rewrite-relaunch-test cycles it took.** The number depends on the live model — do not assume it will be one.
+Expect more than one pass — the number depends on the live model, so notice that it took iteration (you don't need to record the exact count).
 
-**Success signal:** Claude invokes your skill from natural language, with no `/<your-name>`. You see the skill name in the transcript.
+**Success signal:** the transcript shows **`Skill(<your-name>)`** — your exact chosen name — on a request with no `/<your-name>`. The signal is your name specifically, not "a skill loaded." You matched the words in the description to the request: a description is a routing signal, not a label.
 
 Expected transcript shape:
 ```
 > [your natural-language request about the task]
-Skill: <your-name>
+Skill(<your-name>)
 Reading tests/backend/ conventions and the target endpoint...
 ```
 
@@ -109,27 +105,17 @@ Invoke `/<your-name>` directly against a real endpoint in the repo (for example,
 
 **Success signal:** the skill produces a runnable Python test file grounded in real repo content. It should use the shared `client` fixture from `tests/backend/conftest.py` and mirror the class-based structure in the existing test files.
 
-Example of what a well-grounded output looks like:
+Abridged shape of a well-grounded output:
 ```python
-# tests/backend/test_orders.py
-import pytest
-
-
+# tests/backend/test_orders.py  (abridged)
 class TestOrdersEndpoints:
-    """Test suite for order-related endpoints."""
-
     def test_get_orders_returns_200(self, client):
         response = client.get("/api/orders")
         assert response.status_code == 200
-
-    def test_get_orders_returns_list(self, client):
-        response = client.get("/api/orders")
-        data = response.json()
-        assert isinstance(data, list)
-        assert len(data) > 0
+    # ... additional test_ methods
 ```
 
-You do not need to run the generated file to pass this step. Reading it and confirming it is grounded in repo content is sufficient.
+You do not need to run the generated file to pass this step. Reading it and confirming it is grounded in repo content is sufficient. To study a fuller set of testing patterns for structure, read `docs/lab-6/backend-test-patterns.md`.
 
 ---
 
@@ -137,15 +123,13 @@ You do not need to run the generated file to pass this step. Reading it and conf
 
 Ask Claude to author `.claude/settings.json` with a **PostToolUse** hook. The hook should use a matcher for Write and Edit operations, and it should run the test script that already ships on this branch at `.claude/hooks/run_backend_tests.py`. Failures should print to stderr.
 
-> **Windows:** relaunch Claude Code after saving `.claude/settings.json`. Hooks are read at session start.
+> **Relaunch Claude Code after saving `.claude/settings.json`.** Hooks load at session start on all platforms. On Mac, quit and start a fresh session; on Windows, relaunch the app.
 
-> **Mac:** same — quit and relaunch Claude Code after saving `.claude/settings.json`. Hooks are not hot-reloaded mid-session on any platform.
+**Prove it works:** ask Claude to change the low-stock comparison in `get_dashboard_summary` (`server/main.py`) from `<=` to `<`. Watch what happens before Claude's next turn.
 
-**Prove it works:** ask Claude to find why the low-stock comparison in `get_dashboard_summary` (`server/main.py`) might count fewer items than expected if the boundary condition changed (hint: look at the `<=` operator). Ask it to make that change.
+**Run it and look (optional):** before the edit, glance at the dashboard's low-stock count in the open UI. After the bad edit, the boundary item drops out of that count. This lab is mostly backend, so this is an optional observability beat — the hook's stderr failure is the real signal.
 
-Watch what happens before Claude's next turn.
-
-**Success signal (the hook fires on the bad edit):** you see a pytest failure in stderr:
+**Success signal (the hook fires on the bad edit):** you see a pytest failure in stderr naming the dashboard low-stock test:
 ```
 Backend tests failed after this edit:
 FAILED tests/backend/test_dashboard.py::TestDashboardEndpoints::test_dashboard_low_stock_items_calculation
@@ -154,12 +138,7 @@ assert 4 == 5
 
 Then ask Claude to revert the change.
 
-**Success signal (after revert):** all backend tests pass:
-```
-tests/backend/... 36 passed
-```
-
-(The exact count may differ slightly; what matters is red on the bad edit and green after revert.)
+**Success signal (after revert):** all backend tests pass (`N passed`). What matters is red on the bad edit, green after revert.
 
 ---
 
@@ -167,31 +146,25 @@ tests/backend/... 36 passed
 
 Open the reference at `docs/lab-6/five-abstraction-rubric.md`.
 
-Write a weekly workflow you actually do (one sentence). Apply the rubric and **commit to exactly one** of: CLAUDE.md / skill / hook / subagent / MCP. Write the deciding factor. For example: "must run automatically without being asked, and the logic belongs outside the context window" points to hook.
+Write a weekly workflow you actually do (one sentence). Apply the rubric and **commit to exactly one** of: CLAUDE.md / skill / hook / subagent / MCP. State the deciding factor. For example: "must run automatically without being asked, and the logic belongs outside the context window" points to a hook.
 
-Save your decision and one-line justification to `rubric-decision.md` at the repo root.
+Save your decision and one-line justification to `rubric-decision.md` at the repo root. This is a genuine deliverable — write it down.
 
 **Success signal:** `rubric-decision.md` names one abstraction and states the deciding factor.
 
 ---
 
-### Step 7 — Commit the share-back artifacts
+### Step 7 — Keep your artifacts (no commit)
 
-Stage and commit the three files you built:
+Your three artifacts stay **local in your worktree** — they are your personal takeaway:
 
-```
-git add .claude/skills/<your-name>/SKILL.md .claude/settings.json rubric-decision.md
-```
+- `.claude/skills/<your-name>/SKILL.md`
+- `.claude/settings.json`
+- `rubric-decision.md`
 
-```
-git commit -m "lab-6: skill + auto-test hook + rubric decision"
-```
+**Do NOT `git add` or `git commit`.** Nothing gets pushed to the repo.
 
-**Success signal:** run the following and confirm all three files appear in the listing:
-
-```
-git show --stat HEAD
-```
+**Success signal:** `git status` shows the three files present (as new/untracked or modified) in your worktree. You keep them; you do not commit them.
 
 ---
 
@@ -199,11 +172,9 @@ git show --stat HEAD
 
 All three of these are observable on your own screen:
 
-1. Your skill fires from a natural-language request — skill name is visible in the transcript (Step 3).
+1. Your skill fires from a natural-language request — `Skill(<your-name>)`, your own name, is visible in the transcript (Step 3).
 2. After the planted off-by-one, the hook surfaces a pytest failure in stderr; after revert, green (Step 5).
-3. `git show --stat HEAD` lists all three committed artifacts (Step 7).
-
-**Share-back:** the commit on your `lab-6-work` branch — `.claude/skills/<name>/SKILL.md`, `.claude/settings.json`, and `rubric-decision.md` in a single diff.
+3. `git status` lists all three artifacts present in your worktree — the skill, the settings file, and `rubric-decision.md` (Step 7).
 
 ---
 
@@ -211,7 +182,7 @@ All three of these are observable on your own screen:
 
 Not required for any quiz or done-criteria. Use these if you finish early.
 
-**EC-1 — Second skill, disambiguation.** Build one of two additional skills: `/inv-review` (flags FastAPI anti-patterns in a diff) or `/pr-desc` (drafts a PR description from `git diff --staged`). Test whether a natural-language request routes to the right skill, or whether the descriptions collide. Tighten the description of whichever skill loses.
+**EC-1 — Second skill, disambiguation.** Build one of two additional skills: `/inv-review` (flags FastAPI anti-patterns in a diff) or `/pr-desc` (drafts a PR description from `git diff --staged`). Test whether a natural-language request routes to the right skill, or whether the two descriptions collide. Tighten the description of whichever skill loses.
 
 **EC-2 — Scope the hook down.** The shipped hook runs the full suite on every server edit. Rewrite it (or the script) to run only the affected test file. Note the tradeoff you accepted (speed vs. missed cross-file regressions).
 
@@ -224,24 +195,13 @@ Not required for any quiz or done-criteria. Use these if you finish early.
 ## If you get stuck
 
 **Skill won't implicit-trigger after several rewrites.**
-Explicit invocation always works: type `/<your-name>` directly to continue the lab. To study a description that does trigger, check out the solution branch's skill and read its `description:` field:
-
-```
-git checkout origin/lab-6-solution -- .claude/skills/gen-tests/SKILL.md
-```
-
-Read the description. You still see the point: what's in the description is what does the routing. Then delete that file and keep building yours, or continue from the solution as your base.
+Explicit invocation always works: type `/<your-name>` directly to continue the lab. If it still won't route from natural language, add more trigger phrasings and synonyms to the description, save, relaunch, and retry. The point holds either way: what's in the description is what does the routing.
 
 **Hook doesn't fire.**
 
-1. Relaunch Claude Code after saving `.claude/settings.json`. Hooks load at session start on all platforms (Windows and Mac).
+1. Relaunch Claude Code after saving `.claude/settings.json`. Hooks load at session start on all platforms.
 2. Confirm the file is valid JSON. A trailing comma breaks it.
 3. Confirm `uv` is on PATH: run `uv run --project server pytest tests/backend/ -q` by hand.
-4. If still stuck, land the known-good config and relaunch:
-
-   ```
-   git checkout origin/lab-6-solution -- .claude/settings.json
-   ```
 
 **Pytest errors or can't tell red from green.**
 Run the suite by hand:
@@ -252,14 +212,7 @@ uv run --project server pytest tests/backend/ -q
 
 Your PostToolUse hook should surface a `test_dashboard_low_stock_items_calculation` failure in stderr once the planted change is active, and green once it is resolved. If you cannot tell red from green here, that is the signal your hook is not wired correctly yet, not that your fix is wrong.
 
-**Full reset (last resort).**
-Land every answer artifact and inspect it:
-
-```
-git checkout origin/lab-6-solution -- .claude/skills .claude/settings.json rubric-decision.md
-```
-
-You end up with a working skill, a wired hook, and a rubric decision. The point of the lab is there to read.
+Note: `/reset-branch` is a **command** on this branch (`.claude/commands/reset-branch.md`), not a skill — a useful reminder for this lab, which is all about the skill-vs-command distinction. You don't need it here: the worktree keeps you isolated.
 
 ---
 
@@ -267,7 +220,8 @@ You end up with a working skill, a wired hook, and a rubric decision. The point 
 
 - Lab 6 design doc (facilitator-tier, not on this branch)
 - [`docs/lab-6/five-abstraction-rubric.md`](../../docs/lab-6/five-abstraction-rubric.md) — 5-abstraction reference matrix (participant-facing)
+- [`docs/lab-6/backend-test-patterns.md`](../../docs/lab-6/backend-test-patterns.md) — backend test-pattern reference (study for structure)
 - Lab 5 multi-step workflow and debugging loop (prerequisite)
 - Lab 3 CLAUDE.md and context patterns (prerequisite)
 
-**Date:** 2026-07-11
+**Date:** 2026-07-13

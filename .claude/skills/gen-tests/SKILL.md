@@ -70,5 +70,5 @@ class Test<Feature>Endpoints:
 ## Key reminders
 
 - Reference `docs/lab-6/five-abstraction-rubric.md` for when a skill is the right abstraction vs a hook, CLAUDE.md, subagent, or MCP.
-- The `backend-api-test` skill (`.claude/skills/backend-api-test/SKILL.md`) has a full set of testing patterns — read it for edge-case guidance.
+- The backend test-pattern reference (`docs/lab-6/backend-test-patterns.md`) has a full set of testing patterns — read it for edge-case guidance.
 - Run tests with: `uv run --project server pytest tests/backend/ -q`

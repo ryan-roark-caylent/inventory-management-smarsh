@@ -1,11 +1,6 @@
----
-name: backend-api-test
-description: Guidelines for writing backend API tests using pytest and FastAPI TestClient. Use this skill when writing or modifying tests in tests/backend directory.
----
-
 # Backend API Testing Guidelines
 
-This skill provides comprehensive guidelines for writing backend API tests for the Factory Inventory Management System. Follow these patterns to ensure consistent, thorough test coverage.
+This reference doc provides comprehensive guidelines for writing backend API tests for the Factory Inventory Management System. Follow these patterns to ensure consistent, thorough test coverage. It is a plain study reference, not a loadable skill.
 
 ## Directory Structure
 
