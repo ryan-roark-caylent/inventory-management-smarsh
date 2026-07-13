@@ -166,6 +166,8 @@ Now encode that reasoning directly in `.claude/settings.local.json` — this is 
 
 > **Verify tool names:** open `/mcp`, select the **claude_ai_Atlassian** server, and read its tool list. Confirm every allow/deny entry uses the **exact** tool name it exposes — camelCase with the `mcp__claude_ai_Atlassian__` prefix, not the friendly label. A guessed name silently mis-scopes: the guard won't match, and the block won't fire where you think it does.
 
+> **To be clear — blocking writes is a choice for this exercise, not a rule.** Letting Claude comment on, transition, or create Jira issues is a perfectly good real-world setup; plenty of useful workflows need exactly that. We block writes here so you can *watch the guard fire* and prove the scope is what stops the call. The lesson isn't "MCP writes are dangerous" — it's "scope to what the workflow needs." When your workflow genuinely needs a write, allow it.
+
 Ask Claude to help you enumerate the minimal read calls the workflow needs, but you decide and defend the allow/deny split yourself.
 
 **Success signal:** `.claude/settings.local.json` allows only the two Jira read calls and denies the writes plus the Confluence/cross-product tools outside the workflow; every entry matches an exact `/mcp` tool name.
