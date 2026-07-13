@@ -10,23 +10,20 @@ You will take a half-built purchase-orders feature in the inventory-management a
 
 **Capabilities you will practice:**
 - The five-element spec (Task / Context / Constraints / Format / Example) as a verifiable contract, not a search query
-- Explore → Plan → Code → Commit, grounded in the spec
+- Explore → Plan → Code, grounded in the spec
 - The generate-review-iterate loop: when output is wrong, you fix the spec, not the prompt
 
 ---
 
 ## Before you start
 
-You need:
-- The `ryan-roark-caylent/inventory-management-smarsh` fork cloned locally
-- Claude Code installed and working
-- `uv` installed (backend runs on `uv`)
+Prerequisites, model setup, and the worktree setup are in the LMS pre-work module (MindTickle). Complete that module first — it walks you through cloning the fork, installing Claude Code, `uv`, and node/npm, running `npm install` and `uv sync` once, and creating your per-lab worktree. Your completion and mastery quizzes are in the same module.
 
 ---
 
-## Step 0: Start clean
+## Step 0: Start clean (in your worktree)
 
-Run each command on its own line (do not chain with `&&`):
+You should already be in your **Lab 4 worktree** on `lab-4-work` from the pre-work. Working in a per-lab worktree is the model: you keep all your content, and no prior lab's files can contaminate this one. If you are not set up yet, do it now (run each command on its own line, do not chain with `&&`):
 
 ```
 git fetch origin
@@ -34,6 +31,8 @@ git checkout -b lab-4-work origin/lab-4-start
 ```
 
 Start a fresh Claude Code session so the lab-branch `CLAUDE.md` and `specs/spec-template.md` load.
+
+**Confirm your model:** run `/model` and select `sonnet` if you are not already on it. (Smarsh defaults to Haiku; this lab is tuned for Sonnet.)
 
 **Success signal:** `specs/spec-template.md` exists in your working tree and the following command prints `lab-4-work`:
 
@@ -43,7 +42,7 @@ git branch --show-current
 
 ---
 
-## Step 1: Survey the half-built feature
+## Step 1: Survey the half-built feature, then run it and look
 
 Ask Claude to locate everything related to purchase orders in the repo and report what exists versus what is missing. Tell Claude not to fix or change anything yet.
 
@@ -56,7 +55,9 @@ Ask Claude to locate everything related to purchase orders in the repo and repor
 - No @app.post("/api/purchase-orders") route exists in server/main.py
 ```
 
-**Success signal:** Claude confirms the Pydantic models and `api.js` stubs exist but there is no `POST /api/purchase-orders` route (the client stub 404s today).
+**Run it and look.** Start the app (`scripts/start.ps1` on Windows, `scripts/start.sh` on macOS — this boots both servers). Open the dashboard at `http://localhost:3000`, find a backlog item, and click **Create PO**. Nothing opens. Open your browser dev tools (Console) and you will see Vue fail to resolve a `PurchaseOrderModal` component — the frontend half of this feature was never finished (the modal is referenced but never built or imported). As your survey found, the backend half is missing too: there is no `POST /api/purchase-orders` route. This lab closes the **backend** gap (building that route); the frontend modal is extra credit.
+
+**Success signal:** Claude's survey reports the models and `api.js` stub exist but there is no `POST /api/purchase-orders` route, AND you saw **Create PO** fail in the running app (the modal never opens; the Console shows Vue failing to resolve the `PurchaseOrderModal` component).
 
 ---
 
@@ -74,7 +75,7 @@ Open `specs/spec-template.md`. Note its five headings:
 
 ## Step 3: Write the spec (open-ended judgment step)
 
-Create `specs/purchase-orders.md` by filling in all five elements. Claude can help you phrase elements, but the **decisions are yours**. You must decide and write down, with a one-line defense:
+Create `specs/purchase-orders.md` by filling in all five elements. Claude can help you phrase elements, but the **decisions are yours**. You decide:
 
 **(a) Where the feature surface lives:** backend route only for the core path, or route plus a Vue modal (extra credit)?
 
@@ -87,6 +88,8 @@ Constraints you must bake in:
 - The Example section must be modeled on the shape of an existing endpoint (copy a `GET /api/backlog` item for the shape)
 - Leave the exact response fields for discovery in Step 6 — your spec does not need to name every field the endpoint returns right now
 
+> **Note:** The template's **Format** heading says "exact return shape, JSON keys, status codes," but you can leave your Format section **partial on purpose** here. Naming every response field is exactly what Step 6 is for. Spec what you have decided; leave the response-field list open. A spec is allowed to mark what is still to be discovered.
+
 **Success signal:** `specs/purchase-orders.md` exists with all five headings filled and your acceptance criteria written as checkable statements.
 
 ---
@@ -95,15 +98,19 @@ Constraints you must bake in:
 
 Enter Plan Mode and ask Claude to propose an implementation plan for exactly what `specs/purchase-orders.md` describes. Ask it to reference the spec by path.
 
+> **How to enter Plan Mode:** press **shift-tab** to cycle into Plan Mode; shift-tab again to exit.
+
 Before approving the plan, review it against your spec:
 - Does every planned change map to a spec line?
 - Is anything in the plan *not* in the spec (scope creep)?
+
+> **Pro tip (optional):** for a change like this, some people **plan on Opus** (deeper reasoning for the plan), then switch with `/model sonnet` to **execute** the approved plan. Use the stronger model where the thinking is hardest, the faster one to carry it out. Not required for this lab.
 
 **Success signal:** The plan names the file (`server/main.py`), the new route, the validation, and the response shape, and you can point each plan bullet at a spec line.
 
 ---
 
-## Step 5: Code → Commit
+## Step 5: Code, then run it and look
 
 Approve the plan and let Claude implement the route.
 
@@ -113,30 +120,21 @@ After Claude finishes, read the diff yourself and trace each changed hunk to the
 uv run --project server pytest tests/backend/ -v
 ```
 
-Commit with a message that references the spec. In the commit body, write one line tracing a diff hunk to its spec line.
+**Run it and look.** With the app still running, hit your new endpoint live — open the API docs at `http://localhost:8001/docs` (FastAPI Swagger) and POST a purchase order, or watch the Network tab. See the real JSON come back. Note what is in it — you will use that in Step 6.
 
-**Expected test output (before the iterate step):**
+**Expected test result:** the backend suite is green, including a new test in `test_purchase_orders.py`.
 
-```
-tests/backend/test_inventory.py::TestInventoryEndpoints::test_get_all_inventory PASSED
-...
-tests/backend/test_purchase_orders.py::test_create_purchase_order PASSED
-========================= 43 passed in 0.60s =========================
-```
+Keep your `specs/purchase-orders.md` and the implementing change in your worktree as your **local takeaway** — no commit needed. Jot your one diff→spec trace in a scratch note; you will reuse it in the exit ticket.
 
-*(The baseline suite has 40 tests. Adding `test_purchase_orders.py` with 3 tests brings the total to 43.)*
+**Success signal:** tests pass, you can trace every changed line to a spec line, and you saw the live endpoint return its JSON.
 
-**Success signal:** Tests pass and you can trace every changed line to a spec line.
-
-> **Note on validation error codes:** FastAPI returns **422** (not 400) for a bad request body by default. If your spec says "invalid input returns 400," that mismatch is itself a spec-conformance decision: either add explicit `400` handling in the route or update your spec to accept `422`. This behavior is the same on Windows and macOS.
+> **Note on validation error codes:** FastAPI returns **422** (not 400) for a bad request body by default. If your spec says "invalid input returns 400," that mismatch is itself a spec-conformance decision: either add explicit `400` handling in the route or update your spec to accept `422`.
 
 ---
 
 ## Step 6: Review-iterate on a conformance violation (the point step)
 
-Ask Claude for the exact JSON the new endpoint returns for a created purchase order.
-
-Check every field against what your spec intended. There is a gap: your spec described the task and validation rules but did not name the exact response fields, so the first-pass implementation returns the full internal model.
+Ask Claude for the exact JSON the endpoint returns for a created PO (or reuse what you saw in Step 5). Check it against your spec. There is a gap: your spec set the task and validation rules but never named the **public** response fields, so the endpoint returns the full internal model, including **`unit_cost`**. That field is **internal-only**: it is your cost and margin, and buyers placing an order should never see it.
 
 **First-pass response (the gap):**
 
@@ -149,11 +147,14 @@ Check every field against what your spec intended. There is a gap: your spec des
   "unit_cost": 24.99,
   "expected_delivery_date": "2026-08-01",
   "status": "pending",
-  "created_date": "2026-07-10"
+  "created_date": "2026-07-10",
+  "notes": null
 }
 ```
 
-One field in that response should not be visible to buyers. Do **not** re-prompt Claude to remove it. Instead, **add one line to `specs/purchase-orders.md`** that names the public response fields explicitly, then ask Claude to bring the implementation into line with the updated spec.
+*The `PO-1000` id is illustrative (the reference implementation uses `1000 + count of existing POs`); your spec does not need to mandate this exact format.*
+
+**Fix it the spec-driven way:** add **one line** to `specs/purchase-orders.md` naming the public response fields (everything except `unit_cost`), then ask Claude to bring the endpoint's response into line with the updated spec. You are still driving Claude — through the contract, not a patch. The point is to fix the **spec**, not to hand-patch the symptom.
 
 **Second-pass response (conformant):**
 
@@ -165,26 +166,20 @@ One field in that response should not be visible to buyers. Do **not** re-prompt
   "quantity": 500,
   "expected_delivery_date": "2026-08-01",
   "status": "pending",
-  "created_date": "2026-07-10"
+  "created_date": "2026-07-10",
+  "notes": null
 }
 ```
 
-**Success signal:** The second diff touches only the response model or serialization layer. A pytest assertion `assert "unit_cost" not in response.json()` passes. You can trace the change to the spec line you edited.
+**Success signal:** the second diff touches only the response model or serialization layer, `unit_cost` is gone, a pytest assertion `assert "unit_cost" not in response.json()` passes, and you can trace the change to the spec line you edited.
 
 ---
 
 ## Step 7: Exit ticket
 
-Name which of the four integration patterns you used:
+Write one sentence tracing one diff hunk to the spec line it satisfies (for example, "the response-model change traces to the public-fields line I added in Step 6"). Keep this trace note with your spec in your worktree — it is your takeaway.
 
-- Pre-coding Planner
-- Mid-coding Pair
-- Post-coding Reviewer
-- PR Preparer
-
-Write one sentence: which diff hunk traced to which spec line.
-
-**Success signal:** A one-line pattern name plus one diff-to-spec trace, ready to paste into the completion quiz.
+**Success signal:** one diff-to-spec trace you can point to, backed by the conformant endpoint on your screen.
 
 ---
 
@@ -193,11 +188,11 @@ Write one sentence: which diff hunk traced to which spec line.
 You are done with the core path when all four of these are true on your screen:
 
 1. `specs/purchase-orders.md` exists with five elements filled.
-2. `POST /api/purchase-orders` returns 201/200 for a valid body and the JSON response omits the internal cost field.
+2. `POST /api/purchase-orders` returns 200 for a valid body and the JSON response omits the internal cost field.
 3. `uv run --project server pytest tests/backend/ -v` is green, including a test that asserts the cost field is absent.
-4. A commit exists whose message references the spec and whose body includes a one-line diff-to-spec trace.
+4. You have a one-line diff-to-spec trace note kept with your spec in your worktree.
 
-**Share-back artifact:** your committed `specs/purchase-orders.md` plus the implementing commit on `lab-4-work`, with the trace note in the commit body. This is a real file and a real commit — not a token count.
+**Local takeaway:** your `specs/purchase-orders.md`, the implementing change, and the trace note, all kept in your Lab 4 worktree. No commit needed — this is your personal artifact, not a share-back.
 
 ---
 
@@ -209,13 +204,9 @@ These steps are not required for the completion quiz.
 
 **2. GET route.** Implement `GET /api/purchase-orders/{backlog_item_id}` to back the second `api.js` stub. Spec it first (include what happens when none exists).
 
-**3. Frontend surface (browser).** Build the missing `PurchaseOrderModal.vue` and register it in `Dashboard.vue` so the "Create PO" button works end to end. Launch both servers:
+**3. Frontend surface (browser).** Build the missing `PurchaseOrderModal.vue` and register it in `Dashboard.vue` so the "Create PO" button works end to end, then run the app and create a PO through the modal. Launch both servers with `scripts/start.ps1` (Windows) or `scripts/start.sh` (macOS). On Windows, when opening the browser with a `claude` command, add `--browser msedge`; on macOS Claude Code opens your default browser automatically.
 
-> **Windows:** run `scripts/start.ps1` in PowerShell. When opening the browser with a `claude` command, add `--browser msedge`.
->
-> **macOS:** run `scripts/start.sh`. Claude Code opens your default browser automatically — no `--browser` flag needed.
-
-**4. PR Preparer pattern.** Use `git diff --staged` to have Claude draft a PR description that lists the API surface change and links each change to a spec line.
+**4. Draft a PR description.** Use `git diff` to have Claude draft a PR description that lists the API surface change and links each change to a spec line.
 
 ---
 
@@ -230,10 +221,9 @@ Ask Claude to read both `specs/spec-template.md` and your draft `specs/purchase-
 Run `uv run --project server pytest tests/backend/ -v`, copy the first failing assertion, and ask Claude to explain which spec line the current code violates, then propose the smallest fix.
 
 **Rescue C — fully stuck or out of time.**
-Check out the reference solution to see the finished contract and code, then read the diff:
+First confirm your remote points at the fork: run `git remote -v` and check that `origin` is the `inventory-management-smarsh` fork. If it points at your own local clone, `origin/lab-4-solution` will not resolve. Then check out the reference contract and read the diff:
 
 ```
-git stash -u
 git fetch origin
 git checkout origin/lab-4-solution -- specs/purchase-orders.md
 ```
@@ -246,18 +236,10 @@ git diff origin/lab-4-solution -- server/main.py
 
 to see the implementation that traces to it. You still leave the lab having seen a spec-to-conformant-diff.
 
-**Reset everything:** run the `/reset-branch` skill, then redo Step 0.
+**Reset everything:** run the `/reset-branch` **command**, then redo Step 0. **Warning:** `/reset-branch` runs `git branch -D` + `git reset --hard` + `git clean -fd` with **no confirmation** — it permanently deletes uncommitted work. Because you are working in a per-lab worktree, you should not need it for hygiene between labs; keep it only for a hard reset of *this* lab.
 
 ---
 
 ## Quizzes
 
-Your completion and mastery quizzes are in the LMS.
-
----
-
-## Sources
-
-Authored from the `20-lab-4-design.md` Phase 2 design document (sections 2, 3, 4, 5, 7, 9).
-
-**Date generated:** 2026-07-11
+Your completion and mastery quizzes are in the LMS (MindTickle) pre-work module.
