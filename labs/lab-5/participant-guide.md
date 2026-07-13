@@ -6,41 +6,42 @@
 
 **Core path: ~50 min · Extra Credit: additional time as available**
 
-Your completion and mastery quizzes are in the LMS.
+Your completion and mastery quizzes are in the LMS (MindTickle). Pre-work (worktree setup, `/model sonnet`, node/npm, and the toolchain checks) is the MindTickle pre-work module — do it before lab day.
 
 ---
 
-## Step 0: Setup
+## Step 0: You should already be here
 
-```
-git fetch origin
-git checkout -b lab-5-work origin/lab-5-start
-```
+You should already be on your `lab-5-work` worktree from the pre-work module. If not, follow the pre-work setup in MindTickle to create it, then return.
 
-Start the stack:
-- **Windows:** `scripts/start.ps1` (or run `/start` in Claude Code)
-- **macOS:** `scripts/start.sh`
-
-Open the app in the browser and click into the Inventory view.
+- Quick check: run `/model` and confirm you're on **sonnet**. Smarsh Enterprise defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed.
+- Start the stack: run `/start` in Claude Code (or `scripts/start.ps1` on Windows / `scripts/start.sh` on macOS). Node/npm must already be installed and the client dependencies pulled from pre-work — this lab runs the browser UI.
+- Open the app in the browser and click into the Inventory view. Leave it open; you'll watch it change.
 
 ---
 
-## Step 1: Sketch the dependency graph
+## Step 1: Have Claude render the dependency graph
 
-On paper (or in `intervention-log.md`), list the four layers the `supplier` field touches:
+Ask Claude to **map the layers the `supplier` field touches and render the dependency graph as a Mermaid (or ASCII) diagram** with "depends on" arrows. The layers:
 
 1. The `InventoryItem` Pydantic model (`server/main.py`)
 2. The `inventory.json` data source
 3. The `GET /api/inventory` route
 4. The `InventoryDetailModal.vue` display
 
-Draw arrows for "depends on." For each node, mark blast radius: does a change here cascade to other nodes, and is it recoverable? Then mark the ONE highest-value checkpoint. Write one sentence defending where you put it.
+Then do the part Claude can't do for you: **for each node, mark blast radius** — does a change here cascade to other nodes, and is it recoverable? Mark the ONE highest-value checkpoint and write one sentence defending where you put it.
+
+> **Planning discipline:** you're mapping a dependency graph here, not asking Claude to propose an implementation plan for your approval — so you're not in Plan Mode (Labs 2 and 4). The discipline is the same: think before you execute, and it matters more as blast radius grows.
 
 ---
 
-## Step 2: Change the root node only
+## Step 2: Look first, then change the root node only
 
-The business rule for this lab: every inventory item must name a supplier. Ask Claude to add a **required** `supplier` string field to the `InventoryItem` model in `server/main.py`, and to change nothing else yet: no data, no routes, no frontend.
+**First, look at the running app: open the Inventory view and confirm there is no supplier shown anywhere.** Hold that image — you'll see it change.
+
+Now the business rule for this lab: *every inventory item must name a supplier.* Ask Claude to add a **required** `supplier` string field to the `InventoryItem` model in `server/main.py` — and to change nothing else yet: no data, no routes, no frontend.
+
+> Aside (optional): `main.py` already has a `supplier_name` field on `PurchaseOrder`/`CreatePurchaseOrderRequest` (substrate from Lab 4). That is a different field on a different model from the `InventoryItem.supplier` you're adding now — don't conflate them if you're reading the whole file.
 
 ---
 
@@ -52,35 +53,35 @@ Run the backend suite:
 uv run --project server pytest tests/backend/ -v
 ```
 
-You know the checkpoint fired when pytest raises a `ResponseValidationError` naming the missing `supplier` field. Expect multiple failures across both the inventory and dashboard test files.
+You know the checkpoint fired when pytest raises a `fastapi.exceptions.ResponseValidationError` naming the missing `supplier` field — **11 failures: 9 in `tests/backend/test_inventory.py` and 2 in `tests/backend/test_dashboard.py`** (`test_dashboard_low_stock_items_calculation` and `test_dashboard_inventory_value_calculation`, which call `GET /api/inventory` to cross-check dashboard math and hit the same 500).
 
 **What you should see (abridged):**
 ```
 FAILED tests/backend/test_inventory.py::TestInventoryEndpoints::test_get_all_inventory
-  fastapi.exceptions.ResponseValidationError: 32 validation errors:
-    {'type': 'missing', 'loc': ('response', 0, 'supplier'), 'msg': 'Field required', ...}
-    ... (one error per inventory record) ...
+  fastapi.exceptions.ResponseValidationError: ... 'loc': ('response', 0, 'supplier'),
+  'msg': 'Field required' ...
+...
+==== 11 failed, ... passed ====   (9 in test_inventory.py, 2 in test_dashboard.py)
 ```
 
-The exception fires inside `client.get()`; the assertion line is never reached. Failures in the dashboard tests are also expected: those tests call `GET /api/inventory` to check their math and hit the same 500.
+The exception fires inside `client.get()` before any assertion runs.
 
-**Why this matters:** the route code never changed, yet the endpoint 500s. The model is a contract the data has to satisfy, and the checkpoint caught the break while it was one layer deep, before you stacked a schema, a route, and a Vue form on a broken foundation.
-
-Record what you observe in `intervention-log.md`.
+**Why this matters:** the route code never changed, yet `/api/inventory` now 500s. The model is a contract the data has to satisfy, and the checkpoint caught the break while it was one layer deep — before you stacked a schema, a route, and a Vue form on a broken foundation. The dashboard failures are expected; they confirm the cascade reached every consumer of the endpoint, not a mistake on your part.
 
 ---
 
 ## Step 4: The named 4-step debugging loop
 
+> **Working reference:** the **debugging loop** is the named Theme 5 tool — **explain → hypothesis → confirm/challenge → fix** — that turns "it broke" into "I know why it broke." You're running it now for real.
+
 Apply the loop explicitly and record each step in `intervention-log.md`:
 
-1. **Explain:** ask Claude to explain how FastAPI's `response_model` validates the outgoing payload for this endpoint.
-2. **Hypothesis (required written field):** before accepting Claude's answer, write your own one-sentence hypothesis for why a model change with no route change produces a 500.
-3. **Confirm / challenge:** verify your hypothesis against the data source. Ask Claude whether `inventory.json` actually contains a `supplier` key.
-4. **Fix (your design decision):** the required-field contract is now broken because the data has no `supplier`. Choose a resolution and defend it in the log:
-   - **Path A:** backfill every record in `inventory.json` with a real supplier value (honors the "required" contract).
+1. **Explain** — ask Claude to explain how FastAPI's `response_model` validates the outgoing payload for this endpoint.
+2. **Hypothesis (required written field)** — before accepting Claude's answer, write your own one-sentence hypothesis for why a model change with no route change produces a 500. **This write is the point of the loop:** committing a prediction *before* you read the confirmation is what stops you from accepting the model's first explanation as ground truth.
+3. **Confirm / challenge** — verify against the data source: ask Claude whether `inventory.json` actually contains a `supplier` key.
+4. **Fix — your design decision:** the required-field contract is broken because the data has no `supplier`. Choose and defend one:
+   - **Path A:** backfill every record in `inventory.json` with a real supplier value (honors "required"). Plausible values are fine — e.g. one supplier per category — no research needed. Ask Claude to do it.
    - **Path B:** relax the field to `Optional[str] = None` (tolerates legacy records; weakens the business rule).
-   Pick one and write why.
 
 ---
 
@@ -90,13 +91,13 @@ The debugging exploration is done and the conclusion is on disk. Run `/compact` 
 
 ---
 
-## Step 6: Fan-out
+## Step 6: Complete the cascade
 
 The model is sound. Execute the remaining layers:
 
-- Resolve the data per your Step-4 decision.
-- Confirm what the route needs: ask Claude whether `GET /api/inventory` needs any code change to expose the new field. Note what you learn.
-- Add a **Supplier** row to the `info-grid` in `client/src/components/InventoryDetailModal.vue`.
+- Resolve the data per your Step-4 decision (ask Claude to do it).
+- Confirm what the route needs: ask Claude whether `GET /api/inventory` needs any code change to expose the new field. (It does not — `response_model` serializes it once model and data agree. That's the teaching point.)
+- Ask Claude to add a **Supplier** row to the `info-grid` in `client/src/components/InventoryDetailModal.vue`.
 
 ---
 
@@ -106,40 +107,30 @@ The model is sound. Execute the remaining layers:
 uv run --project server pytest tests/backend/ -v
 ```
 
-**What you should see:**
-```
-tests/backend/test_inventory.py ..........                          [ 25%]
-...
-================== 40 passed in 0.6s ==================
-```
-
-Reload the app, open an inventory item's detail modal, and confirm Supplier renders.
+Expect green. Then **reload the app, open an inventory item's detail modal, and watch the Supplier value appear where nothing was before** — the same view you looked at in Step 2, now carrying the field you drove end-to-end.
 
 ---
 
 ## Step 8: /clear + unrelated task
 
-You are switching to an unrelated frontend concern, so the multi-file context is now noise. Run `/clear` (not `/compact`). Then ask Claude to find and explain the `:key="index"` anti-pattern in `client/src/views/Reports.vue`. You are diagnosing, not necessarily fixing (fix is extra credit).
+You're switching to an unrelated frontend concern, so the multi-file context is now noise. Run `/clear` (not `/compact`).
 
-**What Claude should surface:**
-```
-Reports.vue uses :key="index" in three v-for loops (lines 28, 51, 82).
-Index keys break Vue's diffing when the list reorders or items are
-inserted/removed; use a stable id (e.g. q.quarter, month.month).
-```
+Now start from what a user would *see*: `Reports.vue` renders its lists with `:key="index"`. **Reason about the symptom first** — what happens to Vue's rendering when one of those lists reorders or an item is inserted/removed? THEN ask Claude to explain WHY `:key="index"` causes it. You're **diagnosing, not fixing** (fix is extra credit).
+
+> The symptom to reason about first: reorder or insert a row in a Reports list and Vue reuses DOM nodes by position, not identity — values and state stick to the wrong row. Claude should tie that to the `:key="index"` loops in `Reports.vue` and recommend a stable id (e.g. `q.quarter`, `month.month`).
 
 ---
 
-## Step 9: Log + commit
+## Step 9: Log + keep it (no commit)
 
 Finish `labs/lab-5/intervention-log.md` covering:
-- The dependency graph you sketched
-- Your chosen checkpoint and the one-sentence defense
+- The dependency graph
+- The chosen checkpoint and the one-sentence defense
 - All four steps of the debugging loop (written hypothesis required)
-- Your design decision (Path A or B) and the defense
+- The design decision (Path A or B) and the defense
 - One place you overrode or redirected Claude
 
-Commit the feature and the log.
+**Keep it in your worktree — do not commit or push.** Nothing in this lab goes back to the repo; the log plus your end-to-end `supplier` change is your personal takeaway.
 
 ---
 
@@ -149,9 +140,9 @@ You are done when:
 
 1. `GET /api/inventory` returns 200 and the payload includes a `supplier` field (checkpoint 2 pytest green).
 2. The Inventory detail modal renders the Supplier value in the browser.
-3. `intervention-log.md` contains: the dependency graph, the chosen checkpoint with defense, a written hypothesis, the design decision with defense, and one override note.
+3. `intervention-log.md` (kept locally in your worktree) contains: the dependency graph, the chosen checkpoint with defense, a written hypothesis, the design decision with defense, and one override note.
 
-**Share-back artifact:** the committed `labs/lab-5/intervention-log.md` together with your feature commit on `lab-5-work`. Be ready to share where you placed the checkpoint, what you hypothesized, and which resolution you defended.
+Be ready to share where you placed the checkpoint, what you hypothesized, and which resolution you defended.
 
 ---
 
@@ -159,7 +150,7 @@ You are done when:
 
 1. **Fix, don't just find:** replace the three `:key="index"` in Reports.vue with stable keys (`q.quarter`, `month.month`) and confirm the app still renders.
 2. **Push the field to the filter surface:** add `supplier` as a filterable param in `apply_filters` and wire it through `GET /api/inventory`, then decide with Claude whether that belongs in this change or a separate one.
-3. **Prove the contract with a test:** write a pytest that asserts every item in `GET /api/inventory` has a non-empty `supplier`, and run it.
+3. **Prove the contract with a test:** ask Claude to write a pytest that asserts every item in `GET /api/inventory` has a non-empty `supplier`, and run it.
 4. **Centralize the Reports.vue leak:** route its two hardcoded `http://localhost:8001` calls through `api.js` like every other view.
 
 ---
@@ -172,9 +163,9 @@ You are done when:
 uv run --project server pytest tests/backend/ -v
 ```
 
-**Rescue B: you want a clean restart.** Run `/reset-branch` to discard your work and return to `main`, then redo Step 0.
+**Rescue B: you want a clean restart.** Run the `/reset-branch` command to discard your work and return to a clean state, then redo Step 0. Note: this permanently deletes uncommitted work — keep anything you want first.
 
-**Rescue C: you ran out of time.** Check out the finished state so you still see the point of the lab:
+**Rescue C: you ran out of time.** First confirm your remote points at the fork (`git remote -v` should show the lab fork, not your own working copy). Then check out the finished state so you still see the point of the lab:
 
 ```
 git fetch origin
@@ -183,6 +174,12 @@ git checkout origin/lab-5-solution -- server/main.py server/data/inventory.json 
 
 Restart the servers, open a detail modal, and read `labs/lab-5/intervention-log.SAMPLE.md` on the solution branch to see the worked debugging loop.
 
-**Windows:** if a server port is stuck, find and kill the process: `netstat -ano | findstr :<port>` then `taskkill /PID <pid> /F` (e.g., port 8001 for the backend). If tests auto-run on every edit, a leftover `.claude/settings.local.json` from a prior lab is active. Delete it and relaunch Claude Code.
+---
 
-**macOS:** start the stack with `scripts/start.sh`. If a server port is stuck, kill it: `lsof -ti:<port> | xargs kill -9`. The same `settings.local.json` note applies. Delete it and relaunch Claude Code.
+## Ports and settings notes
+
+If a server port is stuck, find and kill the process (e.g. port 8001 for the backend):
+- **Windows:** `netstat -ano | findstr :<port>` then `taskkill /PID <pid> /F`
+- **macOS:** `lsof -ti:<port> | xargs kill -9`
+
+If tests auto-run on every edit, a leftover `.claude/settings.local.json` from a prior lab is active. Delete it and relaunch Claude Code (hooks are read at session start).

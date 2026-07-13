@@ -8,7 +8,7 @@ This is the facilitator reference log. It documents both acceptable resolutions 
 
 Four layers, ordered by dependency (root to leaf):
 
-1. **`InventoryItem` Pydantic model** (`server/main.py`) — root node. Blast radius: HIGH. Every layer below depends on this contract. A required field here cascades immediately to the data, the route serialization, and any UI that renders the field. Not easily recoverable mid-fan-out.
+1. **`InventoryItem` Pydantic model** (`server/main.py`) — root node. Blast radius: HIGH. Every layer below depends on this contract. A required field here cascades immediately to the data, the route serialization, and any UI that renders the field. Not easily recoverable mid-cascade.
 
 2. **`server/data/inventory.json`** — data source. Blast radius: MEDIUM. Must satisfy the model contract. If the model requires `supplier`, every record needs it. The fix is mechanical but touches every record.
 
@@ -24,7 +24,7 @@ Dependency arrows: `InventoryDetailModal.vue` → `GET /api/inventory` → `Inve
 
 **Placement:** After the model change (Step 2), before touching data, route, or Vue.
 
-**Defense:** The model is the root node. If the required field breaks serialization, every downstream layer is building on a broken foundation. Catching the break here costs one pytest run. Catching it after the fan-out means untangling which of four changed layers introduced the failure.
+**Defense:** The model is the root node. If the required field breaks serialization, every downstream layer is building on a broken foundation. Catching the break here costs one pytest run. Catching it after completing the cascade means untangling which of four changed layers introduced the failure.
 
 ---
 

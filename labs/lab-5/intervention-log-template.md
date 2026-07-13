@@ -1,6 +1,6 @@
 # Lab 5 — Intervention Log
 
-Fill in each section as you work through the lab. This is the share-back artifact you commit at the end.
+Fill in each section as you work through the lab. Keep this in your worktree as your personal takeaway — do not commit it.
 
 ---
 
