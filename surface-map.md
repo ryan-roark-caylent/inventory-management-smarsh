@@ -13,7 +13,3 @@
 ## The bug: Claude.ai vs Claude Code
 ### Round 1 (Claude.ai) hypothesis:
 ### Round 2 (Claude Code) — file, line, fix:
-
-## Model + effort selection
-- Trivial rename -> tier/effort: ___ because: ___
-- Multi-file refactor -> tier/effort: ___ because: ___
