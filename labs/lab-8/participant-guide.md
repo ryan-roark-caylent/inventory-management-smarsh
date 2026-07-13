@@ -16,7 +16,7 @@ This lab runs longer than an Academy module because it carries competencies with
 
 ## The aha moment
 
-At the point step (Steps 3-4), you dispatch two read-only subagents — a general `code-reviewer` and a `security-auditor` — on the same file you already reviewed by hand, while the file is **still broken**. Neither list matches yours, and the two lists don't match each other. The `code-reviewer` reliably flags the boundary bug and the naming; the `security-auditor` is the one that surfaces the PII log line; neither can verify the hallucinated import, because read-only agents have no shell. Every gap is yours to own. That is the moment code review stops being "run the agent and merge."
+At the point step (Steps 3-4), you dispatch two read-only subagents — a general `code-reviewer` and a `security-auditor` — on the same file you already reviewed by hand, while the file is **still broken**. Neither list matches yours, and the two lists don't match each other. Each agent's scope surfaces a different subset of what's wrong, and because read-only agents have no shell, some issues neither one can verify at all. Every gap between their lists and yours is still yours to own. That is the moment code review stops being "run the agent and merge."
 
 ---
 
@@ -186,8 +186,8 @@ Responsible-use check on your own artifact: confirm `review-findings.md` **refer
 
 > **Expected output — a sanitized record (correct) vs an unsafe one (wrong):**
 > ```
-> GOOD:  "L4 logs a user email (PII) — see server/inventory_ops.py:4. Redact before logging."
-> BAD:   "L4 logs <the actual email value>"   <-- pastes PII into a permanent record
+> GOOD:  "L14 logs a user email (PII) — see server/inventory_ops.py:14. Redact before logging."
+> BAD:   "L14 logs <the actual email value>"   <-- pastes PII into a permanent record
 > ```
 
 **Exit ticket:** name the one issue you **rejected** (not just modified) and the standard or risk you cited. One line, ready to paste into the completion quiz.
