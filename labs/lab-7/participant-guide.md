@@ -43,11 +43,11 @@ Do the following before you begin:
 
 2. **Relaunch Claude Code** so the project `.mcp.json` and `CLAUDE.md` load fresh.
 
-3. **Confirm Jira is connected.** Run `/mcp` and confirm **jira** (Atlassian) shows connected. If it shows disconnected, your credential environment variables aren't set — fix them per the MindTickle pre-work module, then relaunch. (There is no GitHub MCP in this lab — Jira only.)
+3. **Confirm Atlassian is connected.** Run `/mcp` and confirm **claude_ai_Atlassian** shows connected (this one server covers Jira, Confluence, and cross-product tools together). If it shows disconnected, your credentials aren't set — fix them per the MindTickle pre-work module, then relaunch. (There is no GitHub MCP in this lab — Atlassian only.)
 
-4. **Note the exact Jira tool names.** In the `/mcp` view, look at the Jira server's tool list and note the exact names for "get an issue," "search issues," and "add a comment." You'll need the exact names in Step 5 — a guessed name silently mis-scopes.
+4. **Note the exact Atlassian tool names.** In the `/mcp` view, select the **claude_ai_Atlassian** server and read its tool list. Note the exact names for "get an issue," "search issues," and "add a comment" — they're camelCase with a prefix (e.g. `mcp__claude_ai_Atlassian__getJiraIssue`). You'll need the exact names in Step 5; a guessed name silently mis-scopes.
 
-**Success signal:** `git branch --show-current` (or `git worktree list`) shows you on `lab-7-work`; `/model` shows Sonnet; `/mcp` lists jira as connected and you can see its tool names.
+**Success signal:** `git branch --show-current` (or `git worktree list`) shows you on `lab-7-work`; `/model` shows Sonnet; `/mcp` lists **claude_ai_Atlassian** as connected and you can see its tool names.
 
 > **Windows / macOS (identical):** after any `.mcp.json` or settings change, relaunch Claude Code before testing MCP or permissions. MCP is configured at project scope (root `.mcp.json`), never user-global. If MCP auth opens a browser, on Windows add `--browser msedge` to that step; on macOS your default browser opens with no flag.
 
@@ -55,7 +55,24 @@ Do the following before you begin:
 
 ---
 
-### Step 1 — Read the trigger (local, read-only)
+### Step 1 — Delegation topology (open-ended judgment)
+
+Before you touch anything, frame the work. You have four tasks for this repo:
+
+- (a) Scan all API routes for missing auth and authorization gaps
+- (b) Rename one local variable in `main.py`
+- (c) Generate pytest tests for 5 independent endpoints
+- (d) Apply a one-line CORS config change
+
+Sort each into **delegate to a sub-agent** vs **keep in a single agent**, and think through which tasks earn a sub-agent's coordination overhead and why. Then decide the delegation topology for anything you'd delegate: which sub-agent does what, in what order.
+
+You don't need to write this down — reason it through and move on. The sort is the mental model the rest of the lab runs on: in Step 3 you'll dispatch the reviewer this thinking tells you is worth delegating.
+
+**Success signal:** you can say which of the four tasks earn a sub-agent and why, and name the topology for any you'd delegate.
+
+---
+
+### Step 2 — Read the trigger (local, read-only)
 
 Ask Claude (single agent, read-only) to run the backend test suite and explain which test fails and why. Do not ask it to fix anything.
 
@@ -75,25 +92,6 @@ E   assert <filtered count> < <global count>   # the counts are equal because th
 ```
 
 **Success signal:** Claude names the failing test and points at the specific line in `server/main.py` (`get_dashboard_summary`).
-
----
-
-### Step 2 — Delegation topology (open-ended judgment)
-
-You have four tasks for this repo:
-
-- (a) Scan all API routes for missing auth and authorization gaps
-- (b) Rename one local variable in `main.py`
-- (c) Generate pytest tests for 5 independent endpoints
-- (d) Apply a one-line CORS config change
-
-Sort each into **delegate to a sub-agent** vs **keep in a single agent**. Write one line defending each decision. Then name the delegation topology for any task you delegate: which sub-agent does what, in what order.
-
-Decide and defend: which tasks earn a sub-agent's coordination overhead?
-
-**Success signal:** a 4-row sort with a one-line reason per task, plus a named topology for any delegated work.
-
-> **Note:** this is judgment, not a code change — there's nothing to run here. Step 3 dispatches the reviewer that this sort tells you is worth delegating.
 
 ---
 
@@ -136,33 +134,36 @@ Answer Claude's questions to lock the Decisions and Constraints yourself. The fi
 
 ### Step 5 — Scope Jira to read-only (`permission-scope.md`) ★ Point step
 
-You're about to let an agent touch Jira. Before you do, decide exactly what it may and may not do, and write it down. For the workflow "read my most-recent Jira ticket; do nothing else to Jira," write the three scopes and defend each:
+You're about to let an agent touch Atlassian. Before you do, decide exactly what it may and may not do, and write it down.
 
-- **Explicit Read** — Jira: read issues (get one issue / search my issues). Read-only.
-- **Explicit Write** — Jira: **BLOCKED.** No comment, no create, no transition, no edit.
-- **Explicit Blocks** — everything else: no other MCP server, no Jira admin, no deletes, no project changes.
+Notice what you're scoping: the connected server is **one combined `claude_ai_Atlassian` server** — it exposes Jira *and* Confluence *and* cross-product tools (dozens of calls, including Confluence page writes and account lookups). Your workflow needs exactly one thing: read your most-recent Jira ticket. Least privilege means allowing those one or two read calls and blocking all the rest — Jira writes, every Confluence tool, and the cross-product calls. For the workflow "read my most-recent Jira ticket; do nothing else," write the three scopes and defend each:
 
-Then encode it in `.claude/settings.local.json`: **allow** only the Jira read call(s); **deny** the Jira write calls and everything else.
+- **Explicit Read** — the Jira read call(s) only: search my issues, then get the one issue. Read-only.
+- **Explicit Write** — **BLOCKED.** No comment, no create, no transition, no edit, no worklog.
+- **Explicit Blocks** — everything else the server exposes: all Confluence tools, the cross-product `search`/`fetch`, account/admin calls, and every other project.
 
-The shape your `permission-scope.md` should take:
+Then encode it in `.claude/settings.local.json`: **allow** only the Jira read call(s); **deny** the writes and everything else.
+
+The shape your `permission-scope.md` should take (fill the `<…>` with the exact tool names you confirm from `/mcp`):
 
 ```markdown
 ## Explicit Read
-- jira: <the specific read call(s)>   (my issues / one issue — read only)
+- <the search-issues call>   (find my most-recent issue — read only)
+- <the get-one-issue call>   (read that issue — read only)
 
 ## Explicit Write
-- jira: BLOCKED — no comment, no create, no transition, no edit
+- BLOCKED — no comment, create, transition, edit, or worklog on any issue
 
 ## Explicit Blocks
-- jira: <write/admin/delete calls you are blocking>
-- everything else: no other MCP server, no other project, no admin
+- <the write/admin calls you are blocking, by exact name>
+- all Confluence tools; the cross-product search/fetch; account/admin; every other project
 ```
 
-> **Verify tool names:** open `/mcp`, find the Jira server's tool list, and confirm your allow/deny entries use the **exact** tool names it exposes. A guessed name (`get_issue` vs `jira_get_issue`) silently mis-scopes — the guard won't match and the block won't fire where you think it does.
+> **Verify tool names:** open `/mcp`, select the **claude_ai_Atlassian** server, and read its tool list. Confirm every allow/deny entry uses the **exact** tool name it exposes — these are camelCase with a server prefix (e.g. `mcp__claude_ai_Atlassian__getJiraIssue`), not the friendly label. A guessed name silently mis-scopes: the guard won't match, and the block won't fire where you think it does.
 
 Ask Claude to help you enumerate the minimal read calls the workflow needs, but you fill in and defend the three sections and the allow/deny list yourself.
 
-**Success signal:** `permission-scope.md` has all three sections as checkable lines; your allow list names only the Jira read call(s); your deny list names the Jira write calls plus everything outside the workflow. The `/mcp` tool names match your entries exactly.
+**Success signal:** `permission-scope.md` has all three sections as checkable lines; your allow list names only the Jira read call(s); your deny list names the Jira writes plus the Confluence and cross-product tools outside the workflow. The `/mcp` tool names match your entries exactly.
 
 ---
 
@@ -171,16 +172,17 @@ Ask Claude to help you enumerate the minimal read calls the workflow needs, but 
 Now prove the scope is the safety — not your click.
 
 1. **Enable auto mode** (you learned this earlier in the program; via `/permissions`, not Shift+Tab). With auto mode on, Claude does not stop to ask you to approve tool calls.
-2. Ask Claude to: **(a) read your most-recent Jira ticket** (fetch the single latest issue assigned to or reported by you — content doesn't matter), then **(b) add a short comment to that same ticket** (any nonsense text).
+2. Ask Claude to: **(a) read your most-recent Jira ticket** (search for the single latest issue assigned to or reported by you, then read it — content doesn't matter), then **(b) add a short comment to that same ticket** (any nonsense text).
 3. Watch what happens: the **read succeeds** (it's in your Explicit Read). The **comment write is DENIED by your Explicit Block** — even though auto mode would have auto-approved anything you allowed. No human said no. The scope said no.
 4. **Then review locally with git.** Run `git status` / `git diff` in your worktree and confirm nothing changed and no local files were written by the blocked call. This is the review-after-autonomy habit: let it run, then check.
 
 **Expected output shape:**
 
 ```
-jira ▸ get_issue(<your-latest-key>)         → returns the ticket (summary, status)   ✓ allowed
-jira ▸ add_comment(<your-latest-key>, ...)  → DENIED by permission rule (deny: jira add_comment)
-                                              (no approval prompt — auto mode was on)
+claude_ai_Atlassian ▸ searchJiraIssuesUsingJql(...)      → finds your latest issue key   ✓ allowed
+claude_ai_Atlassian ▸ getJiraIssue(<your-latest-key>)    → returns the ticket             ✓ allowed
+claude_ai_Atlassian ▸ addCommentToJiraIssue(<key>, ...)  → DENIED by permission rule
+                                                           (no approval prompt — auto mode was on)
 Result: read completed; comment was NOT created. Scope held with no human in the loop.
 ```
 
