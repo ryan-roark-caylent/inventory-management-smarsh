@@ -1,4 +1,7 @@
-# CLAUDE.md template — Java/Spring microservice
+# Starter CLAUDE.md — Java/Spring microservice (reference)
+
+A fresh CLAUDE.md as if you were bootstrapping a Spring microservice repo.
+Recognizably wrong for inventory-management.
 
 ## Build & test
 - Build: `mvn clean package`
@@ -21,7 +24,7 @@ breaking change — bump the major version and add a changelog entry.
 
 ---
 
-**What changes vs the inventory-management template:**
+**What changes vs the inventory-management CLAUDE.md:**
 - Build/test is Maven + JUnit, not `uv run pytest`; the controller/service/repository
   layering rule is Spring-specific and has no equivalent in the FastAPI in-memory demo.
 - A shared microservice behind an API gateway needs an API-contract-stability rule

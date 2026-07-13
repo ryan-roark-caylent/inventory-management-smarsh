@@ -1,4 +1,7 @@
-# 30-day adoption plan (reference)
+# Team handoff note (reference)
+
+Kept local — not committed. This is what you carry back to your team; your
+change champion asks about it.
 
 ## This week
 - Run the `gen-endpoint-tests` entry to add empty-data and bad-filter cases for
@@ -20,7 +23,7 @@ Real (leading indicators of behavior change):
 - PR cycle time on AI-assisted reviews vs the sprint baseline — shows a workflow
   change, not just Claude Code usage.
 
-Excluded (vanity):
+Avoided (vanity):
 - LMS logins / % certified — completion can mask zero behavior change; an engineer
   can finish the module and never open Claude Code again.
 - Number of prompts in the library — count without reuse is a dump folder; 40
