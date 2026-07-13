@@ -1,14 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "mcp__jira__get_issue",
-      "mcp__jira__search_issues"
+      "mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql",
+      "mcp__claude_ai_Atlassian__getJiraIssue"
     ],
     "deny": [
-      "mcp__jira__add_comment",
-      "mcp__jira__create_issue",
-      "mcp__jira__transition_issue",
-      "mcp__jira__update_issue"
+      "mcp__claude_ai_Atlassian__addCommentToJiraIssue",
+      "mcp__claude_ai_Atlassian__createJiraIssue",
+      "mcp__claude_ai_Atlassian__editJiraIssue",
+      "mcp__claude_ai_Atlassian__transitionJiraIssue",
+      "mcp__claude_ai_Atlassian__addWorklogToJiraIssue",
+      "mcp__claude_ai_Atlassian__createIssueLink"
     ]
   }
 }
