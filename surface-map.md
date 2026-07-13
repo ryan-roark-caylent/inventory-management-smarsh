@@ -2,10 +2,9 @@
 
 **Example — not the only correct routing. Your reasoning matters more than matching this exactly.**
 
-## The four surfaces — one line each ("when I'd use this")
+## The three surfaces — one line each ("when I'd use this")
 - Claude.ai: When I want to think through a design problem or get a general explanation, without giving it repo access.
 - Claude Code: When the task requires reading files, tracing across the repo, or proposing a code change with exact file and line context.
-- Claude Cowork: When I'm doing doc- or plan-oriented work at a desktop, away from a live repo checkout.
 - API / CI: When the task needs to run unattended, non-interactively, on a schedule or in a pipeline with no human in the loop.
 
 ## Issue routing (fill in BEFORE opening any tool)

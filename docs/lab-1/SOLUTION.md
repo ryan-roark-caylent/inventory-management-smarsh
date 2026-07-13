@@ -8,7 +8,7 @@
 
 | Issue | Surface | Reasoning |
 |-------|---------|-----------|
-| A — "How should low-stock alerting work?" (spec/planning) | Claude.ai | No code exists yet. This is design thinking and open questions — a conversational planning session in the browser is the right starting surface. Optionally follow with Cowork for a structured written plan doc. |
+| A — "How should low-stock alerting work?" (spec/planning) | Claude.ai | No code exists yet. This is design thinking and open questions — a conversational planning session in the browser is the right starting surface. (Claude Code in plan mode is a defensible alternate.) |
 | B — "Reports page bypasses the shared API client" (multi-file refactor) | Claude Code | Needs to read `Reports.vue`, trace `api.js`, and plan changes across files. Claude Code can read the repo and propose a precise, file-anchored diff. |
 | C — "Nightly stale-inventory report" (batch/CI script) | API / CI | Runs unattended, non-interactively, on a schedule. No human in the loop. The API surface is the only one that fits. |
 

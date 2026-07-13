@@ -10,141 +10,106 @@
 
 You will work on the same bug twice, using two different Claude surfaces. Claude.ai will reason from the symptom you paste in. Claude Code will open the repo, read the relevant file, and name exactly where the problem is and what a fix looks like. Same underlying model, different surfaces, meaningfully different answers.
 
-The moment that lands is the point: the surface you pick determines whether Claude guesses at your bug or reads your code and identifies the exact location. By the end, you will have a `surface-map.md` committed to the branch, mapping all four surfaces to the kinds of work each handles best, with your own routing decisions and reasoning written in.
+The moment that lands is the point: the surface you pick determines whether Claude guesses at your bug or reads your code and identifies the exact location. By the end, you will have a `surface-map.md` in your worktree that maps three surfaces to the kinds of work each handles best, with your own routing decisions and reasoning written in.
 
-Your completion and mastery quizzes are in the LMS.
+You already know what each surface does from the pre-work. Today is about choosing correctly under ambiguity.
+
+Your completion and mastery quizzes are in the LMS (MindTickle).
 
 ---
 
-## Pre-work (Skilljar, before lab day)
+## The three surfaces
 
-These installs must be complete before the session. Skipping them on lab day consumes most of your setup window on Windows.
+- **Claude.ai** — browser chat. Reasons from what you type or paste. No repo access.
+- **Claude Code** — the CLI in your repo. Reads files, traces across the codebase, proposes file-anchored changes.
+- **API / CI** — non-interactive. A scripted call inside a pipeline or scheduled job, no human in the loop.
 
-Run each command on its own line (never joined together on one line).
-
-**Backend (in one terminal):**
-1. `cd server`
-2. `uv venv`
-3. `uv sync`
-
-**Frontend (in a new terminal):**
-1. `cd client`
-2. `npm install`
-
-Both should complete with no errors. If either fails, resolve it before lab day.
+Two of these you run hands-on today (Claude.ai and Claude Code). The third, API / CI, is non-interactive: you reason about when it fits and sketch it, you do not run a live session against it.
 
 ---
 
 ## Steps
 
-### S0 — Setup
+### Step 0 — You should already be here
 
-1. `git fetch origin`
-2. `git checkout -b lab-1-work origin/lab-1-start`
-3. Start the backend and frontend. Use two separate terminals.
+You should already be on your `lab-1-work` worktree from the MindTickle pre-work. If you are not, follow the pre-work setup module in MindTickle to create it, then come back here.
 
-> **Windows:** run each command on its own line (not joined on one line). Backend: `cd server`, then `uv run python main.py`. Frontend (new terminal): `cd client`, then `npm run dev`.
+- Quick check: run `/model` and confirm you are on **sonnet**. Smarsh defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed. (This is the one place `/model` is taught. Step 4 reuses it as pure reasoning.)
+- Start the backend and frontend in two separate terminals.
 
-> **macOS:** same commands work in Terminal. Backend: `cd server`, then `uv run python main.py`. Frontend (new terminal): `cd client`, then `npm run dev`. If `uv` is not on your PATH, install it with `brew install uv` or by running `curl -LsSf https://astral.sh/uv/install.sh | sh`, then repeat the pre-work steps.
+> **Windows / macOS (identical):** run each command on its own line, never joined with `&&`. Backend: `cd server`, then `uv run python main.py`. Frontend (new terminal): `cd client`, then `npm run dev`. (Dependencies were installed in pre-work.)
 
-**Expected output:**
+> **macOS only:** if `uv` is not on your PATH, install it with `brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh | sh`, then repeat the pre-work install.
 
-The backend terminal should print:
-```
-Uvicorn running on http://0.0.0.0:8001
-```
-
-Open `localhost:3000` in a browser. The inventory dashboard should load.
+**You know it worked when** the backend terminal prints `Uvicorn running on http://0.0.0.0:8001` and `localhost:3000` renders the inventory dashboard.
 
 ---
 
-### S1 — Route the three issues (do this BEFORE opening any tool)
+### Step 1 — Route the three issues (before opening any tool)
 
 **This is an open-ended judgment step. Do it before you touch Claude.**
 
-4. Open `docs/lab-1/tracker-issues.md`. It has three issues of distinct shape: (A) a spec/planning question, (B) a multi-file refactor, (C) a batch/CI script.
-5. Open `surface-map.md` at the repo root (it is already on the branch as an empty template). For each of the three issues, write which Claude surface you would open first and one sentence of why. Do this before running any tool.
+Open `docs/lab-1/tracker-issues.md`. It has three issues of distinct shape: (A) a spec/planning question, (B) a multi-file refactor, (C) a batch/CI script.
 
-The four surfaces are: Claude.ai, Claude Code, Claude Cowork, API/CI.
+Open `surface-map.md` at the repo root (it is already on the branch as a template). For **each** of the three issues, write which of the three surfaces you would open first and one sentence of why. Do this before running any tool.
 
-**You know it worked when** `surface-map.md` has three routing decisions, each with a one-line justification, and you have not yet run Claude on any of the issues.
+**You know it worked when** `surface-map.md` shows three routing decisions, each with a one-line justification, and you have not yet run Claude on any of them.
 
 ---
 
-### S2 — Round 1: Claude.ai on the bug
+### Step 2 — See the bug, then Round 1: Claude.ai
 
-6. Here is the symptom: on the dashboard, filtering by a warehouse changes most summary numbers, but the backlog count never moves.
+First, **see the bug in the running app.** On the dashboard at `localhost:3000`, filter by a warehouse (for example, London). Watch most summary numbers change while the **backlog count stays frozen**. That frozen number is the bug.
 
-   In **Claude.ai** (browser, `claude.ai`), paste only that symptom description with no repo files attached. Ask Claude to explain the likely cause.
+Now open **Claude.ai** (browser at `claude.ai`) and paste only that symptom, with no repo files attached. Ask it to explain the likely cause. Record its hypothesis under a "Round 1 (Claude.ai)" heading in `surface-map.md`.
 
-7. Record its response under a "Round 1 (Claude.ai)" heading in `surface-map.md`.
-
-**Expected output:**
-
-A plausible hypothesis about where the bug likely is. Claude.ai will reason from what you described, not from the code itself.
+**Expected output:** a plausible hypothesis. Claude.ai reasons from what you described, not from the code.
 
 Representative example:
-> "The backlog count is likely computed from the full dataset rather than the filtered subset. Check whether the filter is applied to backlog items the same way it's applied to the other summary metrics."
+> "The backlog count is likely computed from the full dataset rather than the filtered subset. Check whether the filter is applied to backlog items the same way it is applied to the other summary metrics."
 
 Notice: no filename, no line number. Claude.ai is reasoning from the symptom you gave it.
 
-**You know it worked when** you have a hypothesis that does not name a specific file or line in the repo.
+**You know it worked when** you have a plausible hypothesis that names **no** specific file or line (Claude.ai cannot see the repo).
 
 ---
 
-### S3 — Round 2: Claude Code on the same bug (POINT STEP)
+### Step 3 — Round 2: Claude Code on the same bug (POINT STEP)
 
-8. In the repo root, launch Claude Code. Ask Claude Code to find why the dashboard's total backlog count ignores the warehouse filter, and to propose the minimal fix.
+In the repo root, launch Claude Code. Ask it to find why the dashboard's total backlog count ignores the warehouse filter, and to propose the minimal fix. Record the file, line, and proposed change under "Round 2 (Claude Code)" in `surface-map.md`.
 
-> **Windows:** if a `claude` command opens a browser or login flow, add `--browser msedge` to the command.
+> **Modes and auto mode (quick intro):** Claude Code has permission *modes*. Press **shift-tab** to cycle them and watch the mode indicator change (normal → auto-accept → plan, and back). In **auto mode**, Claude runs its steps without asking you to approve each one. For this lab, stay in normal mode so you see each action. Later labs lean on auto mode, so get comfortable cycling now. This is a light intro; the deep treatment is Lab 7.
 
-> **macOS:** no `--browser` flag needed. Claude Code opens your default browser automatically.
+> **Windows only:** if a `claude` command opens a browser or login flow, add `--browser msedge`. (macOS opens your default browser automatically.)
 
-9. Record what it found under "Round 2 (Claude Code)" in `surface-map.md`: the file it named, the line, and what it proposed.
+**Expected output:** Claude Code reads the repo and names a specific file, function, and line in `server/`. It proposes a concrete minimal change and may surface (or be prompted to surface) a caveat about whether the fix is complete given how the data model is structured.
 
-**Expected output:**
-
-Claude Code reads the repo and names a specific file, function, and line number. It proposes a minimal change and may also surface a caveat about whether the fix is complete given how the data model is structured. Contrast this against the Round 1 response.
-
-Compare the two rounds. The delta is the lesson: same model, one surface saw the symptom, the other read the code.
-
-**You know it worked when** Claude Code names a specific file and line in `server/`, proposes a concrete change, and your Round 2 note is more specific than your Round 1 note.
+**You know it worked when** Claude Code names a specific file and line in `server/`, proposes a concrete change, and your Round 2 note is more specific than your Round 1 note. Compare the two rounds. That delta is the lesson: same model, one surface saw the symptom, the other read the code.
 
 ---
 
-### S4 — Model and effort selection
+### Step 4 — Model and effort selection (reasoning-only)
 
-10. Two tasks: (i) rename a variable in one file; (ii) refactor `Reports.vue` off its hardcoded `localhost:8001` and into the shared `api.js` client (touches multiple files). For each, choose a model tier and an effort or reasoning level, and write one sentence of reasoning in `surface-map.md`.
+Two tasks: (i) rename a variable in one file; (ii) refactor `Reports.vue` off its hardcoded `localhost:8001` and into the shared `api.js` client (touches multiple files).
 
-This is a reasoning habit, not a benchmark run. Do not run both tasks and compare outputs. The goal is to make a considered choice based on task complexity and write down why.
+For each task, decide **which model tier and effort or reasoning level you WOULD pick, and why**. The reasoning is the point. You already know how to switch (`/model` from Step 0); you do not need to switch here. Think it through and move on, no need to write it down.
 
-**You know it worked when** `surface-map.md` has two model/effort choices, each tied to why that task warrants that tier.
+This is a reasoning habit, not a benchmark. Do not run both tasks and compare outputs.
+
+**You know it worked when** you can state, for each task, the tier and effort you would choose and the task-complexity reason behind it.
 
 ---
 
-### S5 — Cowork and finalize
+### Step 5 — Finalize (local, no commit)
 
-11. Add the fourth surface: write your one-sentence "when I'd use Claude Cowork" (the desktop app suited for doc and plan work away from the repo).
+Review `surface-map.md`. Confirm it has:
+- A one-line "when I'd use this" for **all three** surfaces (Claude.ai, Claude Code, API / CI)
+- The **three** issue routings with reasoning
+- The Round 1 and Round 2 notes showing the specificity delta
 
-12. Review `surface-map.md`. Confirm it has:
-    - A one-line "when I'd use this" for all four surfaces (Claude.ai, Claude Code, Claude Cowork, API/CI)
-    - The three issue routings with reasoning
-    - Round 1 and Round 2 notes showing the specificity difference
-    - Two model/effort choices with reasoning
+**Keep this file in your worktree. It is your personal takeaway. Do not commit it.**
 
-13. Commit:
-    - `git add surface-map.md`
-    - `git commit -m "lab-1: surface selection map"`
-
-**Expected output:**
-
-```
-git log --oneline -1
-```
-
-Shows your commit message: `lab-1: surface selection map`
-
-**You know it worked when** `git log --oneline -1` shows your commit and `surface-map.md` is complete.
+**You know it worked when** `surface-map.md` is complete and saved in your worktree.
 
 ---
 
@@ -156,7 +121,7 @@ These steps absorb extra time and add depth. None are required for the done crit
 
 **EC2 — IDE integration leg.** Open a Vue component in your editor with Claude Code's IDE integration active. Ask for an inline explanation of a reactive data flow and review the diff without leaving the editor. Note how the write-loop feel compares to the CLI.
 
-**EC3 — API/CI framing.** For issue C (the batch/CI script), write one paragraph sketching how you would call Claude via the API in a CI step, with no interactive session. Where does the API surface win over the other three?
+**EC3 — API/CI framing.** For issue C (the batch/CI script), write one paragraph sketching how you would call Claude via the API in a CI step, with no interactive session. Where does the API surface win over the other two?
 
 **EC4 — Implement the fix.** Apply Claude Code's proposed change to the backlog count, then call `/api/dashboard/summary?warehouse=London` and observe what the count returns. The result is a teaching point about the data model. Think about what a production-complete fix would require beyond the one-liner.
 
@@ -166,11 +131,11 @@ These steps absorb extra time and add depth. None are required for the done crit
 
 You are done when:
 
-1. `surface-map.md` is committed and contains: a one-line "when I'd use this" for all four surfaces, the three issue routings with reasoning, and two model/effort notes.
-2. Round 1 and Round 2 are recorded in `surface-map.md`, showing the difference in specificity between Claude.ai's response and Claude Code's response.
-3. `git log --oneline -1` shows your commit.
+1. `surface-map.md` contains: a one-line "when I'd use this" for all three surfaces, the three issue routings with reasoning, and the Round 1 / Round 2 notes.
+2. Round 1 and Round 2 show the difference in specificity between Claude.ai's response and Claude Code's response.
+3. The file is saved in your worktree (not committed).
 
-**Share-back artifact:** `surface-map.md`. This is a real file worth showing. It holds your four-surface map, your three-issue routing with reasoning, and your model/effort thinking.
+**Personal takeaway:** `surface-map.md`. It holds your three-surface map, your three-issue routing with reasoning, and your Round-1-vs-Round-2 comparison. Keep it; it is yours.
 
 ---
 
@@ -183,18 +148,16 @@ Confirm `uv` is installed (`uv --version`) and that the venv was created in pre-
 - **Windows:** `netstat -ano | findstr :8001`, then `taskkill /F /PID <pid>` (replace `<pid>` with the PID from the output).
 - **macOS:** `lsof -i :8001 | grep LISTEN`, then `kill <pid>`.
 
-If pre-work was not done, run `uv venv` then `uv sync` in `server/` first (allow 3-5 minutes), then start the server.
-
-Run each command on its own line.
+If pre-work was not done, run `uv venv` then `uv sync` in `server/` first (allow 3-5 minutes), then start the server. Run each command on its own line.
 
 **Claude Code is not finding the bug.**
 
-Try asking with more direction: point it at the specific function in `server/main.py` that builds the dashboard summary, and ask why the backlog count doesn't respond to the warehouse filter. If still stuck, open `server/main.py` and look at the function that builds the summary response. Compare how the backlog count is computed against how the inventory and order counts are computed.
+Try asking with more direction: point it at the specific function in `server/main.py` that builds the dashboard summary, and ask why the backlog count does not respond to the warehouse filter. If still stuck, open `server/main.py` and look at the function that builds the summary response. Compare how the backlog count is computed against how the inventory and order counts are computed.
 
 **Out of time or too far stuck.**
 
-Run:
+First run `git remote -v` and confirm `origin` points at your fork. Then:
 1. `git stash`
 2. `git checkout lab-1-solution`
 
-Open `surface-map.md` (a completed example) and `docs/lab-1/SOLUTION.md`. Read the Round-1-vs-Round-2 comparison and the routing table. You leave having seen the point of the lab even if you didn't produce the artifact yourself.
+Open `surface-map.md` (a completed example) and `docs/lab-1/SOLUTION.md`. Read the Round-1-vs-Round-2 comparison and the routing table. You leave having seen the point of the lab even if you did not produce the artifact yourself.
