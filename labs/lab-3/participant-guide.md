@@ -1,222 +1,189 @@
 # Lab 3 Participant Guide
-## CLAUDE.md + Context Architecture: Sharp, Layered, Cache-Aware
+## CLAUDE.md + Context Architecture: Sharp and Layered
 
 **Theme 3 | Foundations**
 **Repo:** `ryan-roark-caylent/inventory-management-smarsh` | Branch: `lab-3-start`
-**Model:** claude-sonnet-5
+**Model:** Sonnet
 
 ---
 
 ### Before you start
 
-You should have completed the CLAUDE.md pre-reading on Skilljar. This lab does not re-teach what a CLAUDE.md is. It builds depth: layering discipline, `@` file injection, cache-aware ordering, and de-bloating a real hierarchy.
-
----
-
-### What you are building toward
-
-By the end of this lab you will have a sharp, layered, cache-ordered CLAUDE.md set that changes what Claude produces on the next task -- not because you told Claude what to do, but because the instructions ride every request.
-
-**The key insight** lives in Step 6: the *order* of lines in your CLAUDE.md has a cost. Moving a volatile "currently working on..." line from the top to the bottom does not change the file's size, but it preserves the model's KV-cache prefix for the stable content above it. You will see this live by re-running `/context` before and after the reorder.
+You should have watched the CLAUDE.md pre-reading and completed the pre-work setup in the LMS (MindTickle pre-work module). This lab does not re-teach what a CLAUDE.md is. It builds depth: layering, `@` file injection, de-bloating a real hierarchy, and managing what Claude pays for on every turn.
 
 The core path takes roughly 50 minutes. Extra credit absorbs any remaining time.
 
 ---
 
-### Step 0 -- Setup (fresh session required)
+### What you are building toward
 
-Open a terminal and run these commands one at a time:
+By the end of this lab you will have a sharp, layered CLAUDE.md set that changes what Claude produces on the next task — not because you told Claude what to do that session, but because the instructions ride every request. You will also be able to *see and control* what Claude loads into context on every turn.
 
-```
-git fetch origin
-git checkout -b lab-3-work origin/lab-3-start
-```
+**The key insight** lives in Step 5: an `@`-import is **always-on** (it sits in `/context` at launch, before you do anything), while a sub-directory `CLAUDE.md` is **lazy** (it only shows up once Claude touches that directory). Two opposite cost models, both visible in one `/context` reading. You decide which mode fits which content.
 
-Then **relaunch Claude Code in a new terminal window** so it loads the `lab-3-start` CLAUDE.md set fresh.
-
-> **Windows:** after switching branches, close your current Claude Code session and open a new one. A session that was open before checkout keeps the old context loaded.
-
-> **macOS:** same requirement. Quit Claude Code and relaunch after switching branches. The active session caches the CLAUDE.md set it opened with.
-
-**Do not run `/init`.** On a repo that already has a CLAUDE.md, `/init` can offer to regenerate it. Accepting that offer overwrites the planted content that Steps 2-4 depend on. If you accidentally ran `/init` and see a clean file with no "My Preferences" section or unusual content, restore it by running `git checkout origin/lab-3-start -- CLAUDE.md` in a terminal, then relaunching Claude Code.
+Throughout this lab, drive Claude — ask Claude to make the edits. Don't hand-edit the files yourself unless a step says to (the terminal `git mv` and `/context` reads are the exceptions).
 
 ---
 
-### Step 1 -- See what is loaded
+### Step 0 — You should already be here (fresh session)
 
-Run `/context`. Read the output. Notice:
+You should already be on your `lab-3-work` worktree from pre-work. If not, follow the pre-work setup in the LMS to create it, then return here.
 
-- Only the root `CLAUDE.md` appears in the launch footprint.
-- `client/CLAUDE.md` and `server/CLAUDE.md` are not there yet -- they load lazily when Claude accesses files in those subtrees.
+- Quick check: run `/model` and confirm you are on **Sonnet**. Smarsh defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed.
+- Launch Claude Code fresh in this worktree so it loads the `lab-3-start` CLAUDE.md set.
+- **Do not run `/init`.** On a repo that already has a CLAUDE.md, `/init` can offer to regenerate it and would overwrite the planted content that Steps 2-3 depend on. (See Stuck if you did.)
 
-Expected shape at launch:
+> **Relaunch callout (Windows + macOS — identical guidance):** if a Claude Code session was open before you entered this worktree, quit and relaunch it so the correct CLAUDE.md set loads.
+
+---
+
+### Step 1 — See what is loaded
+
+Run `/context`. Read the output, then open and skim the root `CLAUDE.md`.
+
+Notice: **only the root `CLAUDE.md` is in the launch footprint.** `client/CLAUDE.md` and `server/CLAUDE.md` are not there — they load lazily when Claude works in those subtrees. You will use that fact in Step 5.
+
+Expected shape at launch (read the relative bars, not counts):
 
 ```
 Context Usage
-  System prompt        ▓▓
-  Tools                ▓▓▓
-  Memory files         ▓▓▓       <- root CLAUDE.md only
-    ./CLAUDE.md            (small)
-  Messages             ▓
+  System prompt   ▓▓
+  Tools           ▓▓▓
+  Memory files    ▓▓▓      <- root CLAUDE.md only
+    ./CLAUDE.md       (small)
+  Messages        ▓
 ```
 
-Now trigger the sub-file loads: ask Claude to open and describe `client/src/api.js` and `server/main.py`. Then re-run `/context`.
+> **Aside (extra credit):** you can run a shell command from inside Claude Code by prefixing it with `!` — e.g. `!git status`. Handy for quick checks without leaving the session.
 
-You know it worked when: your `/context` output shows a materially larger footprint than at launch, with entries for both `client/CLAUDE.md` and `server/CLAUDE.md` present. The exact section they appear in varies by Claude version -- what matters is that both entries are present and the footprint grew. Notice how much larger the `client/CLAUDE.md` entry is relative to the root.
+---
 
-Expected shape after sub-file load:
+### Step 2 — Fix stale content and delete credentials (do this before trimming)
+
+The root `CLAUDE.md` has two planted problems:
+
+- A stale **"API Endpoints"** section — it lists `GET /api/suppliers`, which the server does not implement, and omits real endpoints.
+- A **"Deployment & Environment Setup"** block with credentials that have no place in a CLAUDE.md.
+
+Ask Claude to (a) delete the credentials block entirely, and (b) fix the stale API list the durable way: replace the hand-maintained inline list with an `@` reference to the file that actually defines the routes, so it can never drift again.
+
+> **Relaunch callout (Windows + macOS):** after the `@` reference is added, quit and relaunch Claude Code, then re-run `/context`. Editing CLAUDE.md mid-session does not reload it — you need a fresh launch to see the `@`-import take effect.
+
+> **Teaching point:** `@`-imports are **eager**. Claude Code pulls the *entire* referenced file into context at launch, every session. Your `/context` footprint is now **larger** than before — the win is the route list can't drift; the cost is the whole file rides every request.
+
+Expected shape after `@server/main.py` + relaunch (footprint LARGER):
 
 ```
 Context Usage
-  System prompt        ▓▓
-  Tools                ▓▓▓
-  Memory files         ▓▓▓▓▓▓▓   <- sub-files now loaded
-    ./CLAUDE.md            (small)
-    ./client/CLAUDE.md     (large)
-    ./server/CLAUDE.md     (medium)
-  Messages             ▓▓
+  System prompt   ▓▓
+  Tools           ▓▓▓
+  Memory files    ▓▓▓▓▓▓   <- root + eagerly-loaded main.py
+    ./CLAUDE.md       (small)
+    ./server/main.py  (full file, pulled by @ reference)
+  Messages        ▓
 ```
 
-> **Note:** having Claude open a source file in the subtree (`client/src/api.js` or `server/main.py`) is the reliable trigger. Asking Claude to read the CLAUDE.md files directly may not trigger the mechanism.
+You know it worked when: the credentials block is gone, the inline endpoint list is replaced by a single `@server/main.py` line, and `/context` shows a larger footprint after relaunch.
 
 ---
 
-### Step 2 -- Trim the root and add rules (open-ended)
+### Step 3 — Trim the root and add rules (open-ended)
 
-Ask Claude to reduce the root `CLAUDE.md` to: the build/test/lint commands, the top-3 Vue-3 + FastAPI conventions for this repo, and **three "always/never" rules drawn from mistakes Claude actually makes on this codebase**.
+Ask Claude to reduce the root `CLAUDE.md` to: the build/test/lint commands, the top-3 Vue-3 + FastAPI conventions for *this* repo, and **three "always/never" rules drawn from mistakes Claude actually makes on this codebase**. Cut generic advice and noise.
 
-The starting file has generic advice, personal preferences, and noise that belongs in the sub-files or nowhere. Ask Claude to help you cut it down.
+> **Protected — do not trim:** leave the `## Workshop Rule` section intact ("Local commits only; never push…; always run the full test suite…"). That is the workshop's own operating rule, not bloat. Tell Claude to keep it.
 
-For the three always/never rules, you choose at least one and you must be able to defend why it belongs at the root layer. Here are real rough edges in this codebase to consider:
+Real rough edges you can turn into rules (pick at least one, and be ready to defend the layer it belongs at):
 
-- Rendering bugs from array-index keys in `v-for` loops
-- Components that bypass `client/src/api.js` and hardcode a URL directly
-- Filter helpers that count before filtering instead of after
-- Date methods called before validating the value
+- Array-index keys in a `v-for` (`Reports.vue` does this)
+- Components that hardcode `http://localhost:8001` instead of routing through `client/src/api.js`
+- Counting before filtering instead of after
+- Calling a date method before validating the value
 
-You know it worked when: the root file is materially shorter and every line is repo-specific. A new hire could read it and learn a real quirk about this codebase, not a general best practice.
-
----
-
-### Step 3 -- Fix stale content and delete credentials
-
-The root `CLAUDE.md` on `lab-3-start` carries two problems: a stale "API Endpoints" section (it lists an endpoint the server does not implement, and omits endpoints that do exist) and a "Deployment & Environment Setup" block with fake credentials that have no place in a CLAUDE.md.
-
-Ask Claude to find why the API Endpoints section is stale by comparing it against `server/main.py`, correct the endpoint list, and delete the credentials block entirely.
-
-Before the fix, the stale section looks like this:
-
-```
-## API Endpoints
-- GET /api/inventory - Filters: warehouse, category
-- GET /api/orders - Filters: warehouse, category, status
-- GET /api/suppliers - Supplier directory lookup
-- GET /api/dashboard/summary - All filters
-...
-(reports endpoints missing)
-```
-
-You know it worked when: the nonexistent endpoint is gone and the credentials block no longer appears in the file.
+Re-run `/context`. You know it worked when: the root file is materially shorter, every line is repo-specific, the Workshop Rule survived, and the footprint **shrank** versus the bloated start — the always-on cost you just stopped paying every turn.
 
 ---
 
-### Step 4 -- `@` injection
+### Step 4 — Layer and de-duplicate the sub-files
 
-Rather than describing the API inline, you can replace the endpoint list with an `@` reference to the file that actually defines the routes. This guarantees the list matches the code -- it cannot drift the way a hand-maintained inline list can.
+Open `client/CLAUDE.md` and `server/CLAUDE.md` — hundreds of lines of generic framework tutorial. Ask Claude to cut each to only what is true for *this* repo (the shared filter helper, the api.js-centralization rule, "update the Pydantic model when JSON changes," the v-for-key rule, return `response_model`-typed responses) and remove anything a competent Vue/FastAPI dev already knows or that duplicates the root.
 
-Ask Claude to replace the inline endpoint list with a reference to the file that is the authoritative source of route definitions.
+> ---
+> **Personal preferences don't belong in a project CLAUDE.md.** Editor settings, "run prettier before showing me a diff," your work hours — those are *yours*, not the repo's. Move them to a personal `~/.claude/CLAUDE.md` that rides with **you** across every repo. Do **not** commit it — it is the personal layer, not the project layer.
+> ---
 
-You know it worked when: the inline endpoint list is replaced by a single `@server/main.py` line, and `/context` shows a larger memory footprint than before this change.
+You know it worked when: each sub-file fits on roughly one screen and contains nothing generic; any rule duplicated between root and a sub-file has been hoisted to a single home.
 
-Expected shape after `@` injection:
+---
+
+### Step 5 — ★ POINT STEP: manage your context (eager vs lazy)
+
+You have now set up two ways CLAUDE.md content reaches Claude. This step makes the difference **visible** so you can decide which to use.
+
+1. Relaunch Claude Code for a clean session. Run `/context`. Look at what is loaded **before you do any work**: the root `CLAUDE.md` and the full `server/main.py` (pulled in eagerly by your Step-2 `@` reference). The sub-CLAUDE.md files are **not** there.
+2. **Predict:** is `server/CLAUDE.md` loaded yet? (No — it is lazy.)
+3. Ask Claude to work with a file in the server subtree — e.g. "explain what `server/mock_data.py` does." Re-run `/context`.
+4. Observe: the footprint **grew**, and a `server/CLAUDE.md` entry now appears. You never asked for it — it loaded the instant Claude touched `server/`.
+
+Expected shape — the contrast:
 
 ```
 Context Usage
-  System prompt        ▓▓
-  Tools                ▓▓▓
-  Memory files         ▓▓▓▓▓▓   <- root + eagerly-loaded main.py
-    ./CLAUDE.md            (small)
-    ./server/main.py       (309 lines, loaded by @ reference)
-  Messages             ▓
+  System prompt   ▓▓
+  Tools           ▓▓▓
+  Memory files    ▓▓▓▓▓▓   <- root + main.py (unchanged)
+    ./CLAUDE.md
+    ./server/main.py
+  Messages        ▓▓▓▓     <- GREW; server/CLAUDE.md entry appears here
 ```
 
-> **Teaching point:** `@`-imports are eager. Claude Code pulls the entire referenced file into context when the parent CLAUDE.md loads. The footprint grew because the full `main.py` is now loaded on every session start. That is the tradeoff: the route list cannot drift, but 309 lines are in context on every session launch. Whether the tradeoff is worth it depends on how often the file changes and how large it is.
+The decision this teaches: **`@`-import = always-on** (pay every turn; use it for things Claude must always know and that can't drift, like the route list). **Sub-CLAUDE.md = lazy** (pay only when relevant; use it to scope directory-specific rules so they cost nothing until you are in that directory).
+
+> **Success signal:** you know it worked when the total `/context` footprint is **larger after** Claude works in `server/` than it was at launch, and a `server/CLAUDE.md` entry now appears. **Where it appears (Messages vs Memory files) depends on the Claude version — on current Sonnet it lands under Messages.** Don't look for it only under "Memory files"; look for total growth and the new entry wherever it shows up.
 
 ---
 
-### Step 5 -- Layer and de-duplicate
+### Step 6 — With/without delta
 
-Open `client/CLAUDE.md` and `server/CLAUDE.md`. They are hundreds of lines of generic framework tutorial. Ask Claude to cut each to only the specifics true for this repo and remove anything that:
+The root `CLAUDE.md` carries a rule that lives **only** in the root: any time Claude creates or significantly modifies a `.vue` file, it must delegate to the `vue-expert` subagent. No sub-file mentions delegation — so renaming the root alone gives you a clean comparison.
 
-- A competent Vue or FastAPI developer already knows
-- Duplicates something already in the root
+1. Ask Claude to **add a supplier column to the inventory table view** (a `.vue` file). Watch the transcript: with the root in place, Claude delegates — you will see a `Task(vue-expert)` call. Note what it produces.
+2. Discard that code change and take the root file out of play, then relaunch:
 
-For personal preferences (editor settings, formatting instructions), move them to a `~/.claude/CLAUDE.md` stub. Do **not** commit that file -- it is the personal layer, not the project layer.
+   ```
+   git checkout -- .
+   git mv CLAUDE.md CLAUDE.md.off
+   ```
 
-You know it worked when: each sub-file fits on roughly one screen and contains nothing generic.
+3. **Relaunch Claude Code** (quit and open a new session).
+4. Ask for the **same** change again. This time Claude edits the `.vue` file directly, with no delegation.
+5. Record **three concrete differences** between the two runs.
 
----
+> **Relaunch callout (Windows + macOS):** you must relaunch after renaming a CLAUDE.md — a live session keeps the old context cached and the comparison is meaningless.
 
-### Step 6 -- Context-cost audit (point step)
+> **If a dev server is holding port 8001:** macOS — `lsof -i :8001` then `kill <PID>`. Windows — `netstat -ano | findstr :8001` then `taskkill /PID <PID> /F`.
 
-Run `/context`. Now go through the root `CLAUDE.md` line by line and categorize each line as:
-
-- **Stable:** conventions, rules, commands -- rarely changes
-- **Volatile:** session/sprint-specific content -- changes frequently
-
-Ask Claude to help you move every volatile line into a `# Session Context` block at the *bottom* of the file.
-
-Re-run `/context`.
-
-Then write **one sentence** explaining why the order matters even though the file size did not change. Your answer should name the KV-cache prefix.
-
-You know it worked when: the `# Session Context` block is at the bottom and your one-sentence note names the KV-cache prefix.
-
-> The insight: any edit to an early line busts the KV-cache prefix for every token that follows. Stable content at the top stays cached across requests. Volatile content at the bottom changes without busting the stable prefix above it.
+You know it worked when: you have three concrete differences written down, and can name at least one convention the root file enforced (delegation to `vue-expert`) that the bare run missed.
 
 ---
 
-### Step 7 -- With/without delta
+### Step 7 — Keep your work (no commit)
 
-Ask Claude to add a `supplier` field to the inventory endpoint response. Note what it produces.
-
-Now rename the root file in a terminal:
-
-```
-git mv CLAUDE.md CLAUDE.md.off
-```
-
-**Relaunch Claude Code** (quit and open a new session).
-
-Ask for the same change again. Record **three concrete differences** between the two outputs.
-
-> **Windows:** you must relaunch Claude Code after renaming. A live session keeps the old context cached and the comparison is meaningless.
-
-> **macOS:** same requirement. Quit and relaunch after renaming. If a dev-server process is holding port 8001, stop it with: `lsof -i :8001` to find the PID, then `kill <PID>`.
-
-> **Windows equivalent for stopping a process on port 8001:** run `netstat -ano | findstr :8001` to find the PID, then `taskkill /PID <PID> /F`.
-
-You know it worked when: you have three concrete differences written down and can name at least one convention the CLAUDE.md enforced that the "without" run missed.
-
----
-
-### Step 8 -- Commit
-
-Restore the file:
+Restore the renamed file:
 
 ```
 git mv CLAUDE.md.off CLAUDE.md
 ```
 
-Then commit the layered CLAUDE.md set (root, `client/`, `server/`) plus a short `claude-md-notes.md` file that describes in prose what changed between the with and without runs. Write the note as prose, not a token count.
+Your layered CLAUDE.md set (root + `client/` + `server/`) plus a short `claude-md-notes.md` prose note — what changed in output quality between the two runs, written as prose, not a token count — is your **personal takeaway**. Keep it in your worktree. **Do not commit or push.** Nothing in this lab goes back to the repo.
 
 ---
 
 ### Extra credit
 
-1. **Custom slash commands:** author `.claude/commands/inv-review.md` (a command that reviews a Vue component against your CLAUDE.md rules) and `.claude/commands/route-check.md` (a command that checks a new FastAPI route against existing patterns). Run each against a real file.
-2. **Reference-good check:** ask Claude to critique your trimmed root file against this bar: "would a new hire understand this repo's quirks from this?" Then iterate once based on the feedback.
-3. **Auto-memory observation:** note anything Claude's auto-memory has accumulated across sessions and decide whether it belongs in your curated CLAUDE.md or should stay uncurated.
+1. **`!` bash prefix:** run a few shell commands from inside Claude Code with `!` (e.g. `!git status`, `!ls server/`).
+2. **Custom slash commands:** ask Claude to author `.claude/commands/inv-review.md` (reviews a Vue component against your CLAUDE.md rules) and `.claude/commands/route-check.md` (checks a new FastAPI route against existing patterns). Run each against a real file.
+3. **Auto-memory observation:** note what Claude's auto-memory has accumulated across sessions and decide whether it belongs in your curated CLAUDE.md or should stay uncurated.
 
 ---
 
@@ -224,29 +191,22 @@ Then commit the layered CLAUDE.md set (root, `client/`, `server/`) plus a short 
 
 You are done when all four are true:
 
-1. Root `CLAUDE.md` is trimmed, has at least 3 always/never rules, no fake credentials, no nonexistent endpoint, and an `@server/main.py` reference.
+1. Root `CLAUDE.md` is trimmed, has at least 3 always/never rules, no fake credentials, no nonexistent endpoint, and an `@server/main.py` reference. The `## Workshop Rule` section survived.
 2. Both sub-files are cut to repo-specific content with no cross-layer duplication.
-3. Running `/context` shows a `# Session Context` block at the bottom of the root file, and you have a one-sentence cache note ready to share.
-4. The with/without run produced three written differences.
+3. In Step 5 you saw the total `/context` footprint grow and a `server/CLAUDE.md` entry appear only after Claude worked in `server/`, and you can say why an `@`-import costs on every turn while a sub-file does not.
+4. The with/without run in Step 6 produced three written differences.
 
-**Share-back artifact:** your committed layered CLAUDE.md set (root + `client/` + `server/`) plus `claude-md-notes.md` describing what changed in output quality between the two runs. Write the description as prose, not a token count.
+**Personal takeaway (local, not committed):** your layered CLAUDE.md set (root + `client/` + `server/`) plus `claude-md-notes.md` describing what changed in output quality between the two runs. Write the description as prose, not a token count.
 
 ---
 
 ### Stuck? Self-service options
 
-**If Claude is drifting or producing inconsistent output:** ask Claude to review your current CLAUDE.md set for layering issues -- which rules belong at root vs. sub-file, whether any volatile content sits above stable content, and whether any generic advice slipped back in. Work through the root file first before touching the sub-files.
+**If Claude is drifting or producing inconsistent output:** ask Claude to review your current CLAUDE.md set for layering issues — which rules belong at root vs. sub-file, and whether any generic advice slipped back in. Work through the root file first before touching the sub-files.
 
-**If you want to start over from the planted state:** run `/reset-branch` in Claude Code (this removes `lab-3-work` and returns to `main`). Then, in a terminal:
+**If you want to start over from the planted state:** run the `/reset-branch` command in Claude Code (this is a slash command, not a skill). Note that it permanently deletes uncommitted work in this worktree, so keep anything you want first. Then relaunch Claude Code.
 
-```
-git fetch origin
-git checkout -b lab-3-work origin/lab-3-start
-```
-
-Then relaunch Claude Code. The shared `lab-3-start` branch on origin is unchanged.
-
-**If you want to see the finished target:** run `git checkout lab-3-solution` in a terminal, then relaunch Claude Code. Run `/context` and open all three CLAUDE.md files. You will see the sharp, layered, cache-ordered result and can experience the point of the lab even if you ran out of time.
+**If you want to see the finished target:** first confirm your remote is the fork — run `!git remote -v` and check that `origin` points at `ryan-roark-caylent/inventory-management-smarsh`. Then run `git checkout origin/lab-3-solution -- CLAUDE.md client/CLAUDE.md server/CLAUDE.md` in a terminal and open all three files. You will see the sharp, layered result and can experience the point of the lab even if you ran out of time.
 
 ---
 

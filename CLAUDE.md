@@ -28,6 +28,10 @@ uv run pytest ../tests/backend/ -q
 **Data Flow**: Vue filters → `client/src/api.js` → FastAPI → In-memory filtering → Pydantic validation → Computed properties.
 **Reactivity**: Raw data in refs (`allOrders`, `inventoryItems`), derived data in computed properties.
 
+## Subagents
+
+- **MANDATORY: any time you create or significantly modify a `.vue` file, delegate the work to the `vue-expert` subagent** (via the Task tool). This rule lives only in the root so it applies across the whole repo.
+
 ## Always / Never Rules
 
 - **Never** use `:key="index"` in a `v-for` — use a stable ID (`item.id`, `sku`, `month.month`, `q.quarter`). `Reports.vue` does this wrong at lines 28, 51, and 82.
@@ -53,6 +57,3 @@ See @server/main.py for the authoritative route list and filters.
 ## Workshop Rule
 Local commits only. Never push, never create pull requests, never use GitHub remote operations.
 Always run the full test suite before claiming a change works.
-
-# Session Context
-**Currently working on:** PR #142 low-stock alerting — sprint ends Friday. Ping @rohan before merging.
