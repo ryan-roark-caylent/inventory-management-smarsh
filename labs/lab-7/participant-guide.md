@@ -11,7 +11,7 @@ Your completion and mastery quizzes are in the LMS.
 By the end of this lab you'll have:
 
 - A `structured-handoff.md` (Findings / Decisions / Constraints) that Claude drafts and you scope, derived from a read-only sub-agent review
-- A `permission-scope.md` encoding a least-privilege MCP scope for Jira (read allowed, all writes blocked)
+- A `.claude/settings.local.json` encoding a least-privilege MCP scope for Atlassian (Jira read allowed, all writes and everything else blocked)
 - First-hand proof that the scope — not your click — is the safety: a Jira write DENIED under auto mode while the scoped read still works
 
 Both files stay local in your worktree. Nothing gets committed or pushed.
@@ -132,38 +132,43 @@ Answer Claude's questions to lock the Decisions and Constraints yourself. The fi
 
 ---
 
-### Step 5 — Scope Jira to read-only (`permission-scope.md`) ★ Point step
+### Step 5 — Scope the connection in `settings.local.json` ★ Point step
 
-You're about to let an agent touch Atlassian. Before you do, decide exactly what it may and may not do, and write it down.
+You're about to let an agent touch Atlassian. Before you do, decide exactly what it may and may not do — then encode that decision where it's actually enforced.
 
-Notice what you're scoping: the connected server is **one combined `claude_ai_Atlassian` server** — it exposes Jira *and* Confluence *and* cross-product tools (dozens of calls, including Confluence page writes and account lookups). Your workflow needs exactly one thing: read your most-recent Jira ticket. Least privilege means allowing those one or two read calls and blocking all the rest — Jira writes, every Confluence tool, and the cross-product calls. For the workflow "read my most-recent Jira ticket; do nothing else," write the three scopes and defend each:
+Notice what you're scoping: the connected server is **one combined `claude_ai_Atlassian` server** — it exposes Jira *and* Confluence *and* cross-product tools (~32 calls, including Confluence page writes and account lookups). Your workflow needs exactly one thing: read your most-recent Jira ticket. Least privilege means allowing those one or two read calls and blocking all the rest.
 
-- **Explicit Read** — the Jira read call(s) only: search my issues, then get the one issue. Read-only.
+**Reason through the three-part model** (out loud or in your head — you don't need to write it as prose; the enforcement file below is the artifact that matters):
+
+- **Explicit Read** — the Jira read call(s) only: search my issues, then get the one issue.
 - **Explicit Write** — **BLOCKED.** No comment, no create, no transition, no edit, no worklog.
 - **Explicit Blocks** — everything else the server exposes: all Confluence tools, the cross-product `search`/`fetch`, account/admin calls, and every other project.
 
-Then encode it in `.claude/settings.local.json`: **allow** only the Jira read call(s); **deny** the writes and everything else.
+Now encode that reasoning directly in `.claude/settings.local.json` — this is the **deterministic guard** the runtime actually reads: **allow** only the Jira read calls, **deny** the writes and everything else. The shape (fill the exact tool names you confirm from `/mcp`):
 
-The shape your `permission-scope.md` should take (fill the `<…>` with the exact tool names you confirm from `/mcp`):
-
-```markdown
-## Explicit Read
-- <the search-issues call>   (find my most-recent issue — read only)
-- <the get-one-issue call>   (read that issue — read only)
-
-## Explicit Write
-- BLOCKED — no comment, create, transition, edit, or worklog on any issue
-
-## Explicit Blocks
-- <the write/admin calls you are blocking, by exact name>
-- all Confluence tools; the cross-product search/fetch; account/admin; every other project
+```jsonc
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql",  // find my latest issue
+      "mcp__claude_ai_Atlassian__getJiraIssue"               // read that issue
+    ],
+    "deny": [
+      "mcp__claude_ai_Atlassian__addCommentToJiraIssue",     // the write we'll watch get blocked
+      "mcp__claude_ai_Atlassian__createJiraIssue",
+      "mcp__claude_ai_Atlassian__editJiraIssue",
+      "mcp__claude_ai_Atlassian__transitionJiraIssue"
+      // ...plus the Confluence + cross-product tools outside this workflow
+    ]
+  }
+}
 ```
 
-> **Verify tool names:** open `/mcp`, select the **claude_ai_Atlassian** server, and read its tool list. Confirm every allow/deny entry uses the **exact** tool name it exposes — these are camelCase with a server prefix (e.g. `mcp__claude_ai_Atlassian__getJiraIssue`), not the friendly label. A guessed name silently mis-scopes: the guard won't match, and the block won't fire where you think it does.
+> **Verify tool names:** open `/mcp`, select the **claude_ai_Atlassian** server, and read its tool list. Confirm every allow/deny entry uses the **exact** tool name it exposes — camelCase with the `mcp__claude_ai_Atlassian__` prefix, not the friendly label. A guessed name silently mis-scopes: the guard won't match, and the block won't fire where you think it does.
 
-Ask Claude to help you enumerate the minimal read calls the workflow needs, but you fill in and defend the three sections and the allow/deny list yourself.
+Ask Claude to help you enumerate the minimal read calls the workflow needs, but you decide and defend the allow/deny split yourself.
 
-**Success signal:** `permission-scope.md` has all three sections as checkable lines; your allow list names only the Jira read call(s); your deny list names the Jira writes plus the Confluence and cross-product tools outside the workflow. The `/mcp` tool names match your entries exactly.
+**Success signal:** `.claude/settings.local.json` allows only the two Jira read calls and denies the writes plus the Confluence/cross-product tools outside the workflow; every entry matches an exact `/mcp` tool name.
 
 ---
 
@@ -218,11 +223,11 @@ $ git worktree list
 
 ### Step 8 — Keep your takeaway (no commit)
 
-Your two local artifacts — `permission-scope.md` and `structured-handoff.md` — stay in your worktree as a personal takeaway. **Do not commit or push anything.**
+Your two local artifacts — `.claude/settings.local.json` (your enforced scope) and `structured-handoff.md` — stay in your worktree as a personal takeaway. **Do not commit or push anything.**
 
 Think through (no need to write it down): if you scoped this Jira workflow for your own team, what's the one call you'd allow and the one you'd hardest-block?
 
-**Success signal:** both files exist in your worktree; you can point to the Explicit Block line that denied the write in Step 6.
+**Success signal:** both files exist in your worktree; you can point to the `deny` entry in `settings.local.json` that blocked the write in Step 6.
 
 ---
 
@@ -231,7 +236,7 @@ Think through (no need to write it down): if you scoped this Jira workflow for y
 You have completed the core path when all four are true:
 
 1. `structured-handoff.md` exists in your worktree with Findings, Decisions, and Constraints filled; Decisions scoped to the test-targeted field.
-2. `permission-scope.md` exists with all three parts (Explicit Read, Explicit Write blocked, Explicit Blocks) as checkable lines; the allow list names only the Jira read call(s).
+2. `.claude/settings.local.json` reflects the three-part model — allow names only the Jira read call(s); deny names the writes plus the Confluence/cross-product tools outside the workflow.
 3. Under auto mode, the scoped Jira read succeeded and the comment write was DENIED by your deny rule with no approval prompt.
 4. `git worktree list` shows you ran the whole lab inside `lab-7-work`; a `git`-review shows a clean local tree.
 
@@ -253,20 +258,20 @@ These are not required for done-criteria or the completion quiz. Work on them if
 
 ## Stuck path
 
-**Jira won't connect (Step 0 / 6).** Run `/mcp` to see current status. If jira shows disconnected, confirm your read-only Jira token environment variable is set (see the MindTickle pre-work module), then relaunch Claude Code. If you still can't connect, you can still complete the scoping half of the lab: ask Claude to read `.mcp.json` and help you think through which specific Jira calls a workflow that only reads your most-recent ticket would need, and which it must be blocked from, without calling any tool. You'll produce a valid `permission-scope.md` and still hit the scoping done-criteria.
+**Atlassian won't connect (Step 0 / 6).** Run `/mcp` to see current status. If **claude_ai_Atlassian** shows disconnected, confirm your read-only Atlassian credentials are set (see the MindTickle pre-work module), then relaunch Claude Code. If you still can't connect, you can still complete the scoping half of the lab: ask Claude to read `.mcp.json` and help you think through which specific Jira read calls a workflow that only reads your most-recent ticket would need, and which it must be blocked from, without calling any tool. You'll produce a valid `.claude/settings.local.json` scope and still hit the scoping done-criteria.
 
 **Sub-agent dispatch confuses you (Step 3).** Ask Claude to dispatch the `code-reviewer` sub-agent to review the dashboard summary function in `server/main.py`, report its findings, and confirm it made no file changes. If Claude seems confused about sub-agents, confirm `.claude/agents/code-reviewer.md` exists in the repo.
 
 **Stuck on the handoff (Step 4).** Ask Claude to draft the three sections and quiz you on the scoping calls — the primary finding (the one the failing test targets), any secondary findings worth deferring, and what the minimal fix must avoid touching. You make the scoping calls; Claude drafts from your answers.
 
-**Stuck on permission scoping (Step 5).** Ask Claude to list the minimal set of Jira tool calls a workflow that only reads your most-recent ticket would need, and every Jira write/admin call that should be explicitly blocked, without calling any tool. Use that list to fill in your three sections yourself.
+**Stuck on permission scoping (Step 5).** Ask Claude to list the minimal set of Jira tool calls a workflow that only reads your most-recent ticket would need, and every Jira write/admin (plus Confluence/cross-product) call that should be explicitly blocked, without calling any tool. Use that list to fill in your `settings.local.json` allow/deny yourself.
 
 **Fully stuck or out of time.** Check out the reference artifacts from the solution branch to see finished examples. First confirm your remote points at the fork:
 
 ```
 git remote -v
 git fetch origin
-git checkout origin/lab-7-solution -- permission-scope.md structured-handoff.md
+git checkout origin/lab-7-solution -- .claude/settings.local.json structured-handoff.md
 ```
 
 Open both files. You'll see what a complete least-privilege scope and a signal-preserving handoff look like. You still leave having seen the 3-part model applied.
