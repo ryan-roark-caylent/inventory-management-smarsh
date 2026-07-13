@@ -18,5 +18,5 @@ One concrete request/response drawn from an existing endpoint.
 ## Risks
 (weaknesses, failure modes, alternatives — filled during the critique move)
 
-## Threshold configuration
-(the open-ended design decision — where config lives, and why)
+## Decisions needed from you
+(open design choices Claude surfaced for a human to resolve; fill in your choice and a one-sentence defense when you decide)
