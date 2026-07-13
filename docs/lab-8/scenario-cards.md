@@ -1,5 +1,5 @@
 # Lab 8 — Responsible-Use Scenario Cards
-Classify each: acceptable / needs modification / never acceptable, and cite the rule.
+Classify each: acceptable / needs modification / never acceptable, and state WHY — name the principle behind your call.
 
 1. To debug a pricing bug, you paste a real customer order record (name, email, order total) into a prompt.
 2. You include the production database connection string inline in a prompt so Claude can "see the schema."
