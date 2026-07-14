@@ -1,6 +1,6 @@
 # Lab 5 — Intervention Log
 
-Fill in each section as you work through the lab. Keep this in your worktree as your personal takeaway — do not commit it.
+This log is the executable trace of your debugging loop, not notes written after the fact. As you work each step, drive Claude to run the actual check (read the code, inspect the data, re-run the tests) and capture its real output in the matching section below. Keep this in your worktree as your personal takeaway — do not commit it.
 
 ---
 
@@ -20,7 +20,7 @@ Fill in each section as you work through the lab. Keep this in your worktree as 
 
 **Explain:**
 
-*(What did Claude say about how FastAPI's `response_model` validates the outgoing payload?)*
+*(What did Claude report — from reading the code — about how FastAPI's `response_model` validates the outgoing payload?)*
 
 **Hypothesis:**
 
@@ -28,7 +28,7 @@ Fill in each section as you work through the lab. Keep this in your worktree as 
 
 **Confirm / challenge:**
 
-*(What did you find when you checked `inventory.json` for the `supplier` key?)*
+*(What did Claude find when it actually read `inventory.json` and checked for the `supplier` key? Capture the real result.)*
 
 **Fix:**
 

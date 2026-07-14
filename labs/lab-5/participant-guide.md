@@ -85,11 +85,11 @@ The exception fires inside `client.get()` before any assertion runs.
 
 > **Working reference:** the **debugging loop** is the named Theme 5 tool — **explain → hypothesis → confirm/challenge → fix** — that turns "it broke" into "I know why it broke." You're running it now for real.
 
-Apply the loop explicitly and record each step in `intervention-log.md`:
+Apply the loop explicitly and build `intervention-log.md` as you go. **The log is not hand-written notes after the fact — it is the executable trace of this loop.** For each step, you drive Claude to actually *do* the check (read the code, inspect the data, re-run the tests) and capture its real output in the log. That trace is what makes the log trustworthy: it records what happened, not what you assume happened.
 
-1. **Explain** — ask Claude to explain how FastAPI's `response_model` validates the outgoing payload for this endpoint.
+1. **Explain** — ask Claude to explain how FastAPI's `response_model` validates the outgoing payload for this endpoint. Capture what it reports from the code.
 2. **Hypothesis (required written field)** — before accepting Claude's answer, write your own one-sentence hypothesis for why a model change with no route change produces a 500. **This write is the point of the loop:** committing a prediction *before* you read the confirmation is what stops you from accepting the model's first explanation as ground truth.
-3. **Confirm / challenge** — verify against the data source: ask Claude whether `inventory.json` actually contains a `supplier` key.
+3. **Confirm / challenge** — have Claude actually check the data source: ask it to read `inventory.json` and report whether a `supplier` key is present on the records. Capture that real result — this is the evidence that confirms or challenges your hypothesis.
 4. **Fix — your design decision:** the required-field contract is broken because the data has no `supplier`. Choose and defend one:
    - **Path A:** backfill every record in `inventory.json` with a real supplier value (honors "required"). Plausible values are fine — e.g. one supplier per category — no research needed.
    - **Path B:** relax the field to `Optional[str] = None` (tolerates legacy records; weakens the business rule).
@@ -134,10 +134,10 @@ Now start from what a user would *see*: `Reports.vue` renders its lists with `:k
 
 ## Step 9: Log + keep it (no commit)
 
-Finish `labs/lab-5/intervention-log.md` covering:
+Finish `labs/lab-5/intervention-log.md` — the executable trace you built in Step 4, now covering:
 - The dependency graph
 - The chosen checkpoint and the one-sentence defense
-- All four steps of the debugging loop (written hypothesis required)
+- All four steps of the debugging loop, with the real output Claude produced at each check (written hypothesis required)
 - The design decision (Path A or B) and the defense
 - One place you overrode or redirected Claude
 
