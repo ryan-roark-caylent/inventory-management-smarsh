@@ -85,12 +85,6 @@ Responsible-use note: the email value from L14 is NOT reproduced in this record.
 
 ---
 
-## Scenario Card Classifications
+## CORS Wildcard Classification (Step 6)
 
-1. Real customer order record (name, email, total) into a prompt — **Needs modification.** Redact PII or use synthetic data before prompting.
-2. Production database connection string in a prompt — **Never acceptable.** Secrets in prompts can be logged, cached, or leaked; use a schema dump without credentials.
-3. Test using `test.user@example.com` — **Acceptable.** Synthetic data with no real PII.
-4. Call an internal endpoint that does not exist yet — **Needs modification.** Confirm or spec the endpoint before asking Claude to call it; speculative calls are hallucination-adjacent.
-5. AWS access keys committed in CLAUDE.md — **Never acceptable.** Committed secrets persist in git history even after removal; rotate the key immediately and treat the repo as compromised.
-
-**CORS `allow_origins=["*"]` in `server/main.py:52`** — **Needs modification.** A wildcard origin combined with `allow_credentials=True` would fail a deployment security review; it lets any site make credentialed requests to the API. **Fix applied (Step 7):** replaced with an explicit allowlist `["http://localhost:3000"]`; the backend suite stays green.
+**CORS `allow_origins=["*"]` in `server/main.py:52`** — **Needs modification.** A wildcard origin combined with `allow_credentials=True` would fail a deployment security review; it lets any site make credentialed requests to the API. Principle: least-privilege on cross-origin access — allow only the origins the app actually serves. **Fix applied:** replaced with an explicit allowlist `["http://localhost:3000"]`; the backend suite stays green.
