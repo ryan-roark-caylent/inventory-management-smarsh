@@ -25,6 +25,8 @@ Prerequisites and model setup are in the LMS pre-work module (MindTickle). Compl
 
 You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-4-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
 
+> **Tip:** you can run a shell command without leaving Claude Code by prefixing it with `!` (e.g. `!git worktree list`). Handy throughout the labs.
+
 ```
 git fetch origin
 git worktree add ../lab-4-work lab-4-start
@@ -54,7 +56,10 @@ Ask Claude to locate everything related to purchase orders in the repo and repor
 - No @app.post("/api/purchase-orders") route exists in server/main.py
 ```
 
-**Run it and look.** Start the app (`scripts/start.ps1` on Windows, `scripts/start.sh` on macOS — this boots both servers). Open the dashboard at `http://localhost:3000`, find a backlog item, and click **Create PO**. Nothing opens. Open your browser dev tools (Console) and you will see Vue fail to resolve a `PurchaseOrderModal` component — the frontend half of this feature was never finished (the modal is referenced but never built or imported). As your survey found, the backend half is missing too: there is no `POST /api/purchase-orders` route. This lab closes the **backend** gap (building that route); the frontend modal is extra credit.
+**Run it and look.** Ask Claude to start the app (it has a `/start` command), or run it yourself:
+- Windows: `scripts/start.ps1`; macOS: `scripts/start.sh` (either boots both servers).
+
+Open the dashboard at `http://localhost:3000`, find a backlog item, and click **Create PO**. Nothing opens. Open your browser dev tools (Console) and you will see Vue fail to resolve a `PurchaseOrderModal` component — the frontend half of this feature was never finished (the modal is referenced but never built or imported). As your survey found, the backend half is missing too: there is no `POST /api/purchase-orders` route. This lab closes the **backend** gap (building that route); the frontend modal is extra credit.
 
 **Success signal:** Claude's survey reports the models and `api.js` stub exist but there is no `POST /api/purchase-orders` route, AND you saw **Create PO** fail in the running app (the modal never opens; the Console shows Vue failing to resolve the `PurchaseOrderModal` component).
 
@@ -203,7 +208,7 @@ These steps are not required for the completion quiz.
 
 **2. GET route.** Implement `GET /api/purchase-orders/{backlog_item_id}` to back the second `api.js` stub. Spec it first (include what happens when none exists).
 
-**3. Frontend surface (browser).** Build the missing `PurchaseOrderModal.vue` and register it in `Dashboard.vue` so the "Create PO" button works end to end, then run the app and create a PO through the modal. Launch both servers with `scripts/start.ps1` (Windows) or `scripts/start.sh` (macOS). On Windows, when opening the browser with a `claude` command, add `--browser msedge`; on macOS Claude Code opens your default browser automatically.
+**3. Frontend surface (browser).** Build the missing `PurchaseOrderModal.vue` and register it in `Dashboard.vue` so the "Create PO" button works end to end, then run the app and create a PO through the modal. Ask Claude to start the app (it has a `/start` command), or launch both servers yourself with `scripts/start.ps1` (Windows) or `scripts/start.sh` (macOS). On Windows, when opening the browser with a `claude` command, add `--browser msedge`; on macOS Claude Code opens your default browser automatically.
 
 **4. Draft a PR description.** Use `git diff` to have Claude draft a PR description that lists the API surface change and links each change to a spec line.
 
