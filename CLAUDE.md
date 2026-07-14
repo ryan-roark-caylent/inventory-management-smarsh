@@ -73,3 +73,11 @@ npm install && npm run dev
 
 ## Workshop Rule
 Local commits only. Never push, never create pull requests, never use GitHub remote operations.
+
+## Working in a Worktree (workshop rule — do not remove)
+
+This lab runs inside an isolated git worktree so your work can't collide with other labs and you keep everything at the end. Before doing any work:
+
+- You should be in a `lab-4-work` worktree (created in Step 0 of the participant guide). Confirm with `git worktree list` — your current directory should be the `lab-4-work` entry, not the main clone.
+- **If you are editing from the main repo checkout (not a worktree), stop and set one up first:** `git worktree add ../lab-4-work lab-4-start`, then `cd ../lab-4-work` and relaunch Claude Code there.
+- Never edit lab files directly from the main clone or commit to the lab's base branch. Keep the whole session — edits, tests, commands — inside the worktree.

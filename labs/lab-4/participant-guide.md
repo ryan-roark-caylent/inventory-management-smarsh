@@ -17,28 +17,27 @@ You will take a half-built purchase-orders feature in the inventory-management a
 
 ## Before you start
 
-Prerequisites, model setup, and the worktree setup are in the LMS pre-work module (MindTickle). Complete that module first — it walks you through cloning the fork, installing Claude Code, `uv`, and node/npm, running `npm install` and `uv sync` once, and creating your per-lab worktree. Your completion and mastery quizzes are in the same module.
+Prerequisites and model setup are in the LMS pre-work module (MindTickle). Complete that module first — it walks you through cloning the fork, installing Claude Code, `uv`, and node/npm, and running `npm install` and `uv sync` once. Your completion and mastery quizzes are in the same module. You create your per-lab worktree on this card, in Step 0.
 
 ---
 
 ## Step 0: Start clean (in your worktree)
 
-You should already be in your **Lab 4 worktree** on `lab-4-work` from the pre-work. Working in a per-lab worktree is the model: you keep all your content, and no prior lab's files can contaminate this one. If you are not set up yet, do it now (run each command on its own line, do not chain with `&&`):
+You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-4-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
 
 ```
 git fetch origin
-git checkout -b lab-4-work origin/lab-4-start
+git worktree add ../lab-4-work lab-4-start
+cd ../lab-4-work
 ```
+
+Then launch Claude Code from inside `lab-4-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
 Start a fresh Claude Code session so the lab-branch `CLAUDE.md` and `specs/spec-template.md` load.
 
 **Confirm your model:** run `/model` and select `sonnet` if you are not already on it. (Smarsh defaults to Haiku; this lab is tuned for Sonnet.)
 
-**Success signal:** `specs/spec-template.md` exists in your working tree and the following command prints `lab-4-work`:
-
-```
-git branch --show-current
-```
+**Success signal:** `specs/spec-template.md` exists in your working tree and `git worktree list` shows a `lab-4-work` entry with your current directory pointing at it.
 
 ---
 
