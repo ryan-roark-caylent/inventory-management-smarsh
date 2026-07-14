@@ -6,13 +6,21 @@
 
 **Core path: ~50 min · Extra Credit: additional time as available**
 
-Your completion and mastery quizzes are in the LMS (MindTickle). Pre-work (worktree setup, `/model sonnet`, node/npm, and the toolchain checks) is the MindTickle pre-work module — do it before lab day.
+Your completion and mastery quizzes are in the LMS (MindTickle). Pre-work (`/model sonnet`, node/npm, and the toolchain checks) is the MindTickle pre-work module — do it before lab day. You create the worktree in Step 0 below.
 
 ---
 
-## Step 0: You should already be here
+## Step 0: Set up your worktree and start the stack
 
-You should already be on your `lab-5-work` worktree from the pre-work module. If not, follow the pre-work setup in MindTickle to create it, then return.
+You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-5-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
+
+```
+git fetch origin
+git worktree add ../lab-5-work lab-5-start
+cd ../lab-5-work
+```
+
+Then launch Claude Code from inside `lab-5-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
 - Quick check: run `/model` and confirm you're on **sonnet**. Smarsh Enterprise defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed.
 - Start the stack: run `/start` in Claude Code (or `scripts/start.ps1` on Windows / `scripts/start.sh` on macOS). Node/npm must already be installed and the client dependencies pulled from pre-work — this lab runs the browser UI.
