@@ -98,7 +98,7 @@ Then launch Claude Code from inside `lab-2-work`. (The worktree rule is also in 
 
    That contrast is the point of the lab. The model did not change. The question did.
 
-3. Add a `## Risks` heading to the spec. Record **one risk Claude surfaced that you had not considered** and **one point where you overrode Claude** (rejected a suggestion, and why). This is a real before/after your completion quiz keys on, so write it down.
+3. Add a `## Risks` heading to the spec. Record **one risk Claude surfaced that you had not considered** and **one point where you overrode Claude** (rejected a suggestion, and why). This is done-criterion #2 — your `## Risks` section must carry one surfaced risk and one recorded override with your rationale — so write it down.
 
 ---
 
@@ -173,6 +173,8 @@ You wrote the spec and resolved the decision. Now ship it. This is the payoff: t
 
 1. **Ask Claude to implement your spec.** Hand it `specs/low-stock-alerting.md` (spec + resolved threshold decision) and ask it to implement the per-category low-stock thresholds exactly as you specced them. The change touches the backend low-stock rule in `server/main.py` (`get_dashboard_summary` computes `low_stock_items` today with a single flat `quantity_on_hand <= reorder_point` test — your feature makes that threshold per-category) and, if your spec surfaces it in the UI, the Vue view (`client/src/views/Inventory.vue`, whose per-item status badge uses the same reorder-point rule). Let Claude write the code this time — you approve the plan and let it edit.
 
+   **Pick at least one threshold strict enough to actually flip an item.** For the payoff in step 3 to be visible, at least one category threshold must be stricter than the flat reorder point it replaces — strict enough that an item currently reading Adequate flips to Low Stock. If every threshold you set is looser than or equal to the old rule, the count will not move and you will not see the feature work. Ask Claude which items sit just above their reorder point, then set that category's threshold high enough to catch one.
+
 2. **Ask Claude to start the app.** Run **`/start`** (the repo's start command boots the FastAPI backend on port 8001 and the Vite frontend on port 3000). If `/start` is unavailable, fall back to running the two servers yourself, each in its own terminal:
 
    **macOS/Linux:**
@@ -195,7 +197,9 @@ You wrote the spec and resolved the decision. Now ship it. This is the payoff: t
 
    **You know this worked when:** the low-stock count in the running app reflects your per-category thresholds, not the old flat rule — you changed a config value, reloaded, and the count moved. Explore the Inventory list and dashboard: the items now flagged low-stock are the ones your category thresholds catch.
 
-4. **Keep your work (no commit):** your spec, sub-tasks, and the implemented code all live in your worktree. **Do not commit or push** — nothing in this lab goes back to the repo. The working feature you can demo is your takeaway.
+4. **Check your build against the sub-tasks.** Open `docs/lab-2/subtasks.md` and confirm the implementation covered each discrete task you drafted in Step 3 (threshold config, endpoint/rule change, view surfacing, tests). It is your acceptance checklist — anything unchecked is either scope you dropped or a follow-up ticket, and either way you want to know which.
+
+5. **Keep your work (no commit):** your spec, sub-tasks, and the implemented code all live in your worktree. **Do not commit or push** — nothing in this lab goes back to the repo. The working feature you can demo is your takeaway.
 
 ---
 
