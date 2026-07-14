@@ -8,8 +8,10 @@
 
 You will take a half-built purchase-orders feature in the inventory-management app and implement it correctly by writing a spec first. The spec is the contract. When Claude's first output violates the contract, you fix the spec (one line), regenerate, and watch the next diff change in exactly the place the spec changed. That moment is the whole point of the lab.
 
+Your spec spans the full path — the backend response shape **and** the UI wiring that surfaces it. You build both halves from that one contract, then run the app and watch the Create PO flow work end to end in the browser. The spec stays the source of truth across the whole stack.
+
 **Capabilities you will practice:**
-- The five-element spec (Task / Context / Constraints / Format / Example) as a verifiable contract, not a search query
+- The five-element spec (Task / Context / Constraints / Format / Example) as a verifiable contract, not a search query, spanning backend and UI
 - Explore → Plan → Code, grounded in the spec
 - The generate-review-iterate loop: when output is wrong, you fix the spec, not the prompt
 
@@ -59,7 +61,7 @@ Ask Claude to locate everything related to purchase orders in the repo and repor
 **Run it and look.** Ask Claude to start the app (it has a `/start` command), or run it yourself:
 - Windows: `scripts/start.ps1`; macOS: `scripts/start.sh` (either boots both servers).
 
-Open the dashboard at `http://localhost:3000`, find a backlog item, and click **Create PO**. Nothing opens. Open your browser dev tools (Console) and you will see Vue fail to resolve a `PurchaseOrderModal` component — the frontend half of this feature was never finished (the modal is referenced but never built or imported). As your survey found, the backend half is missing too: there is no `POST /api/purchase-orders` route. This lab closes the **backend** gap (building that route); the frontend modal is extra credit.
+Open the dashboard at `http://localhost:3000`, find a backlog item, and click **Create PO**. Nothing opens. Open your browser dev tools (Console) and you will see Vue fail to resolve a `PurchaseOrderModal` component — the frontend half of this feature was never finished (the modal is referenced but never built or imported). As your survey found, the backend half is missing too: there is no `POST /api/purchase-orders` route. This lab closes **both** gaps: you spec and build the backend route **and** the UI wiring, so by the end **Create PO** works end to end in the browser.
 
 **Success signal:** Claude's survey reports the models and `api.js` stub exist but there is no `POST /api/purchase-orders` route, AND you saw **Create PO** fail in the running app (the modal never opens; the Console shows Vue failing to resolve the `PurchaseOrderModal` component).
 
@@ -79,11 +81,13 @@ Open `specs/spec-template.md`. Note its five headings:
 
 ## Step 3: Write the spec (open-ended judgment step)
 
-Create `specs/purchase-orders.md` by filling in all five elements. Claude can help you phrase elements, but the **decisions are yours**. You decide:
+Create `specs/purchase-orders.md` by filling in all five elements. This spec is **end to end**: it describes the backend route **and** the UI wiring that surfaces it, so you build the whole feature from one contract. Claude can help you phrase elements, but the **decisions are yours**. You decide:
 
-**(a) Where the feature surface lives:** backend route only for the core path, or route plus a Vue modal (extra credit)?
+**(a) The backend surface:** the `POST /api/purchase-orders` route — what it accepts and (in part) what it returns.
 
-**(b) Which acceptance criteria you enforce:** pick at least two. Examples: unknown `backlog_item_id` returns 404; `quantity` must be a positive integer.
+**(b) The UI surface:** how the feature reaches the browser — the create-PO modal (`PurchaseOrderModal.vue`) and how it gets wired into `Dashboard.vue` so the **Create PO** button opens it and a submit calls your new route. Describe the wiring in the spec (which component, which parent, which handler / API call), not the exact Vue syntax — that is Claude's job to implement from your contract.
+
+**(c) Which acceptance criteria you enforce:** pick at least two. Examples: unknown `backlog_item_id` returns 404; `quantity` must be a positive integer.
 
 Constraints you must bake in:
 - Preserve existing item-CRUD GET signatures (no signature changes)
@@ -94,7 +98,7 @@ Constraints you must bake in:
 
 > **Note:** The template's **Format** heading says "exact return shape, JSON keys, status codes," but you can leave your Format section **partial on purpose** here. Naming every response field is exactly what Step 6 is for. Spec what you have decided; leave the response-field list open. A spec is allowed to mark what is still to be discovered.
 
-**Success signal:** `specs/purchase-orders.md` exists with all five headings filled and your acceptance criteria written as checkable statements.
+**Success signal:** `specs/purchase-orders.md` exists with all five headings filled, describes both the backend route and the UI wiring, and your acceptance criteria are written as checkable statements.
 
 ---
 
@@ -110,13 +114,13 @@ Before approving the plan, review it against your spec:
 
 > **Pro tip (optional):** for a change like this, some people **plan on Opus** (deeper reasoning for the plan), then switch with `/model sonnet` to **execute** the approved plan. Use the stronger model where the thinking is hardest, the faster one to carry it out. Not required for this lab.
 
-**Success signal:** The plan names the file (`server/main.py`), the new route, the validation, and the response shape, and you can point each plan bullet at a spec line.
+**Success signal:** The plan names the backend file (`server/main.py`), the new route, the validation, and the response shape, **and** the UI pieces (`PurchaseOrderModal.vue` plus its wiring into `Dashboard.vue`) — and you can point each plan bullet at a spec line.
 
 ---
 
-## Step 5: Code, then run it and look
+## Step 5: Code the backend, then run it and look
 
-Approve the plan and let Claude implement the route.
+Approve the plan and let Claude implement the backend route first. (You build the UI half in Step 7, once the response shape is conformant.)
 
 After Claude finishes, read the diff yourself and trace each changed hunk to the spec line it satisfies. Then run the tests:
 
@@ -179,22 +183,37 @@ Ask Claude for the exact JSON the endpoint returns for a created PO (or reuse wh
 
 ---
 
-## Step 7: Exit ticket
+## Step 7: Build the UI from the spec, then run it and see it work
 
-Write one sentence tracing one diff hunk to the spec line it satisfies (for example, "the response-model change traces to the public-fields line I added in Step 6"). Keep this trace note with your spec in your worktree — it is your takeaway.
+The backend is conformant. Now build the other half of your contract. Ask Claude to implement the UI wiring your spec describes: create the missing `PurchaseOrderModal.vue` and register it in `Dashboard.vue` so the **Create PO** button opens the modal and its submit calls `POST /api/purchase-orders`. Point Claude at the spec by path — same contract-first move, now on the frontend.
 
-**Success signal:** one diff-to-spec trace you can point to, backed by the conformant endpoint on your screen.
+Review the diff against your spec the same way you did for the backend: every changed hunk should trace to a UI line in `specs/purchase-orders.md`; anything extra is scope creep.
+
+**Run it and look.** Ask Claude to start the app (it has a `/start` command), or launch both servers yourself: Windows `scripts/start.ps1`; macOS `scripts/start.sh`. On Windows, if you open the browser with a `claude` command, add `--browser msedge`; on macOS Claude Code opens your default browser. Open `http://localhost:3000`, click **Create PO** on a backlog item — this time the modal opens. Fill it in, submit, and watch the PO get created through your new route. The Console warning from Step 1 is gone.
+
+**Success signal:** the **Create PO** button opens the modal in the running app, submitting it creates a PO through `POST /api/purchase-orders`, no `PurchaseOrderModal` resolve warning in the Console, and every UI diff hunk traces to a spec line.
+
+---
+
+## Step 8: Exit ticket
+
+Write one sentence tracing one diff hunk to the spec line it satisfies — pick either half (for example, "the response-model change traces to the public-fields line I added in Step 6," or "the modal-wiring change traces to the UI-surface line in my spec"). Keep this trace note with your spec in your worktree — it is your takeaway.
+
+**Success signal:** one diff-to-spec trace you can point to, backed by the working Create PO flow on your screen.
 
 ---
 
 ## Done criteria
 
-You are done with the core path when all four of these are true on your screen:
+You are done with the core path when all five of these are true on your screen:
 
-1. `specs/purchase-orders.md` exists with five elements filled.
+1. `specs/purchase-orders.md` exists with five elements filled, covering **both** the backend route and the UI wiring.
 2. `POST /api/purchase-orders` returns 200 for a valid body and the JSON response omits the internal cost field.
 3. `uv run --project server pytest tests/backend/ -v` is green, including a test that asserts the cost field is absent.
-4. You have a one-line diff-to-spec trace note kept with your spec in your worktree.
+4. In the running app, the **Create PO** button opens the modal and a submit creates a PO through your new route — no `PurchaseOrderModal` resolve warning in the Console.
+5. You have a one-line diff-to-spec trace note kept with your spec in your worktree.
+
+The point stays the same: the spec is the source of truth. It now spans the full stack, so both halves — backend response and UI wiring — trace back to lines you wrote in the contract.
 
 **Local takeaway:** your `specs/purchase-orders.md`, the implementing change, and the trace note, all kept in your Lab 4 worktree. No commit needed — this is your personal artifact, not a share-back.
 
@@ -208,9 +227,7 @@ These steps are not required for the completion quiz.
 
 **2. GET route.** Implement `GET /api/purchase-orders/{backlog_item_id}` to back the second `api.js` stub. Spec it first (include what happens when none exists).
 
-**3. Frontend surface (browser).** Build the missing `PurchaseOrderModal.vue` and register it in `Dashboard.vue` so the "Create PO" button works end to end, then run the app and create a PO through the modal. Ask Claude to start the app (it has a `/start` command), or launch both servers yourself with `scripts/start.ps1` (Windows) or `scripts/start.sh` (macOS). On Windows, when opening the browser with a `claude` command, add `--browser msedge`; on macOS Claude Code opens your default browser automatically.
-
-**4. Draft a PR description.** Use `git diff` to have Claude draft a PR description that lists the API surface change and links each change to a spec line.
+**3. Draft a PR description.** Use `git diff` to have Claude draft a PR description that lists the API surface change and the UI wiring, linking each change to a spec line.
 
 ---
 
@@ -235,10 +252,10 @@ git checkout origin/lab-4-solution -- specs/purchase-orders.md
 Open `specs/purchase-orders.md` and read the reference spec. Then run:
 
 ```
-git diff origin/lab-4-solution -- server/main.py
+git diff origin/lab-4-solution -- server/main.py client/src
 ```
 
-to see the implementation that traces to it. You still leave the lab having seen a spec-to-conformant-diff.
+to see the backend route and the UI wiring that trace to it. You still leave the lab having seen a spec-to-conformant-diff across the full stack.
 
 **Reset everything:** run the `/reset-branch` **command**, then redo Step 0. **Warning:** `/reset-branch` runs `git branch -D` + `git reset --hard` + `git clean -fd` with **no confirmation** — it permanently deletes uncommitted work. Because you are working in a per-lab worktree, you should not need it for hygiene between labs; keep it only for a hard reset of *this* lab.
 
