@@ -22,7 +22,7 @@ At the point step (Steps 3-4), you dispatch two read-only subagents — a genera
 
 ## Core path
 
-Steps 0-8 are the core path. Work at your own pace. Extra credit follows.
+Steps 0-7 are the core path. Work at your own pace. Extra credit follows.
 
 **How you work in this lab:** every action on the code routes through Claude — you ask Claude to extract the helper, write the test, apply the fix, change the CORS setting. You don't hand-edit source. The deliberate exceptions are reading the file yourself (Step 1) and writing your own findings and verdicts (Steps 2-4): those judgment calls are yours, not Claude's.
 
@@ -47,7 +47,7 @@ Do the following before you begin:
 1. **Switch to Sonnet.** Smarsh defaults to Haiku; this lab is tuned for Sonnet. Run `/model sonnet` (or `/model` and pick Sonnet). The point-step behaviors assume Sonnet.
 2. **Start a fresh Claude Code session** so the lab-branch `CLAUDE.md` loads.
 
-**Success signal:** `server/inventory_ops.py` and `docs/lab-8/scenario-cards.md` exist; `git branch --show-current` (or `git worktree list`) shows `lab-8-work`; `/model` shows Sonnet.
+**Success signal:** `server/inventory_ops.py` exists; `git branch --show-current` (or `git worktree list`) shows `lab-8-work`; `/model` shows Sonnet.
 
 > **Docs pointer:** anything this card references as "see the pre-work" lives in your **MindTickle pre-work module**, not in this repo.
 
@@ -82,7 +82,7 @@ You will see a function that imports a package, logs some information, looks up 
 
 Walk the function against each of the five review dimensions. You may ask Claude to help you find candidate issues, but the verdicts and the `CLAUDE.md` rule are your calls. Write your findings into a new file `review-findings.md`. There are **four** planted defects — one per dimension, except one dimension is clean.
 
-> **Working reference — the 5-point checklist (from the Theme 8 video; enough to act on here):**
+> **Working reference — the 5-point checklist (enough to act on here):**
 > - **Correctness** — does it produce the right result (logic, boundaries)?
 > - **Style adherence** — does it follow this repo's conventions (naming, structure)?
 > - **Edge cases** — does it handle equal / empty / missing / invalid inputs?
@@ -165,23 +165,17 @@ uv run --project server pytest tests/backend/ -v
 
 ---
 
-### Step 6 — Work the responsible-use scenario cards
+### Step 6 — Classify and fix the CORS wildcard, driving Claude
 
-Open `docs/lab-8/scenario-cards.md`. For each of the five cards, classify it **acceptable / needs modification / never acceptable** and **state WHY — name the principle behind your call.** Then classify the repo's real `allow_origins=["*"]` setting in `server/main.py` (around line 52).
+Find the repo's real `allow_origins=["*"]` setting in `server/main.py` (around line 52). Classify it **acceptable / needs modification / never acceptable** and **name the principle behind your call** — this is a live security finding, not a hypothetical.
 
-**Success signal:** five classifications plus the CORS call, each with a one-line justification that names the principle.
+Then act on it: **ask Claude to** replace the wildcard with an explicit localhost origin list (the client runs on `http://localhost:3000`), then re-run the suite and confirm it stays green. Write one line on why the wildcard would fail a deployment security review.
 
----
-
-### Step 7 — Fix the CORS wildcard, driving Claude
-
-You just classified `allow_origins=["*"]` as needs-modification. Now act on it: **ask Claude to** replace the wildcard with an explicit localhost origin list (the client runs on `http://localhost:3000`), then re-run the suite and confirm it stays green. Write one line on why the wildcard would fail a deployment security review.
-
-**Success signal:** `server/main.py` no longer uses `["*"]`; the suite is green; you have a one-line rationale.
+**Success signal:** you classified the CORS setting with a named principle; `server/main.py` no longer uses `["*"]`; the suite is green; you have a one-line rationale.
 
 ---
 
-### Step 8 — Keep your review record (no push, no commit)
+### Step 7 — Keep your review record (no push, no commit)
 
 `review-findings.md` **is** your review ticket — a real, sanitized review record you keep locally. **Do not commit or push anything.** There is no GitHub issue to file; the record lives in your worktree.
 
@@ -205,9 +199,8 @@ Your core path is complete when all of these are true:
 
 1. `review-findings.md` exists with four issues, each carrying a Trust-Spectrum verdict and a cited standard, plus your authored `CLAUDE.md` rule, your ownership sentence, and the human-vs-code-reviewer-vs-security-auditor diff.
 2. `tests/backend/test_inventory_ops.py` failed on the planted code and passes after the fix; the suite is green.
-3. Five scenario cards plus the CORS wildcard are classified with cited justifications.
-4. `server/main.py` no longer uses `allow_origins=["*"]`, and the suite is still green.
-5. `review-findings.md` is sanitized (PII by line number, no secrets) and kept locally — nothing committed or pushed.
+3. The CORS wildcard is classified with a named principle, `server/main.py` no longer uses `allow_origins=["*"]`, and the suite is still green.
+4. `review-findings.md` is sanitized (PII by line number, no secrets) and kept locally — nothing committed or pushed.
 
 **Your takeaway:** the local `review-findings.md` (four issues, each with a Trust-Spectrum verdict and cited justification), the pytest that catches the boundary bug, and the CORS fix. All of it stays in your worktree.
 
