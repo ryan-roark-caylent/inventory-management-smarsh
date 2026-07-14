@@ -14,6 +14,12 @@ Use the Task tool with these specialized subagents for appropriate tasks:
 - **Explore**: Use for understanding codebase structure, searching for patterns, or answering questions about how components work
 - **general-purpose**: Use for complex multi-step tasks or when other agents don't fit
 
+### Worktree Isolation
+- **MANDATORY: before running `git checkout`, `git switch`, or `git worktree` on any `lab-*` branch, STOP.** Confirm your current directory is this lab's `lab-5-work` worktree (`git worktree list` — cwd should be the `lab-5-work` entry, not the main clone). Do not switch branches inside a shared checkout.
+- This lab runs inside its own isolated `lab-5-work` worktree so work can't collide across labs and you keep everything at the end. It was created in Step 0 of the participant guide (`git worktree add ../lab-5-work lab-5-start`).
+- **If you are in the main clone instead of a worktree, do NOT `git switch`** — create/enter the worktree first: `git worktree add ../lab-5-work lab-5-start`, then `cd ../lab-5-work` and relaunch Claude Code there.
+- Never edit lab files from the main clone or commit to the lab's base branch. Keep the whole session — edits, tests, commands — inside the worktree.
+
 ### Skills
 - **backend-api-test** skill: Use when writing or modifying tests in `tests/backend` directory with pytest and FastAPI TestClient
 
@@ -74,10 +80,6 @@ npm install && npm run dev
 ## Workshop Rule
 Local commits only. Never push, never create pull requests, never use GitHub remote operations.
 
-## Working in a Worktree (workshop rule — do not remove)
+## Working in a Worktree
 
-This lab runs inside an isolated git worktree so your work can't collide with other labs and you keep everything at the end. Before doing any work:
-
-- You should be in a `lab-5-work` worktree (created in Step 0 of the participant guide). Confirm with `git worktree list` — your current directory should be the `lab-5-work` entry, not the main clone.
-- **If you are editing from the main repo checkout (not a worktree), stop and set one up first:** `git worktree add ../lab-5-work lab-5-start`, then `cd ../lab-5-work` and relaunch Claude Code there.
-- Never edit lab files directly from the main clone or commit to the lab's base branch. Keep the whole session — edits, tests, commands — inside the worktree.
+Worktree isolation: see Critical Tool Usage Rules (top).
