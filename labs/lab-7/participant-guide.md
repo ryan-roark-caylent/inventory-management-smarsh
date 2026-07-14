@@ -52,7 +52,7 @@ Do the following before you begin:
 
 **Success signal:** `git branch --show-current` (or `git worktree list`) shows you on `lab-7-work`; `/model` shows Sonnet; `/mcp` lists **claude_ai_Atlassian** as connected and you can see its tool names.
 
-> **Windows / macOS (identical):** after any `.mcp.json` or settings change, relaunch Claude Code before testing MCP or permissions. MCP is configured at project scope (root `.mcp.json`), never user-global. If MCP auth opens a browser, on Windows add `--browser msedge` to that step; on macOS your default browser opens with no flag.
+> **Windows / macOS (identical):** after any `.mcp.json` or settings change, relaunch Claude Code before testing MCP or permissions. The repo ships a project-scoped `.mcp.json` (Playwright); the Atlassian server you use here is the enterprise connector you signed into with `/mcp`. If MCP auth opens a browser, on Windows add `--browser msedge` to that step; on macOS your default browser opens with no flag.
 
 > **Docs pointer:** anything this card references as "see the pre-work" lives in your **MindTickle pre-work module**, not in this repo.
 
@@ -283,7 +283,7 @@ These are not required for done-criteria or the completion quiz. Work on them if
 
 ## Stuck path
 
-**Atlassian won't connect (Step 0 / 8).** Run `/mcp` to see current status. If **claude_ai_Atlassian** shows disconnected, confirm your read-only Atlassian credentials are set (see the MindTickle pre-work module), then relaunch Claude Code. If you still can't connect, you can still complete the scoping half of the lab: ask Claude to read `.mcp.json` and help you think through which specific Jira read calls a workflow that only reads your most-recent ticket would need, and which it must be blocked from, without calling any tool. You'll produce a valid `.claude/settings.local.json` scope and still hit the scoping done-criteria.
+**Atlassian won't connect (Step 0 / 8).** Run `/mcp` to see current status. If **claude_ai_Atlassian** shows disconnected, confirm your read-only Atlassian credentials are set (see the MindTickle pre-work module), then relaunch Claude Code. If you still can't connect, you can still complete the scoping half of the lab: open `/mcp`, select `claude_ai_Atlassian`, read its tool list, and think through which specific Jira read calls a workflow that only reads your most-recent ticket would need, and which it must be blocked from, without calling any tool. You'll produce a valid `.claude/settings.local.json` scope and still hit the scoping done-criteria.
 
 **Sub-agent dispatch confuses you (Step 4).** Ask Claude to dispatch the `code-reviewer` sub-agent to review the dashboard summary function in `server/main.py`, report its findings, and confirm it made no file changes. If Claude seems confused about sub-agents, confirm `.claude/agents/code-reviewer.md` exists in the repo.
 
