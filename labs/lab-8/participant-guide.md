@@ -38,6 +38,8 @@ git worktree add ../lab-8-work lab-8-start
 cd ../lab-8-work
 ```
 
+> **Tip:** you can run a shell command without leaving Claude Code by prefixing it with `!` (e.g. `!git worktree list`). Handy throughout the labs.
+
 Then launch Claude Code from inside `lab-8-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
 Do the following before you begin:
