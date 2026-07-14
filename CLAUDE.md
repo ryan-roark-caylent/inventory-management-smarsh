@@ -57,3 +57,11 @@ See @server/main.py for the authoritative route list and filters.
 ## Workshop Rule
 Local commits only. Never push, never create pull requests, never use GitHub remote operations.
 Always run the full test suite before claiming a change works.
+
+## Working in a Worktree (workshop rule — do not remove)
+
+This lab runs inside an isolated git worktree so your work can't collide with other labs and you keep everything at the end. Before doing any work:
+
+- You should be in a `lab-3-work` worktree (created in Step 0 of the participant guide). Confirm with `git worktree list` — your current directory should be the `lab-3-work` entry, not the main clone.
+- **If you are editing from the main repo checkout (not a worktree), stop and set one up first:** `git worktree add ../lab-3-work lab-3-start`, then `cd ../lab-3-work` and relaunch Claude Code there.
+- Never edit lab files directly from the main clone or commit to the lab's base branch. Keep the whole session — edits, tests, commands — inside the worktree.
