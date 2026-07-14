@@ -30,9 +30,17 @@ Two of these you run hands-on today (Claude.ai and Claude Code). The third, API 
 
 ## Steps
 
-### Step 0 — You should already be here
+### Step 0 — Set up your worktree and start the servers
 
-You should already be on your `lab-1-work` worktree from the MindTickle pre-work. If you are not, follow the pre-work setup module in MindTickle to create it, then come back here.
+You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-1-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
+
+```
+git fetch origin
+git worktree add ../lab-1-work lab-1-start
+cd ../lab-1-work
+```
+
+Then launch Claude Code from inside `lab-1-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
 - Quick check: run `/model` and confirm you are on **sonnet**. Smarsh defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed. (This is the one place `/model` is taught. Step 4 reuses it as pure reasoning.)
 - Start the backend and frontend in two separate terminals.
