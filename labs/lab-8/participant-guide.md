@@ -34,7 +34,7 @@ You work this lab inside its own git **worktree** so nothing collides with other
 
 ```
 git fetch origin
-git worktree add ../lab-8-work lab-8-start
+git worktree add -b lab-8-work ../lab-8-work lab-8-start
 cd ../lab-8-work
 ```
 
