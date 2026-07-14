@@ -1,6 +1,6 @@
 # Subagent menu (Step 3)
 
-Pick ONE to author and commit to `.claude/agents/<name>.md`. Each option is
+Pick ONE to author as `.claude/agents/<name>.md`. Each option is
 scoped to a real directory or role in this repo, and distinct from the three
 subagents already on `main` (code-reviewer, security-auditor, vue-expert).
 
