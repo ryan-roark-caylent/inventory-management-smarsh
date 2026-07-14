@@ -31,7 +31,7 @@ You work this lab inside its own git **worktree** so nothing collides with other
 
 ```
 git fetch origin
-git worktree add ../lab-4-work lab-4-start
+git worktree add -b lab-4-work ../lab-4-work lab-4-start
 cd ../lab-4-work
 ```
 
@@ -230,6 +230,8 @@ These steps are not required for the completion quiz.
 **2. GET route.** Implement `GET /api/purchase-orders/{backlog_item_id}` to back the second `api.js` stub. Spec it first (include what happens when none exists).
 
 **3. Draft a PR description.** Use `git diff` to have Claude draft a PR description that lists the API surface change and the UI wiring, linking each change to a spec line.
+
+**4. Playwright browser check (a real MCP round-trip).** If Claude did not use Playwright during the lab, ask it to now: **pull up the app in a browser via the Playwright MCP, click through each navigation item, and report any browser or console errors it finds.** This is your first hands-on MCP round-trip — Claude drives a real browser and reads back what rendered. (MCP gets a full treatment in Lab 7.)
 
 ---
 
