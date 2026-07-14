@@ -44,7 +44,7 @@ cd ../lab-1-work
 
 Then launch Claude Code from inside `lab-1-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
-- Quick check: run `/model` and confirm you are on **sonnet**. Smarsh defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed. (This is the one place `/model` is taught. Step 6 reuses it as pure reasoning.)
+- Quick check: run `/model` and confirm you are on **sonnet**. Smarsh defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed. (This is the one place `/model` is taught. Step 5 reuses it as pure reasoning.)
 - Start the backend and frontend. Ask Claude to start the app (it has a `/start` command), or run the servers yourself in two separate terminals.
 
 > **Fallback (run it yourself, Windows / macOS identical):** run each command on its own line, never joined with `&&`. Backend: `cd server`, then `uv run python main.py`. Frontend (new terminal): `cd client`, then `npm run dev`. (Dependencies were installed in pre-work.)
@@ -106,7 +106,7 @@ In the repo root, launch Claude Code. Ask it to find why the dashboard's total b
 
 Diagnosis is not the finish line. Have **Claude Code apply the change it just proposed** to the backlog count, then run the app and see what happens.
 
-Ask Claude Code to make the edit, then to restart or re-hit the backend so the change takes effect. Back on the dashboard at `localhost:3000`, filter by a warehouse again (London) and watch the backlog tile. It is no longer frozen — it now moves with the filter like the other tiles.
+Ask Claude Code to make the edit, then to restart the backend (it does not hot-reload) so the change takes effect. Back on the dashboard at `localhost:3000`, filter by a warehouse again (London) and watch the backlog tile. It is no longer frozen — it now moves with the filter like the other tiles.
 
 Look closely at what it moves *to*. Ask Claude Code whether the number it shows under a warehouse filter is the true count, and have it explain what it finds. The one-line fix is pattern-consistent with the other metrics, but the underlying data model shapes the result — that gap is the teaching point, not a sign the fix is wrong. Note in `surface-map.md`, under a "Round 2" follow-up, what you observed and what a production-complete fix would still require.
 
