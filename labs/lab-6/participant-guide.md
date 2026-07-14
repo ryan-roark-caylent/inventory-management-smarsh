@@ -127,7 +127,7 @@ You do not need to run the generated file to pass this step. Reading it and conf
 
 ### Step 5 — Wire the auto-test hook and prove it
 
-Ask Claude to author `.claude/settings.json` with a **PostToolUse** hook. The hook should use a matcher for Write and Edit operations, and it should run the test script that already ships on this branch at `.claude/hooks/run_backend_tests.py`. Failures should print to stderr.
+This branch already ships a `.claude/settings.json` that carries a `permissions.deny` rule for `Read(./labs/**)`. Ask Claude to **merge** a **PostToolUse** hook into that existing file — add the hook, keep the `deny` rule intact. Do not overwrite the file, or you drop the deny. The hook should use a matcher for Write and Edit operations, and it should run the test script that already ships on this branch at `.claude/hooks/run_backend_tests.py`. Failures should print to stderr.
 
 > **Relaunch Claude Code after saving `.claude/settings.json`.** Hooks load at session start on all platforms. On Mac, quit and start a fresh session; on Windows, relaunch the app.
 
