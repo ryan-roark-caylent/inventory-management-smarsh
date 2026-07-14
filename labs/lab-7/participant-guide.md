@@ -28,14 +28,15 @@ Steps 0-8 are the core path. Work at your own pace.
 
 ### Step 0 — Pre-flight check
 
-You should already be on `lab-7-work` (in your per-lab worktree) from the MindTickle pre-work module. If you are not, check it out now:
+You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-7-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
 
 ```
 git fetch origin
 git worktree add ../lab-7-work lab-7-start
+cd ../lab-7-work
 ```
 
-(Your pre-work module has the exact worktree setup; this is the fallback.)
+Then launch Claude Code from inside `lab-7-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
 Do the following before you begin:
 
