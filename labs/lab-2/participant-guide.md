@@ -30,9 +30,17 @@ This is a thinking-and-writing lab, not an implementation lab. You will write a 
 
 ## Core path (Steps 0-6)
 
-### Step 0: You should already be here
+### Step 0: Set up your worktree
 
-You should already be on your `lab-2-work` worktree from pre-work. If not, follow the pre-work setup in the LMS to create it, then return here.
+You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-2-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
+
+```
+git fetch origin
+git worktree add ../lab-2-work lab-2-start
+cd ../lab-2-work
+```
+
+Then launch Claude Code from inside `lab-2-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
 1. Quick check: run `/model` and confirm you are on **sonnet**. Smarsh Enterprise defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed.
 
