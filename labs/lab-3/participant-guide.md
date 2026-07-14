@@ -37,6 +37,8 @@ cd ../lab-3-work
 
 Then launch Claude Code from inside `lab-3-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
+> **Tip:** you can run a shell command without leaving Claude Code by prefixing it with `!` (e.g. `!git worktree list`). Handy throughout the labs.
+
 - Quick check: run `/model` and confirm you are on **Sonnet**. Smarsh defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed.
 - Launch Claude Code fresh in this worktree so it loads the `lab-3-start` CLAUDE.md set.
 - **Do not run `/init`.** On a repo that already has a CLAUDE.md, `/init` can offer to regenerate it and would overwrite the planted content that Steps 2-3 depend on. (See Stuck if you did.)
