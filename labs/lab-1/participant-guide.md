@@ -34,6 +34,8 @@ Two of these you run hands-on today (Claude.ai and Claude Code). The third, API 
 
 You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-1-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
 
+> **Tip:** you can run a shell command without leaving Claude Code by prefixing it with `!` (e.g. `!git worktree list`). Handy throughout the labs.
+
 ```
 git fetch origin
 git worktree add ../lab-1-work lab-1-start
@@ -43,9 +45,9 @@ cd ../lab-1-work
 Then launch Claude Code from inside `lab-1-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
 - Quick check: run `/model` and confirm you are on **sonnet**. Smarsh defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed. (This is the one place `/model` is taught. Step 4 reuses it as pure reasoning.)
-- Start the backend and frontend in two separate terminals.
+- Start the backend and frontend. Ask Claude to start the app (it has a `/start` command), or run the servers yourself in two separate terminals.
 
-> **Windows / macOS (identical):** run each command on its own line, never joined with `&&`. Backend: `cd server`, then `uv run python main.py`. Frontend (new terminal): `cd client`, then `npm run dev`. (Dependencies were installed in pre-work.)
+> **Fallback (run it yourself, Windows / macOS identical):** run each command on its own line, never joined with `&&`. Backend: `cd server`, then `uv run python main.py`. Frontend (new terminal): `cd client`, then `npm run dev`. (Dependencies were installed in pre-work.)
 
 > **macOS only:** if `uv` is not on your PATH, install it with `brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh | sh`, then repeat the pre-work install.
 
