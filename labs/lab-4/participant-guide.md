@@ -52,9 +52,9 @@ Ask Claude to locate everything related to purchase orders in the repo and repor
 **What Claude should find:**
 
 ```
-- server/main.py:104  class PurchaseOrder(BaseModel)         # model present
-- server/main.py:115  class CreatePurchaseOrderRequest        # model present
-- client/src/api.js:97 createPurchaseOrder(...)  -> POST /purchase-orders  (stub, 404s)
+- server/main.py  class PurchaseOrder(BaseModel)         # model present
+- server/main.py  class CreatePurchaseOrderRequest        # model present
+- client/src/api.js  createPurchaseOrder(...)  -> POST /purchase-orders  (stub, 404s)
 - No @app.post("/api/purchase-orders") route exists in server/main.py
 ```
 
