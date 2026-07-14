@@ -30,10 +30,13 @@ git worktree add ../lab-6-work lab-6-start
 cd ../lab-6-work
 ```
 
+> **Tip:** you can run a shell command without leaving Claude Code by prefixing it with `!` (e.g. `!git worktree list`). Handy throughout the labs.
+
 Then launch Claude Code from inside `lab-6-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
 - Run `/model sonnet`. Smarsh defaults to Haiku; this lab's trigger behavior is tuned for Sonnet. (How-to: type `/model`, then pick Sonnet.)
-- Start the servers: ask Claude to run the `/start` command, or run the start script for your OS (`scripts\start.ps1` on Windows, `scripts/start.sh` on Mac). Then open the app.
+- Start the servers: ask Claude to start the app (it has a `/start` command), or run it yourself. Then open the app.
+  - Fallback: run the start script for your OS (`scripts\start.ps1` on Windows, `scripts/start.sh` on Mac).
 - Open a **fresh** Claude Code session so it loads this branch's `CLAUDE.md`.
 
 You are isolated by construction: because you work in the `lab-6-work` worktree the whole time, there is no branch-switch and no reset to worry about — your edits can't cross-contaminate anything.
