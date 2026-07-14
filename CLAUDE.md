@@ -16,8 +16,8 @@ Use the Task tool with these specialized subagents for appropriate tasks:
 
 ### Worktree Isolation
 - **MANDATORY: before running `git checkout`, `git switch`, or `git worktree` on any `lab-*` branch, STOP.** Confirm your current directory is this lab's `lab-4-work` worktree (`git worktree list` — cwd should be the `lab-4-work` entry, not the main clone). Do not switch branches inside a shared checkout.
-- This lab runs inside its own isolated `lab-4-work` worktree so work can't collide across labs and you keep everything at the end. It was created in Step 0 of the participant guide (`git worktree add ../lab-4-work lab-4-start`).
-- **If you are in the main clone instead of a worktree, do NOT `git switch`** — create/enter the worktree first: `git worktree add ../lab-4-work lab-4-start`, then `cd ../lab-4-work` and relaunch Claude Code there.
+- This lab runs inside its own isolated `lab-4-work` worktree so work can't collide across labs and you keep everything at the end. It was created in Step 0 of the participant guide (`git worktree add -b lab-4-work ../lab-4-work lab-4-start`).
+- **If you are in the main clone instead of a worktree, do NOT `git switch`** — create/enter the worktree first: `git worktree add -b lab-4-work ../lab-4-work lab-4-start`, then `cd ../lab-4-work` and relaunch Claude Code there.
 - Never edit lab files from the main clone or commit to the lab's base branch. Keep the whole session — edits, tests, commands — inside the worktree.
 
 ### Skills
