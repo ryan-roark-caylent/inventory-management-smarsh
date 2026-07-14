@@ -270,7 +270,7 @@ You have completed the core path when all five are true:
 
 1. `structured-handoff.md` exists in your worktree with Findings, Decisions, and Constraints filled; Decisions scoped to the test-targeted field.
 2. You executed the handoff: the failing test now passes, and the diff shows only the scoped line changed (the deferred finding left alone).
-3. `.claude/settings.local.json` reflects the three-part model — allow names only the Jira read call(s); deny names the writes plus the Confluence/cross-product tools outside the workflow.
+3. `.claude/settings.local.json` reflects the three-part model — your allow list names only the Jira read call(s); the shipped deny list (the Jira writes) is intact; and because only the reads are allowed, every other tool the server exposes (Confluence, cross-product, admin) stays blocked by default.
 4. Under auto mode, the scoped Jira read succeeded and the comment write was DENIED by your deny rule with no approval prompt.
 5. `git worktree list` shows you ran the whole lab inside `lab-7-work`; a `git`-review shows a clean local tree.
 
@@ -284,19 +284,19 @@ These are not required for done-criteria or the completion quiz. Work on them if
 
 2. **Second sub-agent, real topology.** Dispatch `security-auditor` (haiku, read-only) on the same code and compare its findings to `code-reviewer`'s. Did the two-reviewer fan-out earn its cost?
 
-4. **Tighten the scope further.** Add a second Jira write to your deny list (a transition or an update) and re-run Step 8's write attempt against it. Confirm each named write is blocked independently.
+3. **Tighten the scope further.** Pick a second shipped deny entry (a transition or an edit) and re-run Step 8's write attempt against it. Confirm each named write is blocked independently.
 
 ---
 
 ## Stuck path
 
-**Atlassian won't connect (Step 0 / 8).** Run `/mcp` to see current status. If **claude_ai_Atlassian** shows disconnected, confirm your read-only Atlassian credentials are set (see the MindTickle pre-work module), then relaunch Claude Code. If you still can't connect, you can still complete the scoping half of the lab: think through which specific Jira read calls a workflow that only reads your most-recent ticket would need (search for the issue, get the issue) and which writes it must block (add comment, create, edit, transition), and write those into `.claude/settings.local.json` using the tool names shown on the card — without calling any tool. You'll produce a valid `.claude/settings.local.json` scope and still hit the scoping done-criteria.
+**Atlassian won't connect (Step 0 / 8).** Run `/mcp` to see current status. If **claude_ai_Atlassian** shows disconnected, confirm your read-only Atlassian credentials are set (see the MindTickle pre-work module), then relaunch Claude Code. If you still can't connect, you can still complete the scoping half of the lab: the write deny list is already shipped in `.claude/settings.local.json`, so think through which Jira read calls a workflow that only reads your most-recent ticket would need (search for the issue, get the issue) and add those to the `allow` list using the tool names shown on the card — without calling any tool. You'll produce a valid scope and still hit the scoping done-criteria.
 
 **Sub-agent dispatch confuses you (Step 4).** Ask Claude to dispatch the `code-reviewer` sub-agent to review the dashboard summary function in `server/main.py`, report its findings, and confirm it made no file changes. If Claude seems confused about sub-agents, confirm `.claude/agents/code-reviewer.md` exists in the repo.
 
 **Stuck on the handoff (Step 5).** Ask Claude to draft the three sections and quiz you on the scoping calls — the primary finding (the one the failing test targets), any secondary findings worth deferring, and what the minimal fix must avoid touching. You make the scoping calls; Claude drafts from your answers.
 
-**Stuck on permission scoping (Step 7).** Ask Claude to list the minimal set of Jira tool calls a workflow that only reads your most-recent ticket would need, and every Jira write/admin (plus Confluence/cross-product) call that should be explicitly blocked, without calling any tool. Use that list to fill in your `settings.local.json` allow/deny yourself.
+**Stuck on permission scoping (Step 7).** The writes are already denied in the shipped `settings.local.json`. Ask Claude to list the minimal set of Jira read calls a workflow that only reads your most-recent ticket would need, without calling any tool. Use that list to fill in the `allow` array yourself; leave the shipped deny list in place.
 
 **Fully stuck or out of time.** Check out the reference artifacts from the solution branch to see finished examples. First confirm your remote points at the fork:
 
