@@ -27,7 +27,15 @@ Throughout this lab, drive Claude — ask Claude to make the edits. Don't hand-e
 
 ### Step 0 — You should already be here (fresh session)
 
-You should already be on your `lab-3-work` worktree from pre-work. If not, follow the pre-work setup in the LMS to create it, then return here.
+You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-3-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
+
+```
+git fetch origin
+git worktree add ../lab-3-work lab-3-start
+cd ../lab-3-work
+```
+
+Then launch Claude Code from inside `lab-3-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
 - Quick check: run `/model` and confirm you are on **Sonnet**. Smarsh defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed.
 - Launch Claude Code fresh in this worktree so it loads the `lab-3-start` CLAUDE.md set.
@@ -91,7 +99,7 @@ You know it worked when: the credentials block is gone, the inline endpoint list
 
 Ask Claude to reduce the root `CLAUDE.md` to: the build/test/lint commands, the top-3 Vue-3 + FastAPI conventions for *this* repo, and **three "always/never" rules drawn from mistakes Claude actually makes on this codebase**. Cut generic advice and noise.
 
-> **Protected — do not trim:** leave the `## Workshop Rule` section intact ("Local commits only; never push…; always run the full test suite…"). That is the workshop's own operating rule, not bloat. Tell Claude to keep it.
+> **Protected — do not trim:** leave the `## Workshop Rule` section intact ("Local commits only; never push…; always run the full test suite…") **and** the `## Working in a Worktree` section (marked "do not remove"). Those are the workshop's own operating rules, not bloat. Tell Claude to keep both.
 
 Real rough edges you can turn into rules (pick at least one, and be ready to defend the layer it belongs at):
 
