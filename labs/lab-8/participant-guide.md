@@ -16,15 +16,15 @@ This lab runs longer than an Academy module because it carries competencies with
 
 ## The aha moment
 
-At the point step (Steps 3-4), you dispatch two read-only subagents — a general `code-reviewer` and a `security-auditor` — on the same file you already reviewed by hand, while the file is **still broken**. Neither list matches yours, and the two lists don't match each other. Each agent's scope surfaces a different subset of what's wrong, and because read-only agents have no shell, some issues neither one can verify at all. Every gap between their lists and yours is still yours to own. That is the moment code review stops being "run the agent and merge."
+At the point step (Steps 4-5), you dispatch two read-only subagents — a general `code-reviewer` and a `security-auditor` — on the same file you already reviewed by hand, while the file is **still broken**. Neither list matches yours, and the two lists don't match each other. Each agent's scope surfaces a different subset of what's wrong, and because read-only agents have no shell, some issues neither one can verify at all. Every gap between their lists and yours is still yours to own. That is the moment code review stops being "run the agent and merge."
 
 ---
 
 ## Core path
 
-Steps 0-7 are the core path. Work at your own pace. Extra credit follows.
+Steps 0-8 are the core path. Work at your own pace. Extra credit follows.
 
-**How you work in this lab:** every action on the code routes through Claude — you ask Claude to extract the helper, write the test, apply the fix, change the CORS setting. You don't hand-edit source. The deliberate exceptions are reading the file yourself (Step 1) and writing your own findings and verdicts (Steps 2-4): those judgment calls are yours, not Claude's.
+**How you work in this lab:** every action on the code routes through Claude — you ask Claude to extract the helper, write the test, apply the fix, change the CORS setting. You don't hand-edit source. The deliberate exceptions are reading the file yourself (Step 2) and writing your own findings and verdicts (Steps 3-5): those judgment calls are yours, not Claude's.
 
 ---
 
@@ -55,7 +55,32 @@ Do the following before you begin:
 
 ---
 
-### Step 1 — Read the generated function (do NOT run it)
+### Step 1 — Responsible AI Use: frame it before you touch the code
+
+Before you review or fix anything, set the ground rules for what you're allowed to put in front of Claude. AI-assisted coding is fast, and the same speed that helps you ship also makes it easy to leak data you can never un-leak. This step is a quick mental beat — **no writing, no committing** — but the principles carry through every later step and every lab after this one.
+
+> **Responsible-use principles for AI-assisted coding:**
+> - **Never paste real PII into prompts.** Customer names, emails, order records, account data — none of it goes into a prompt, ever. Prompts and their context can be logged and retained outside your control.
+> - **Never paste secrets into prompts.** API keys, credentials, and production connection strings are off-limits, even "just to show Claude the schema." Describe the shape instead.
+> - **Synthetic / example data is fine.** Made-up values like `test.user@example.com` or a fake order for `ACME Corp` carry no real-world risk. Use them freely.
+> - **Don't ask Claude to call things that don't exist.** Endpoints, APIs, or integrations that are discussed-but-not-built are aspirational. Verify the surface exists before you wire code to it — otherwise you're building on a hallucination.
+> - **Found committed secrets? Rotate and report, don't just delete.** If real credentials are sitting in a repo (say, AWS keys in `CLAUDE.md`), deleting the line doesn't help: the secret is compromised the moment it's committed and it lives on in git history and any forks. Treat it as leaked — rotate the key and tell whoever owns it.
+
+**Guided reflection (think it through, don't write it down).** For each scenario below, decide: **acceptable / needs modification / never acceptable** — and, more importantly, **why**, against the principles above.
+
+1. To debug a pricing bug, you paste a real customer order record (name, email, order total) into a prompt.
+2. You inline the production database connection string in a prompt so Claude can "see the schema."
+3. You ask Claude to generate a test that uses a made-up email like `test.user@example.com`.
+4. You ask Claude to call an internal analytics endpoint the team has discussed but not built yet.
+5. You find AWS access keys committed inside this repo's `CLAUDE.md`. What do you do?
+
+> **How to reason through them:** 1 and 2 are real PII and a real secret — **never acceptable**, no version of pasting them is safe. 3 is synthetic data — **acceptable** as-is. 4 is a hallucinated integration — **needs modification**: confirm the endpoint exists (or build it) before asking Claude to call it. 5 isn't a paste question at all — the harm already happened, so **rotate and report** rather than quietly deleting the line. If your read of any scenario doesn't line up with the principle it maps to, re-read the principle before moving on.
+
+**Success signal:** you can state, for each of the five, the verdict and the one principle that decides it — without looking anything up.
+
+---
+
+### Step 2 — Read the generated function (do NOT run it)
 
 Open `server/inventory_ops.py`. This is AI-generated code that landed in a PR. Read it top to bottom before doing anything else.
 
@@ -78,7 +103,7 @@ You will see a function that imports a package, logs some information, looks up 
 
 ---
 
-### Step 2 — Run the 5-point checklist by reading (open-ended judgment)
+### Step 3 — Run the 5-point checklist by reading (open-ended judgment)
 
 Walk the function against each of the five review dimensions. You may ask Claude to help you find candidate issues, but the verdicts and the `CLAUDE.md` rule are your calls. Write your findings into a new file `review-findings.md`. There are **four** planted defects — one per dimension, except one dimension is clean.
 
@@ -97,7 +122,7 @@ For each finding, write: the line number, the dimension, your Trust-Spectrum ver
 
 ---
 
-### Step 3 — Dispatch the code-reviewer on the UNFIXED file and compare (point step)
+### Step 4 — Dispatch the code-reviewer on the UNFIXED file and compare (point step)
 
 **Do not fix anything yet.** Ask Claude to dispatch the read-only `code-reviewer` subagent (Read / Grep / Glob only) on `server/inventory_ops.py` as it stands — still broken. Read its report. Then, in `review-findings.md`, note **which of your four issues it also caught, which it missed, and anything it raised that you didn't.**
 
@@ -121,7 +146,7 @@ For each finding, write: the line number, the dimension, your Trust-Spectrum ver
 
 ---
 
-### Step 4 — Second reviewer: dispatch the security-auditor and own the union
+### Step 5 — Second reviewer: dispatch the security-auditor and own the union
 
 Ask Claude to dispatch the `security-auditor` subagent on the same unfixed file. Diff its findings against the `code-reviewer`'s. Note in `review-findings.md`: **what the security agent caught that the general reviewer missed** (typically the PII log line), and what BOTH missed (the hallucinated import — neither can verify a package exists).
 
@@ -139,7 +164,7 @@ Confirm your Trust-Spectrum verdict for each issue now that you have three opini
 
 ---
 
-### Step 5 — Now fix it, driving Claude
+### Step 6 — Now fix it, driving Claude
 
 Only now do you fix the code — and you drive Claude to do it, you don't hand-edit:
 
@@ -165,7 +190,7 @@ uv run --project server pytest tests/backend/ -v
 
 ---
 
-### Step 6 — Classify and fix the CORS wildcard, driving Claude
+### Step 7 — Classify and fix the CORS wildcard, driving Claude
 
 Find the repo's real `allow_origins=["*"]` setting in `server/main.py` (around line 52). Classify it **acceptable / needs modification / never acceptable** and **name the principle behind your call** — this is a live security finding, not a hypothetical.
 
@@ -175,7 +200,7 @@ Then act on it: **ask Claude to** replace the wildcard with an explicit localhos
 
 ---
 
-### Step 7 — Keep your review record (no push, no commit)
+### Step 8 — Keep your review record (no push, no commit)
 
 `review-findings.md` **is** your review ticket — a real, sanitized review record you keep locally. **Do not commit or push anything.** There is no GitHub issue to file; the record lives in your worktree.
 
@@ -216,10 +241,10 @@ Not required for core done or the completion quiz. Work it if you finish early.
 
 ## Stuck? Self-service rescues
 
-**Rescue A — can't spot all four issues (Step 2).**
+**Rescue A — can't spot all four issues (Step 3).**
 Ask Claude to read `server/inventory_ops.py` and, without fixing anything, list every issue it sees grouped by the five review dimensions (correctness, style, edge cases, hallucination, security), naming the exact line for each. Use that to cross-check your own findings. The verdicts and the `CLAUDE.md` rule are still yours to write.
 
-**Rescue B — the test won't run / import errors (Step 5).**
+**Rescue B — the test won't run / import errors (Step 6).**
 Run `uv run --project server pytest tests/backend/ -v`, copy the first error line, and ask Claude for the smallest change to make the module importable without adding a dependency.
 
 **Rescue C — fully stuck or out of time.**
