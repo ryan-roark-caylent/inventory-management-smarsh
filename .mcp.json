@@ -1,9 +1,12 @@
 {
   "mcpServers": {
-    "jira": {
+    "playwright": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/sse"],
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.37"
+      ],
       "env": {}
     }
   }
