@@ -2,7 +2,7 @@
 
 **Track 3 (AI Teammate) | Lab 9 of 9 | Depends on: Labs 6, 7, 8**
 
-Adoption is a portable artifact you hand off, not a feeling you report. This lab closes the programme by turning your personal Claude skills into things your team can pick up and use: a library entry a teammate can run cold, a subagent anyone can invoke by name, a starter CLAUDE.md for a repo type unlike this one, and a handoff note specific enough for a teammate to hold you to. You keep all four in your worktree and carry them back to your team. Nothing is committed to the repo.
+Adoption is a portable artifact you hand off, not a feeling you report. This lab closes the programme by turning your personal Claude skills into things your team can pick up and use: a library entry a teammate can run cold, a subagent anyone can invoke by name, and a handoff note specific enough for a teammate to hold you to. You keep all three in your worktree and carry them back to your team. Nothing is committed to the repo.
 
 You'll work entirely in the Claude Code terminal. No app server and no browser are needed on the core path.
 
@@ -12,9 +12,9 @@ Your completion and mastery quizzes are in the LMS.
 
 ## What this lab proves
 
-Most programme rollouts fail on the bridge back to Monday: no plan, no library, no champion, so engineers revert to old habits under sprint pressure. A Smarsh champion's job is to keep the good path the easy path. A curated library other engineers pull from, a subagent other engineers invoke by name, a CLAUDE.md pattern that transfers across repo types, and a plan someone can check: this lab produces those four artifacts against the real repo.
+Most programme rollouts fail on the bridge back to Monday: no plan, no library, no champion, so engineers revert to old habits under sprint pressure. A Smarsh champion's job is to keep the good path the easy path. A curated library other engineers pull from, a subagent other engineers invoke by name, and a plan someone can check: this lab produces those three artifacts against the real repo.
 
-This lab runs longer than a 101 exercise because it carries competencies with zero Academy coverage: library curation behind a quality gate, subagent authoring, CLAUDE.md-by-repo-type, and adoption planning.
+This lab runs longer than a 101 exercise because it carries competencies with zero Academy coverage: library curation behind a quality gate, subagent authoring, and adoption planning.
 
 ---
 
@@ -93,9 +93,9 @@ The question this step answers: **an entry worked for YOU because you had the re
 
 1. Start a **fresh** Claude Code session (`claude`) at the repo root. Load no files and give no other context — you're standing in for a teammate who has never seen this repo's specifics.
 
-2. Paste the body of the **weak** seeded entry (`quick-review`) exactly as written and run it. Note precisely what Claude had to GUESS to proceed — which file, which checklist, which output shape — and whether you could predict the same guess would happen on someone else's machine.
+2. Open `PROMPT-LIBRARY.md` at the repo root and find the **weak** seeded entry, `quick-review` (under `## Entries`, marked "weak example"). Copy its **Body** block, paste it into the fresh session exactly as written, and run it. Note precisely what Claude had to GUESS to proceed — which file, which checklist, which output shape — and whether you could predict the same guess would happen on someone else's machine.
 
-3. Start another fresh session (quit and relaunch `claude`). Paste the body of the **strong** entry (`gen-endpoint-tests`) exactly as written. Note what it did NOT have to guess.
+3. Start another fresh session (quit and relaunch `claude`). From `PROMPT-LIBRARY.md`, copy the **Body** of the **strong** entry, `gen-endpoint-tests` (marked "strong example"), and paste it exactly as written. Note what it did NOT have to guess.
 
 4. Rate each entry on **reuse** (does it generalize past one case?) and **reliability** (does it produce the intended result cold, without guessing?) using the rubric in `docs/lab-9/candidate-prompts.md`. Think through the specific context the weak entry made Claude supply on its own — the thing that would differ for a teammate — then move on.
 
@@ -118,6 +118,8 @@ Expected behavior:
    Note: Lab 6's full rubric also includes hook, subagent, and MCP. Those are valid in that broader context but do not map to shareable library entries. You'll author a proper subagent in Step 3.
 
 2. **Build and run it once.** Ask Claude to help you author your chosen form (drive Claude — don't hand-write it), then execute it on a real target in this repo to confirm it works cold and does what you intend.
+
+   As you build, apply the Step 1 lesson directly: bake in the context a teammate would NOT have in their head. The strong entry ran cold because it named its target, its cases, its pattern file, and its output format — yours needs that same specificity, or it will only work for you because you had this repo open. Name the concrete thing (endpoint, file, format), don't assume it.
 
 3. **Register a pointer in `PROMPT-LIBRARY.md`.** The library is an INDEX, not a store of definitions:
    - If your item is a **prompt**, put the prompt body inline in the entry.
@@ -172,19 +174,7 @@ model: sonnet
 
 ---
 
-## Step 4 — A starter CLAUDE.md for a different repo type
-
-1. Open `docs/lab-9/repo-type-briefs.md` — three briefs for repo types **unlike** inventory-management (Java/Spring microservice, shared Python library, data-pipeline repo). Pick one.
-
-2. Ask Claude to draft a **starter CLAUDE.md for that repo type** — a fresh CLAUDE.md as if you were bootstrapping that repo, with its own build/test commands, conventions, and always/never rules. Then edit it. It should be recognizably wrong for inventory-management.
-
-3. Write the draft to `docs/lab-9/claude-md-<repo-type>.md` and add two bullets at the bottom: two things that change vs the inventory-management CLAUDE.md, and why.
-
-**You know this worked when:** the file names build/test commands and conventions that would be wrong here (e.g. `mvn test` + controller/service layering for Spring; semantic-versioning + public-API-stability rules for a shared library), and your two "what changes" bullets are concrete, not "it's different."
-
----
-
-## Step 5 — Write the team-handoff note
+## Step 4 — Write the team-handoff note
 
 This is the artifact you carry back. Your change champion will ask to see it.
 
@@ -216,20 +206,18 @@ Avoided (vanity):
 
 ## Done criteria
 
-You're done when all five are true:
+You're done when all four are true:
 
 1. You cold-ran both seeded entries and can name, in one sentence, the context the weak entry made Claude guess.
 2. `PROMPT-LIBRARY.md` has your new entry with a name, usage line, a form/pointer (prompt inline or artifact path), one example, and a form-and-why note. Local, not committed.
 3. `.claude/agents/<name>.md` exists with valid YAML frontmatter (name, description, tools, model) and a one-job system prompt; `PROMPT-LIBRARY.md` references `@<name>`. Local, not committed.
-4. `docs/lab-9/claude-md-<repo-type>.md` exists with a starter CLAUDE.md for a different repo type and two concrete "what changes" bullets.
-5. `TEAM-HANDOFF.md` exists with three commitments each carrying a number/task/name and a two-real / two-vanity metric split.
+4. `TEAM-HANDOFF.md` exists with three commitments each carrying a number/task/name and a two-real / two-vanity metric split.
 
 Expected end state (local, uncommitted):
 ```
 $ git status --short
  M PROMPT-LIBRARY.md
 ?? .claude/agents/<name>.md
-?? docs/lab-9/claude-md-<repo-type>.md
 ?? TEAM-HANDOFF.md
 ```
 
@@ -237,7 +225,7 @@ $ git status --short
 
 ## Carry it back
 
-You now have four local artifacts in your `lab-9-work` worktree: your `PROMPT-LIBRARY.md` entry (pointing at your built item and your subagent), your `.claude/agents/<name>.md`, your `docs/lab-9/claude-md-<repo-type>.md`, and your `TEAM-HANDOFF.md`. Nothing is committed — this is yours to hand off. Your change champion closes the loop: they'll ask which entry you contributed, which subagent you scoped and why, which repo type you templated, and what's in your handoff note. That conversation is the actual handover.
+You now have three local artifacts in your `lab-9-work` worktree: your `PROMPT-LIBRARY.md` entry (pointing at your built item and your subagent), your `.claude/agents/<name>.md`, and your `TEAM-HANDOFF.md`. Nothing is committed — this is yours to hand off. Your change champion closes the loop: they'll ask which entry you contributed, which subagent you scoped and why, and what's in your handoff note. That conversation is the actual handover.
 
 ---
 
@@ -248,11 +236,9 @@ You now have four local artifacts in your `lab-9-work` worktree: your `PROMPT-LI
 
 2. **Cold-run a peer's entry (async-safe).** In the async cohort thread, swap library entries with another participant, run theirs cold, and post a reuse/reliability rating. This is the test-a-neighbor gate done live, without a synchronous session.
 
-3. **Write the second repo-type starter CLAUDE.md.** Do Step 4 again for a second repo type from the brief set and enumerate what a single one-size CLAUDE.md would get wrong for both.
+3. **Turn the library into a reviewed-merge process.** Write a two-line `## Contribution rules` section for `PROMPT-LIBRARY.md`: open contribution, reviewed merge, and one reuse/reliability check every entry must pass.
 
-4. **Turn the library into a reviewed-merge process.** Write a two-line `## Contribution rules` section for `PROMPT-LIBRARY.md`: open contribution, reviewed merge, and one reuse/reliability check every entry must pass.
-
-5. **Invoke your subagent on a real file.** Start a fresh Claude Code session, type `@<name>` and name a real endpoint or component from the repo. Observe whether the scoping holds. Record any behavior that crossed the boundary and whether a system-prompt tightening fixed it.
+4. **Invoke your subagent on a real file.** Start a fresh Claude Code session, type `@<name>` and name a real endpoint or component from the repo. Observe whether the scoping holds. Record any behavior that crossed the boundary and whether a system-prompt tightening fixed it.
 
 ---
 
@@ -273,10 +259,10 @@ git remote -v
 git fetch origin
 ```
 ```
-git checkout origin/lab-9-solution -- PROMPT-LIBRARY.md TEAM-HANDOFF.md docs/lab-9/quality-gate-notes.md docs/lab-9/claude-md-spring.md .claude/agents/test-writer.md
+git checkout origin/lab-9-solution -- PROMPT-LIBRARY.md TEAM-HANDOFF.md docs/lab-9/quality-gate-notes.md .claude/agents/test-writer.md
 ```
 
-Open `PROMPT-LIBRARY.md`, `.claude/agents/test-writer.md`, `docs/lab-9/quality-gate-notes.md`, `docs/lab-9/claude-md-spring.md`, and `TEAM-HANDOFF.md`. You'll see a complete library entry pointing at an authored subagent, filled-in cold-run ratings, a repo-type starter CLAUDE.md, and a checkable handoff note — the LOCAL end state, not a commit history. These are reference files you pulled in; delete them before your next lab so they don't carry over.
+Open `PROMPT-LIBRARY.md`, `.claude/agents/test-writer.md`, `docs/lab-9/quality-gate-notes.md`, and `TEAM-HANDOFF.md`. You'll see a complete library entry pointing at an authored subagent, filled-in cold-run ratings, and a checkable handoff note — the LOCAL end state, not a commit history. These are reference files you pulled in; delete them before your next lab so they don't carry over.
 
 **Reset everything.** Run the `/reset-branch` command (not a skill). It does `branch -D` + `reset --hard` + `clean -fd` with no confirmation, so save anything you want to keep first. With worktree-per-lab you mostly just move to the next lab's worktree.
 
