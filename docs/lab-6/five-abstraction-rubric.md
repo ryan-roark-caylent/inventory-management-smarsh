@@ -6,15 +6,15 @@ Use this matrix to decide which customization layer fits a recurring workflow.
 |---|---|---|---|---|
 | **CLAUDE.md** | Every session, automatically | No one — always resident | Counts against context window every turn | Always-on guidance every teammate needs on every request (formatting rules, project conventions, coding standards) |
 | **Skill** | Description loads at session start; body loads after skill fires | Claude (implicit, via description match) or you (explicit `/name`) | Body costs tokens only when invoked | An occasional, invocable procedure with a clear trigger phrase (generate tests, write a PR description, review a diff) |
-| **Hook** | Session start; fires on a tool event | The tool event (PostToolUse, PreToolUse) — not a person | Runs outside the context window | Logic that must run automatically after an action, with no human effort, and should not consume context tokens |
+| **Hook** | Session start; fires on a tool event | The tool event (PostToolUse, PreToolUse) — not a person | Logic runs outside the context window; its output can be fed back in | Logic that must run automatically on a tool event, with no human effort, and where you want the runtime work off Claude's turn (only the result enters context) |
 | **Subagent** | On demand, spun up by Claude | Claude (orchestrator decides) | Own context window; returns a summary | Long-running or parallel work that benefits from isolation (crawl a repo, run a multi-step analysis, explore options in parallel) |
 | **MCP** | Server process; called per tool invocation | Claude (tool call) | Linear cost per call | Connecting to an external system where you need live data or write access (GitHub, Jira, Salesforce, a database) |
 
 ## The deciding question
 
-> Does this workflow need to run **automatically after an action**, with **zero human effort**, and stay **outside the context window**?
+> Does this workflow need to run **automatically on a tool event**, with **zero human effort**, keeping the runtime work **off Claude's turn** (only the result flows back into context)?
 
-If yes: **hook**.
+If yes: **hook**. The script executes outside the context window; when it has something Claude should act on (like a test failure), that output is fed back into the context window.
 
 If it needs to run on every turn, for every teammate, without being asked: **CLAUDE.md**.
 
@@ -30,7 +30,7 @@ Ask: "If this repo had 10,000 files and 50 teammates, which abstraction would st
 
 - CLAUDE.md: survives at scale only if kept lean (every rule costs tokens every turn).
 - Skill: scales well — body is lazy-loaded, only costs tokens when invoked.
-- Hook: scales perfectly — runs outside the context window on every edit with no token cost.
+- Hook: scales well — the script runs off Claude's turn on every edit; only its output (e.g. a failure message) costs tokens, and only when it has something to report.
 - Subagent: scales for isolated tasks; overhead is per-invocation.
 - MCP: scales for external integrations; cost is per tool call, not per turn.
 
