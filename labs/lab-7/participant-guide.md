@@ -38,6 +38,8 @@ cd ../lab-7-work
 
 Then launch Claude Code from inside `lab-7-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
+> **Tip:** you can run a shell command without leaving Claude Code by prefixing it with `!` (e.g. `!git worktree list`). Handy throughout the labs.
+
 Do the following before you begin:
 
 1. **Switch to Sonnet.** Smarsh defaults to Haiku; this lab is tuned for Sonnet. Run `/model sonnet` (or `/model` and pick Sonnet). The point-step behaviors assume Sonnet.
