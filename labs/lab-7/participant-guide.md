@@ -225,7 +225,7 @@ Your job is the **allow** half: add the Jira read call(s) your workflow needs so
 
 Ask Claude to help you enumerate the minimal read calls the workflow needs, but you decide and defend the allow list yourself.
 
-**Success signal:** `.claude/settings.local.json` allows only the Jira read call(s) you added; the shipped write denials are intact; every allow entry matches an exact `/mcp` tool name. Because only the reads are allowed, everything else the server exposes stays blocked by default.
+**Success signal:** `.claude/settings.local.json` allows only the Jira read call(s) you added; the shipped write denials are intact; every allow entry matches an exact `/mcp` tool name. Because only the reads are allowed, everything else the server exposes is never auto-approved — nothing but your reads runs unattended.
 
 ---
 
@@ -270,7 +270,7 @@ You have completed the core path when all five are true:
 
 1. `structured-handoff.md` exists in your worktree with Findings, Decisions, and Constraints filled; Decisions scoped to the test-targeted field.
 2. You executed the handoff: the failing test now passes, and the diff shows only the scoped line changed (the deferred finding left alone).
-3. `.claude/settings.local.json` reflects the three-part model — your allow list names only the Jira read call(s); the shipped deny list (the Jira writes) is intact; and because only the reads are allowed, every other tool the server exposes (Confluence, cross-product, admin) stays blocked by default.
+3. `.claude/settings.local.json` reflects the three-part model — your allow list names only the Jira read call(s); the shipped deny list (the Jira writes) is intact; and because only the reads are allowed, every other tool the server exposes (Confluence, cross-product, admin) is never auto-approved.
 4. Under auto mode, the scoped Jira read succeeded and the comment write was DENIED by your deny rule with no approval prompt.
 5. `git worktree list` shows you ran the whole lab inside `lab-7-work`; a `git`-review shows a clean local tree.
 
