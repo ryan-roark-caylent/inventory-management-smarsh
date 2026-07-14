@@ -22,7 +22,7 @@ Both files stay local in your worktree. Nothing gets committed or pushed.
 
 ## Core path
 
-Steps 0-8 are the core path. Work at your own pace.
+Steps 0-9 are the core path. Work at your own pace.
 
 ---
 
@@ -48,7 +48,7 @@ Do the following before you begin:
 
 3. **Confirm Atlassian is connected.** Run `/mcp` and confirm **claude_ai_Atlassian** shows connected (this one server covers Jira, Confluence, and cross-product tools together). If it shows disconnected, your credentials aren't set — fix them per the MindTickle pre-work module, then relaunch. (There is no GitHub MCP in this lab — Atlassian only.)
 
-4. **Note the exact Atlassian tool names.** In the `/mcp` view, select the **claude_ai_Atlassian** server and read its tool list. Note the exact names for "get an issue," "search issues," and "add a comment" — they're camelCase with a prefix (e.g. `mcp__claude_ai_Atlassian__getJiraIssue`). You'll need the exact names in Step 6; a guessed name silently mis-scopes.
+4. **Note the exact Atlassian tool names.** In the `/mcp` view, select the **claude_ai_Atlassian** server and read its tool list. Note the exact names for "get an issue," "search issues," and "add a comment" — they're camelCase with a prefix (e.g. `mcp__claude_ai_Atlassian__getJiraIssue`). You'll need the exact names in Step 7; a guessed name silently mis-scopes.
 
 **Success signal:** `git branch --show-current` (or `git worktree list`) shows you on `lab-7-work`; `/model` shows Sonnet; `/mcp` lists **claude_ai_Atlassian** as connected and you can see its tool names.
 
@@ -58,7 +58,25 @@ Do the following before you begin:
 
 ---
 
-### Step 1 — Delegation topology (open-ended judgment)
+### Step 1 — Set up worktree isolation for parallel agentic work
+
+In Step 0 you launched Claude Code from inside `lab-7-work`, a git **worktree** — a second working directory backed by the same repo, checked out to its own branch. This is your working setup for the rest of the lab, and it's the mechanism that lets you run agentic workflows without stepping on other work.
+
+Confirm it:
+
+```
+git worktree list
+```
+
+You'll see `lab-7-work` as its own directory, separate from your main checkout. Because it's a distinct working tree, an agent running here can edit, test, and iterate against these files while a completely separate Claude session runs in another worktree on another branch — the two never touch each other's files. That's how you run **multiple agentic workflows in parallel on one codebase without collisions**: give each its own worktree, and each agent's blast radius stops at its own working tree.
+
+That property is why the rest of this lab lives here. In Step 8 you'll turn an MCP-connected agent loose under auto mode; the worktree is what bounds it — the worst case is contained to `lab-7-work`, never your main checkout or another branch. Set the mechanism up front, then build on it.
+
+**Success signal:** `git worktree list` shows `lab-7-work` as an isolated worktree, and you can say why an autonomous agent running inside it can't reach files outside it.
+
+---
+
+### Step 2 — Delegation topology (open-ended judgment)
 
 Before you touch anything, frame the work. You have four tasks for this repo:
 
@@ -69,13 +87,13 @@ Before you touch anything, frame the work. You have four tasks for this repo:
 
 Sort each into **delegate to a sub-agent** vs **keep in a single agent**, and think through which tasks earn a sub-agent's coordination overhead and why. Then decide the delegation topology for anything you'd delegate: which sub-agent does what, in what order.
 
-You don't need to write this down — reason it through and move on. The sort is the mental model the rest of the lab runs on: in Step 3 you'll dispatch the reviewer this thinking tells you is worth delegating.
+You don't need to write this down — reason it through and move on. The sort is the mental model the rest of the lab runs on: in Step 4 you'll dispatch the reviewer this thinking tells you is worth delegating.
 
 **Success signal:** you can say which of the four tasks earn a sub-agent and why, and name the topology for any you'd delegate.
 
 ---
 
-### Step 2 — Read the trigger (local, read-only)
+### Step 3 — Read the trigger (local, read-only)
 
 Ask Claude (single agent, read-only) to run the backend test suite and explain which test fails and why. Do not ask it to fix anything.
 
@@ -98,7 +116,7 @@ E   assert <filtered count> < <global count>   # the counts are equal because th
 
 ---
 
-### Step 3 — Dispatch the read-only reviewer
+### Step 4 — Dispatch the read-only reviewer
 
 Ask Claude to dispatch the `code-reviewer` sub-agent on the failing dashboard-summary code in `server/main.py`. Ask it to return the reviewer's findings and confirm whether any files were changed.
 
@@ -121,7 +139,7 @@ Ask Claude to dispatch the `code-reviewer` sub-agent on the failing dashboard-su
 
 ---
 
-### Step 4 — Claude drafts the handoff, then quizzes you
+### Step 5 — Claude drafts the handoff, then quizzes you
 
 Instead of writing the handoff from scratch (or passing the reviewer's raw transcript downstream), **ask Claude to draft `structured-handoff.md`** with three sections — **Findings / Decisions / Constraints** — and then to **quiz you** on the scoping calls it can't make for you:
 
@@ -135,7 +153,7 @@ Answer Claude's questions to lock the Decisions and Constraints yourself. The fi
 
 ---
 
-### Step 5 — Execute the handoff (the payoff)
+### Step 6 — Execute the handoff (the payoff)
 
 A handoff only earns its keep if someone acts on it. Now play the implementer: **hand `structured-handoff.md` to Claude and ask it to apply the scoped fix** — nothing more than the Decisions section allows.
 
@@ -160,7 +178,7 @@ git diff → one line changed in server/main.py; total_backlog_items untouched (
 
 ---
 
-### Step 6 — Scope the connection in `settings.local.json` ★ Point step
+### Step 7 — Scope the connection in `settings.local.json` ★ Point step
 
 You're about to let an agent touch Atlassian. Before you do, decide exactly what it may and may not do — then encode that decision where it's actually enforced.
 
@@ -204,7 +222,7 @@ Ask Claude to help you enumerate the minimal read calls the workflow needs, but 
 
 ---
 
-### Step 7 — Run it under auto mode and watch the write get DENIED ★ Point step
+### Step 8 — Run it under auto mode and watch the write get DENIED ★ Point step
 
 Now prove the scope is the safety — not your click.
 
@@ -229,37 +247,13 @@ Result: read completed; comment was NOT created. Scope held with no human in the
 
 ---
 
-### Step 8 — Worktree isolation (you've been in one all along)
-
-You didn't just run an autonomous agent — you ran it inside a **git worktree** (`lab-7-work`) the whole lab. Confirm it:
-
-```
-git worktree list
-```
-
-You'll see `lab-7-work` as its own working directory, separate from any other checkout. That's why the auto-mode run in Step 7 could never have escaped into another branch's files or your main checkout.
-
-Write one sentence on why running an autonomous, MCP-connected agent inside a worktree matters (blast radius: the worst case is contained to this working tree). Then note a **qualitative** token-cost estimate for the workflow you ran — relative cost vs a single-agent task, and the biggest cost driver. No absolute number.
-
-**Expected output shape:**
-
-```
-$ git worktree list
-/path/to/inventory-management-smarsh   <sha> [main]
-/path/to/lab-7-work                    <sha> [lab-7-work]
-```
-
-**Success signal:** `git worktree list` shows `lab-7-work` as an isolated worktree; you can state in one sentence why isolation bounded the autonomous run.
-
----
-
 ### Step 9 — Keep your takeaway (no commit)
 
-Your two local artifacts — `.claude/settings.local.json` (your enforced scope) and `structured-handoff.md` — stay in your worktree as a personal takeaway. **Do not commit or push anything.**
+Your two local artifacts — `.claude/settings.local.json` (your enforced scope) and `structured-handoff.md` — stay in your worktree as a personal takeaway. **Do not commit or push anything.** The worktree you set up in Step 1 is why they're safely yours: they live in `lab-7-work`, isolated from every other checkout.
 
-Think through (no need to write it down): if you scoped this Jira workflow for your own team, what's the one call you'd allow and the one you'd hardest-block?
+Think through (no need to write it down): if you scoped this Jira workflow for your own team, what's the one call you'd allow and the one you'd hardest-block? And note a **qualitative** token-cost estimate for the workflow you ran — relative cost vs a single-agent task, and the biggest cost driver. No absolute number.
 
-**Success signal:** both files exist in your worktree; you can point to the `deny` entry in `settings.local.json` that blocked the write in Step 7.
+**Success signal:** both files exist in your worktree; you can point to the `deny` entry in `settings.local.json` that blocked the write in Step 8.
 
 ---
 
@@ -279,23 +273,23 @@ You have completed the core path when all five are true:
 
 These are not required for done-criteria or the completion quiz. Work on them if you finish early or want to go deeper.
 
-1. **Raw transcript vs structured handoff comparison.** Re-run Step 5 a second way: pass the reviewer's full raw transcript to a fresh implementer session instead of your `structured-handoff.md`. Compare which produces the cleaner, more targeted fix — this is the direct proof of why the structured handoff was worth building.
+1. **Raw transcript vs structured handoff comparison.** Re-run Step 6 a second way: pass the reviewer's full raw transcript to a fresh implementer session instead of your `structured-handoff.md`. Compare which produces the cleaner, more targeted fix — this is the direct proof of why the structured handoff was worth building.
 
 2. **Second sub-agent, real topology.** Dispatch `security-auditor` (haiku, read-only) on the same code and compare its findings to `code-reviewer`'s. Did the two-reviewer fan-out earn its cost?
 
-4. **Tighten the scope further.** Add a second Jira write to your deny list (a transition or an update) and re-run Step 7's write attempt against it. Confirm each named write is blocked independently.
+4. **Tighten the scope further.** Add a second Jira write to your deny list (a transition or an update) and re-run Step 8's write attempt against it. Confirm each named write is blocked independently.
 
 ---
 
 ## Stuck path
 
-**Atlassian won't connect (Step 0 / 7).** Run `/mcp` to see current status. If **claude_ai_Atlassian** shows disconnected, confirm your read-only Atlassian credentials are set (see the MindTickle pre-work module), then relaunch Claude Code. If you still can't connect, you can still complete the scoping half of the lab: ask Claude to read `.mcp.json` and help you think through which specific Jira read calls a workflow that only reads your most-recent ticket would need, and which it must be blocked from, without calling any tool. You'll produce a valid `.claude/settings.local.json` scope and still hit the scoping done-criteria.
+**Atlassian won't connect (Step 0 / 8).** Run `/mcp` to see current status. If **claude_ai_Atlassian** shows disconnected, confirm your read-only Atlassian credentials are set (see the MindTickle pre-work module), then relaunch Claude Code. If you still can't connect, you can still complete the scoping half of the lab: ask Claude to read `.mcp.json` and help you think through which specific Jira read calls a workflow that only reads your most-recent ticket would need, and which it must be blocked from, without calling any tool. You'll produce a valid `.claude/settings.local.json` scope and still hit the scoping done-criteria.
 
-**Sub-agent dispatch confuses you (Step 3).** Ask Claude to dispatch the `code-reviewer` sub-agent to review the dashboard summary function in `server/main.py`, report its findings, and confirm it made no file changes. If Claude seems confused about sub-agents, confirm `.claude/agents/code-reviewer.md` exists in the repo.
+**Sub-agent dispatch confuses you (Step 4).** Ask Claude to dispatch the `code-reviewer` sub-agent to review the dashboard summary function in `server/main.py`, report its findings, and confirm it made no file changes. If Claude seems confused about sub-agents, confirm `.claude/agents/code-reviewer.md` exists in the repo.
 
-**Stuck on the handoff (Step 4).** Ask Claude to draft the three sections and quiz you on the scoping calls — the primary finding (the one the failing test targets), any secondary findings worth deferring, and what the minimal fix must avoid touching. You make the scoping calls; Claude drafts from your answers.
+**Stuck on the handoff (Step 5).** Ask Claude to draft the three sections and quiz you on the scoping calls — the primary finding (the one the failing test targets), any secondary findings worth deferring, and what the minimal fix must avoid touching. You make the scoping calls; Claude drafts from your answers.
 
-**Stuck on permission scoping (Step 6).** Ask Claude to list the minimal set of Jira tool calls a workflow that only reads your most-recent ticket would need, and every Jira write/admin (plus Confluence/cross-product) call that should be explicitly blocked, without calling any tool. Use that list to fill in your `settings.local.json` allow/deny yourself.
+**Stuck on permission scoping (Step 7).** Ask Claude to list the minimal set of Jira tool calls a workflow that only reads your most-recent ticket would need, and every Jira write/admin (plus Confluence/cross-product) call that should be explicitly blocked, without calling any tool. Use that list to fill in your `settings.local.json` allow/deny yourself.
 
 **Fully stuck or out of time.** Check out the reference artifacts from the solution branch to see finished examples. First confirm your remote points at the fork:
 
