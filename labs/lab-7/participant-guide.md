@@ -186,11 +186,13 @@ Notice what you're scoping: the connected server is **one combined `claude_ai_At
 
 **Reason through the three-part model** (out loud or in your head — you don't need to write it as prose; the enforcement file below is the artifact that matters):
 
-- **Explicit Read** — the Jira read call(s) only: search my issues, then get the one issue.
-- **Explicit Write** — **BLOCKED.** No comment, no create, no transition, no edit, no worklog.
-- **Explicit Blocks** — everything else the server exposes: all Confluence tools, the cross-product `search`/`fetch`, account/admin calls, and every other project.
+- **Explicit Read** — the Jira read call(s) only: search my issues, then get the one issue. **(You add these.)**
+- **Explicit Write** — **BLOCKED, and shipped that way:** no comment, no create, no transition, no edit, no worklog, no link. Leave the deny list in place.
+- **Explicit Blocks** — everything else the server exposes stays denied by default: because you only *allow* the two reads, no other tool (all Confluence, the cross-product `search`/`fetch`, account/admin calls, every other project) is ever approved.
 
-Now encode that reasoning directly in `.claude/settings.local.json` — this is the **deterministic guard** the runtime actually reads: **allow** only the Jira read calls, **deny** the writes and everything else. The shape (fill the exact tool names you confirm from `/mcp`):
+This lab ships with a safety floor already in place: open `.claude/settings.local.json` and you'll find the Jira **writes already denied** (comment, create, edit, transition, worklog, link). That's deliberate — you're pointing an agent at a live Atlassian tenant, and a blocked write is the difference between a safe exercise and a real ticket you didn't mean to touch. Deny always wins over allow, so those writes cannot be re-enabled by an allow entry; the floor holds.
+
+Your job is the **allow** half: add the Jira read call(s) your workflow needs so the read actually works, then confirm the writes are still blocked. Encode it directly in `.claude/settings.local.json` — this is the **deterministic guard** the runtime actually reads. The shape (fill the exact read tool names you confirm from `/mcp`):
 
 > **Why this file, and not CLAUDE.md?** `settings.local.json` is a **deterministic control** — the runtime matches every tool call against these allow/deny lists and blocks a denied call *every time*, with no model judgment involved. A `CLAUDE.md` instruction like "please only read from Jira" is the opposite: it's **non-deterministic guidance** the model may follow, misread, or be talked out of (including by a prompt injection). When you need a guarantee — especially before handing an agent autonomy — put it where the machine enforces it, not where the model interprets it. That's the whole point of this step: the guard, not good intentions, is what holds.
 
@@ -198,27 +200,32 @@ Now encode that reasoning directly in `.claude/settings.local.json` — this is 
 {
   "permissions": {
     "allow": [
+      // YOU add these — the read call(s) your workflow needs:
       "mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql",  // find my latest issue
       "mcp__claude_ai_Atlassian__getJiraIssue"               // read that issue
     ],
     "deny": [
+      // ALREADY SHIPPED — the write floor. Leave these; deny wins over allow.
       "mcp__claude_ai_Atlassian__addCommentToJiraIssue",     // the write we'll watch get blocked
       "mcp__claude_ai_Atlassian__createJiraIssue",
       "mcp__claude_ai_Atlassian__editJiraIssue",
-      "mcp__claude_ai_Atlassian__transitionJiraIssue"
-      // ...plus the Confluence + cross-product tools outside this workflow
+      "mcp__claude_ai_Atlassian__transitionJiraIssue",
+      "mcp__claude_ai_Atlassian__addWorklogToJiraIssue",
+      "mcp__claude_ai_Atlassian__createIssueLink"
     ]
   }
 }
 ```
 
+> **Why is the deny list shipped, not authored by you?** You're on a *write-capable* enterprise Atlassian connection, and one fumbled config in auto mode could write to a real ticket. So the writes are denied from the moment you open the lab — a fail-closed floor. You still do the real scoping work: decide and add the minimal **reads**, and reason about *why* each write is denied. In your own projects you'd author both halves; here the block ships first so nobody damages a live tenant while learning.
+
 > **Verify tool names:** open `/mcp`, select the **claude_ai_Atlassian** server, and read its tool list. Confirm every allow/deny entry uses the **exact** tool name it exposes — camelCase with the `mcp__claude_ai_Atlassian__` prefix, not the friendly label. A guessed name silently mis-scopes: the guard won't match, and the block won't fire where you think it does.
 
-> **To be clear — blocking writes is a choice for this exercise, not a rule.** Letting Claude comment on, transition, or create Jira issues is a perfectly good real-world setup; plenty of useful workflows need exactly that. We block writes here so you can *watch the guard fire* and prove the scope is what stops the call. The lesson isn't "MCP writes are dangerous" — it's "scope to what the workflow needs." When your workflow genuinely needs a write, allow it.
+> **To be clear — blocking writes is a choice for this exercise, not a universal rule.** Letting Claude comment on, transition, or create Jira issues is a perfectly good real-world setup; plenty of useful workflows need exactly that. We ship the writes blocked here for two reasons: so you can *watch the guard fire* and prove the scope is what stops the call, and so a learner on a live tenant can't accidentally write. The lesson isn't "MCP writes are dangerous" — it's "scope to what the workflow needs, and put guarantees where the machine enforces them." When your own workflow genuinely needs a write, you allow it (and remove the matching deny).
 
-Ask Claude to help you enumerate the minimal read calls the workflow needs, but you decide and defend the allow/deny split yourself.
+Ask Claude to help you enumerate the minimal read calls the workflow needs, but you decide and defend the allow list yourself.
 
-**Success signal:** `.claude/settings.local.json` allows only the two Jira read calls and denies the writes plus the Confluence/cross-product tools outside the workflow; every entry matches an exact `/mcp` tool name.
+**Success signal:** `.claude/settings.local.json` allows only the Jira read call(s) you added; the shipped write denials are intact; every allow entry matches an exact `/mcp` tool name. Because only the reads are allowed, everything else the server exposes stays blocked by default.
 
 ---
 
