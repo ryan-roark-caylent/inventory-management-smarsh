@@ -6,7 +6,7 @@
 
 This lab runs a little long because it carries skill-authoring and hook-wiring competencies that the Agent Skills Academy course does not cover. It sits near Lab 4 in depth.
 
-**Your completion and mastery quizzes are in the LMS (MindTickle).** Prerequisites, install steps, and worktree setup are in the MindTickle pre-work module.
+**Your completion and mastery quizzes are in the LMS (MindTickle).** Prerequisites and install steps are in the MindTickle pre-work module.
 
 ---
 
@@ -14,7 +14,7 @@ This lab runs a little long because it carries skill-authoring and hook-wiring c
 
 - Fork: `ryan-roark-caylent/inventory-management-smarsh`
 - Starting branch: `lab-6-start`
-- Complete the MindTickle pre-work module first: it installs `uv` and node/npm, runs `npm install` and a client boot, and sets up your per-lab worktree.
+- Complete the MindTickle pre-work module first: it installs `uv` and node/npm, runs `npm install` and a client boot.
 
 ---
 
@@ -22,14 +22,15 @@ This lab runs a little long because it carries skill-authoring and hook-wiring c
 
 ### Step 0 — Setup
 
-You should already be on `lab-6-work` (in your per-lab worktree) from the MindTickle pre-work module. If you are not, create it now:
+You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-6-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
 
 ```
 git fetch origin
 git worktree add ../lab-6-work lab-6-start
+cd ../lab-6-work
 ```
 
-Then `cd ../lab-6-work`.
+Then launch Claude Code from inside `lab-6-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
 - Run `/model sonnet`. Smarsh defaults to Haiku; this lab's trigger behavior is tuned for Sonnet. (How-to: type `/model`, then pick Sonnet.)
 - Start the servers: ask Claude to run the `/start` command, or run the start script for your OS (`scripts\start.ps1` on Windows, `scripts/start.sh` on Mac). Then open the app.
