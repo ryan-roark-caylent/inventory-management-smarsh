@@ -34,6 +34,8 @@ In Lab 6 you built and triggered a skill and applied the 5-abstraction rubric (C
 
 You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-9-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
 
+> **Tip:** you can run a shell command without leaving Claude Code by prefixing it with `!` (e.g. `!git worktree list`). Handy throughout the labs.
+
 ```
 git fetch origin
 git worktree add ../lab-9-work lab-9-start
