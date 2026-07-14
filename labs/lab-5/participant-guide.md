@@ -14,6 +14,8 @@ Your completion and mastery quizzes are in the LMS (MindTickle). Pre-work (`/mod
 
 You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-5-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
 
+> **Tip:** you can run a shell command without leaving Claude Code by prefixing it with `!` (e.g. `!git worktree list`). Handy throughout the labs.
+
 ```
 git fetch origin
 git worktree add ../lab-5-work lab-5-start
@@ -23,7 +25,8 @@ cd ../lab-5-work
 Then launch Claude Code from inside `lab-5-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
 - Quick check: run `/model` and confirm you're on **sonnet**. Smarsh Enterprise defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed.
-- Start the stack: run `/start` in Claude Code (or `scripts/start.ps1` on Windows / `scripts/start.sh` on macOS). Node/npm must already be installed and the client dependencies pulled from pre-work — this lab runs the browser UI.
+- Start the stack: ask Claude to start the app (it has a `/start` command), or run it yourself.
+  - Fallback: `scripts/start.ps1` on Windows / `scripts/start.sh` on macOS. Node/npm must already be installed and the client dependencies pulled from pre-work — this lab runs the browser UI.
 - Open the app in the browser and click into the Inventory view. Leave it open; you'll watch it change.
 
 ---
