@@ -4,9 +4,17 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
-          { "type": "command", "command": "python .claude/hooks/run_backend_tests.py" }
+          {
+            "type": "command",
+            "command": "python .claude/hooks/run_backend_tests.py"
+          }
         ]
       }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "Read(./labs/**)"
     ]
   }
 }
