@@ -63,6 +63,8 @@ Ask Claude to locate everything related to purchase orders in the repo and repor
 
 Open the dashboard at `http://localhost:3000`, find a backlog item, and click **Create PO**. Nothing opens. Open your browser dev tools (Console) and you will see Vue fail to resolve a `PurchaseOrderModal` component — the frontend half of this feature was never finished (the modal is referenced but never built or imported). As your survey found, the backend half is missing too: there is no `POST /api/purchase-orders` route. This lab closes **both** gaps: you spec and build the backend route **and** the UI wiring, so by the end **Create PO** works end to end in the browser.
 
+> **Playwright MCP (a first taste of MCP).** When you ask Claude to verify the UI, it can drive a real browser through the **Playwright MCP** server (configured in this repo's `.mcp.json`). MCP (Model Context Protocol) lets Claude call external tools; Playwright is one that opens a browser, navigates to your app, clicks buttons, and reads back what rendered — so Claude checks the running UI the way you just did by hand, instead of guessing from the code. That is why this branch's `CLAUDE.md` tells Claude to use Playwright for browser testing. You don't configure anything here; it's already wired. MCP gets a full treatment in Lab 7 — this is just your first look at a tool Claude reaches for on its own.
+
 **Success signal:** Claude's survey reports the models and `api.js` stub exist but there is no `POST /api/purchase-orders` route, AND you saw **Create PO** fail in the running app (the modal never opens; the Console shows Vue failing to resolve the `PurchaseOrderModal` component).
 
 ---
