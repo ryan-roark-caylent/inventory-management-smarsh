@@ -32,7 +32,17 @@ In Lab 6 you built and triggered a skill and applied the 5-abstraction rubric (C
 
 ## Step 0 — Confirm your worktree and orient
 
-You should already be on `lab-9-work` (in your per-lab worktree) from the MindTickle pre-work module. Confirm it:
+You work this lab inside its own git **worktree** so nothing collides with other labs and you keep your work at the end. If your pre-work already created `lab-9-work`, confirm you're in it with `git worktree list`. If not, create it now — run each line separately:
+
+```
+git fetch origin
+git worktree add ../lab-9-work lab-9-start
+cd ../lab-9-work
+```
+
+Then launch Claude Code from inside `lab-9-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
+
+Confirm your setup:
 
 ```
 git worktree list
@@ -41,7 +51,7 @@ git worktree list
 git status
 ```
 
-You should see you're on `lab-9-work` with a clean tree. If you are not set up, follow the worktree-setup step in the MindTickle pre-work module, then come back.
+You should see you're on `lab-9-work` with a clean tree.
 
 1. **Switch to Sonnet.** Smarsh defaults to Haiku; this lab is tuned for Sonnet. Run `/model sonnet` (or `/model` and pick Sonnet). The Step 1 behaviors assume Sonnet.
 
