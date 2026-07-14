@@ -6,7 +6,7 @@
 
 ## What you will build
 
-By the end of this lab you will have a technical spec for a low-stock alerting feature, grounded in the real inventory model, with a risk list, Jira-ready sub-tasks, and a design decision you resolved and can defend. You keep it as a local artifact in your worktree. All of it authored through Claude, none of it handed to you.
+By the end of this lab you will have a technical spec for a per-category low-stock alerting feature, grounded in the real inventory model, with a risk list, Jira-ready sub-tasks, and a design decision you resolved and can defend. Then you will ask Claude to **implement that spec** and watch the per-category thresholds change the low-stock count in the running app. You keep the spec and the working code as local artifacts in your worktree. All of it authored through Claude, none of it handed to you.
 
 ---
 
@@ -16,19 +16,23 @@ Claude earns its keep as a thinking partner only when you make it argue with you
 
 **Point step:** Step 2. When Claude critiques its own spec, the output quality jumps. Watch for it.
 
+The thinking-partner work is the core, but it does not stop at paper. In Step 7 you ship what you specced: you ask Claude to implement the per-category thresholds and you see the low-stock count change in the running app. Reason about it, then build it.
+
 ---
 
 ## Before you start
 
-This is a thinking-and-writing lab, not an implementation lab. You will write a spec; you will not write code. Implementation is Lab 4.
+This is a thinking-partner lab that also ships its result. The spec you write and argue is the core (Steps 1-6); then you implement it and see it run (Step 7). You reason about the feature first, then you build it.
 
-**Surface note (Lab 1 callback):** In Lab 1 you chose a surface per task. This thinking-partner workflow runs in Claude Code so the spec lands on disk and you can use Plan Mode. No app servers and no browser are needed.
+**Prereq — servers now matter.** Steps 1-6 are pure spec work, but Step 7 runs the app, so you need the frontend toolchain: **Node.js and npm** installed (the Vite frontend on port 3000 needs them; the FastAPI backend runs on port 8001). Confirm with `node --version` and `npm --version` before you start. This is set up in the pre-work prerequisites; flag it now if either command fails.
 
-**Windows + macOS (identical guidance):** This lab runs entirely in the Claude Code terminal. No `--browser` flag, no `settings.json` changes, no relaunch. Run each git command on its own line, never joined with `&&`. The only genuinely OS-specific line is the `--browser msedge` flag in extra credit, kept split there.
+**Surface note (Lab 1 callback):** In Lab 1 you chose a surface per task. This thinking-partner workflow runs in Claude Code so the spec lands on disk and you can use Plan Mode. The spec work needs no browser; the Step 7 build does — you open the app to watch the count change.
+
+**Windows + macOS (identical guidance):** This lab runs from the Claude Code terminal. Run each git command on its own line, never joined with `&&`. The only genuinely OS-specific lines are the app-launch fallback commands in Step 7 and the `--browser msedge` flag in extra credit, both kept split by OS where they appear.
 
 ---
 
-## Core path (Steps 0-6)
+## Core path (Steps 0-7)
 
 ### Step 0: Set up your worktree
 
@@ -130,7 +134,7 @@ Ask Claude to draft Jira-ready sub-tasks from the spec and the risk list. Each s
 
    **How to use Plan Mode:** press **`shift-tab`** to cycle Claude Code into Plan Mode (you will see the mode indicator change); press **`shift-tab`** again to cycle back out. In Plan Mode Claude proposes but writes nothing until you approve.
 
-2. **Do NOT implement.** Exit Plan Mode without approving. Implementation is Lab 4.
+2. **Do NOT approve yet.** Exit Plan Mode without approving. You still have an open decision to resolve (Step 6) before you build — the plan should not run against an unresolved spec. You will implement in Step 7, once the spec is settled.
 
    **You know this worked when:** after Plan Mode, `git status` shows no `.py` or `.vue` files:
    ```
@@ -140,7 +144,7 @@ Ask Claude to draft Jira-ready sub-tasks from the spec and the risk list. Each s
            docs/lab-2/subtasks.md
            specs/low-stock-alerting.md
    ```
-   Only your untracked spec and sub-task files appear. Plan Mode proposed a plan; it did not edit any files. The plan was disposable. The spec on disk is the durable artifact.
+   Only your untracked spec and sub-task files appear. Plan Mode proposed a plan; it did not edit any files. The plan is a disposable exploration — the durable artifact is the spec on disk, which you will hand back to Claude to build once you have resolved the open decision.
 
 ---
 
@@ -150,30 +154,63 @@ Ask Claude to draft Jira-ready sub-tasks from the spec and the risk list. Each s
 
    This is your call because the spec surfaced it as an open decision. That is the skill: a good spec tells you where a human still has to choose.
 
-2. **Keep your work (no commit):** your `specs/low-stock-alerting.md` (spec + risks + resolved decision) and `docs/lab-2/subtasks.md` are your personal takeaway. Keep them in your worktree. **Do not commit or push** — nothing in this lab goes back to the repo.
+2. Your spec is now settled: it names real fields, carries a risk list, and every open decision has a resolved choice with a defense. That is the contract Claude will build against in Step 7.
 
-   **You know this worked when:** the threshold decision under `## Decisions needed from you` has a choice plus a one-sentence defense, and both files exist in your worktree:
+   **You know this worked when:** the threshold decision under `## Decisions needed from you` has a choice plus a one-sentence defense, and both artifact files exist in your worktree:
    ```
    On branch lab-2-work
    Untracked files:
            docs/lab-2/subtasks.md
            specs/low-stock-alerting.md
    ```
-   (Untracked is fine. That uncommitted local artifact is the intended end state.)
+   (Untracked is fine. You have a resolved spec and a task list — now build it.)
+
+---
+
+### Step 7: Build it and see it in the app
+
+You wrote the spec and resolved the decision. Now ship it. This is the payoff: the reasoning becomes a working feature you can see in the running app.
+
+1. **Ask Claude to implement your spec.** Hand it `specs/low-stock-alerting.md` (spec + resolved threshold decision) and ask it to implement the per-category low-stock thresholds exactly as you specced them. The change touches the backend low-stock rule in `server/main.py` (`get_dashboard_summary` computes `low_stock_items` today with a single flat `quantity_on_hand <= reorder_point` test — your feature makes that threshold per-category) and, if your spec surfaces it in the UI, the Vue view (`client/src/views/Inventory.vue`, whose per-item status badge uses the same reorder-point rule). Let Claude write the code this time — you approve the plan and let it edit.
+
+2. **Ask Claude to start the app.** Run **`/start`** (the repo's start command boots the FastAPI backend on port 8001 and the Vite frontend on port 3000). If `/start` is unavailable, fall back to running the two servers yourself, each in its own terminal:
+
+   **macOS/Linux:**
+   ```
+   cd server
+   uv run python main.py
+   ```
+   ```
+   cd client
+   npm run dev
+   ```
+
+   **Windows:** prefer the helper scripts, one per line:
+   ```
+   scripts/start.ps1
+   ```
+   (and `scripts/stop.ps1` when you are done).
+
+3. **Open the app and confirm the feature.** Go to `http://localhost:3000`. Look at the Dashboard's **Low Stock Items** count and the **Status** column on the Inventory page. With per-category thresholds in place, items whose category threshold is stricter than the flat reorder point now read **Low Stock** where before they read Adequate (and the dashboard count moves accordingly). Click into an inventory row to see the per-item status.
+
+   **You know this worked when:** the low-stock count in the running app reflects your per-category thresholds, not the old flat rule — you changed a config value, reloaded, and the count moved. Explore the Inventory list and dashboard: the items now flagged low-stock are the ones your category thresholds catch.
+
+4. **Keep your work (no commit):** your spec, sub-tasks, and the implemented code all live in your worktree. **Do not commit or push** — nothing in this lab goes back to the repo. The working feature you can demo is your takeaway.
 
 ---
 
 ## Done criteria
 
-Check all five before you call it done:
+Check all six before you call it done:
 
 1. `specs/low-stock-alerting.md` exists locally and names real repo fields (`quantity_on_hand`, `reorder_point`, the five actual categories).
 2. The spec contains a `## Risks` section with one risk Claude surfaced that you had not considered, and one recorded override with your rationale.
 3. `docs/lab-2/subtasks.md` exists with discrete, Jira-ready sub-tasks (not a blob).
 4. You noted how the context-rich run (Step 4) surfaced the shared-items-API backward-compat concern, as either an up-front clarifying question or a flagged open decision in the spec.
-5. After Plan Mode (Step 5), `git status` showed no `.py` or `.vue` files, and your `## Decisions needed from you` section carries your resolved threshold choice plus a one-sentence defense.
+5. Your `## Decisions needed from you` section carries your resolved threshold choice plus a one-sentence defense (this is the contract Claude built against in Step 7).
+6. Claude implemented the spec and you saw it work: with the app running (`http://localhost:3000`), the per-category thresholds changed the Low Stock count and the Inventory status badges away from the old flat reorder-point rule.
 
-**Share-back artifact:** your local `specs/low-stock-alerting.md` (spec + risk list + resolved decision) and `docs/lab-2/subtasks.md` in your worktree, uncommitted. The person-specific signal is the surfaced risk, the override, and the threshold-config decision you defended.
+**Takeaway artifacts:** your local `specs/low-stock-alerting.md` (spec + risk list + resolved decision), `docs/lab-2/subtasks.md`, and the implemented per-category-threshold code in your worktree, all uncommitted. The person-specific signal is the surfaced risk, the override, the threshold-config decision you defended, and the working feature you can demo.
 
 ---
 
@@ -208,6 +245,9 @@ Open `specs/low-stock-alerting.md` and `docs/lab-2/reference-risks.md` in that w
 
 **The critique response still just agrees with itself.**
 Remove any "is this good?" phrasing from your prompt, and make sure you rewound the weak exchange (Esc twice or `/rewind`) so the agreeable answer is not anchoring the model. Ask specifically for weaknesses, a failure mode tied to how this backend actually works, and alternatives with tradeoffs. If it still hedges, open `docs/lab-2/reference-risks.md` in the solution worktree to see the shape of a sharp critique.
+
+**The app won't start, or the count doesn't change after you build (Step 7).**
+Check that Node.js and npm are installed (`node --version`, `npm --version`) — the frontend needs them. If `/start` fails, boot the two servers by hand (backend on 8001, frontend on 3000) using the fallback commands in Step 7. If the servers run but the Low Stock count looks unchanged, ask Claude to confirm it wired your per-category thresholds into the low-stock rule in `get_dashboard_summary` (`server/main.py`) and to pick a category threshold strict enough to flip at least one item, then reload the page. If you are stuck, open the solution worktree to compare a finished implementation.
 
 **You ran out of time or hit a wall.**
 Open the solution in a second worktree and read the finished spec so you leave having seen the target:
