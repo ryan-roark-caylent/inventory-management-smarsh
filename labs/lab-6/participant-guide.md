@@ -26,7 +26,7 @@ You work this lab inside its own git **worktree** so nothing collides with other
 
 ```
 git fetch origin
-git worktree add ../lab-6-work lab-6-start
+git worktree add -b lab-6-work ../lab-6-work lab-6-start
 cd ../lab-6-work
 ```
 
