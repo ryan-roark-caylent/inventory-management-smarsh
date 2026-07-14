@@ -64,8 +64,6 @@ Context Usage
   Messages        ▓
 ```
 
-> **Aside (extra credit):** you can run a shell command from inside Claude Code by prefixing it with `!` — e.g. `!git status`. Handy for quick checks without leaving the session.
-
 ---
 
 ### Step 2 — Fix stale content and delete credentials (do this before trimming)
