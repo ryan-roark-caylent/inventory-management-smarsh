@@ -118,13 +118,16 @@ Look closely at what it moves *to*. Ask Claude Code whether the number it shows 
 
 ### Step 5 — Model and effort selection (reasoning-only)
 
-Two tasks: (i) rename a variable in one file; (ii) refactor `Reports.vue` off its hardcoded `localhost:8001` and into the shared `api.js` client (touches multiple files).
+Consider **two kinds of task** as thought experiments — you will not actually do either one here:
 
-For each task, decide **which model tier and effort or reasoning level you WOULD pick, and why**. The reasoning is the point. You already know how to switch (`/model` from Step 0); you do not need to switch here. Think it through and move on, no need to write it down.
+- **A single-file variable rename** — one contained edit, low risk, mechanical.
+- **A multi-file refactor** off `Reports.vue`'s hardcoded `localhost:8001` and onto the shared `api.js` client — spans several files, higher blast radius.
 
-This is a reasoning habit, not a benchmark. Do not run both tasks and compare outputs.
+For each of these hypothetical tasks, decide **which model tier and effort or reasoning level you WOULD pick, and why**. The reasoning is the point. There is no actual variable to rename and no refactor to run — these are examples for the exercise. You already know how to switch (`/model` from Step 0); you do not need to switch here. Think it through and move on, no need to write it down.
 
-**You know it worked when** you can state, for each task, the tier and effort you would choose and the task-complexity reason behind it.
+This is a reasoning habit, not a benchmark. Do not run either task or compare outputs.
+
+**You know it worked when** you can state, for each hypothetical task, the tier and effort you would choose and the task-complexity reason behind it.
 
 ---
 
