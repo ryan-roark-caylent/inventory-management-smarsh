@@ -40,7 +40,7 @@ You work this lab inside its own git **worktree** so nothing collides with other
 
 ```
 git fetch origin
-git worktree add ../lab-2-work lab-2-start
+git worktree add -b lab-2-work ../lab-2-work lab-2-start
 cd ../lab-2-work
 ```
 
@@ -220,7 +220,7 @@ Check all six before you call it done:
 
 ## Extra credit
 
-Extra credit is optional and does not affect Quiz 1 or done criteria.
+Extra credit is optional and does not affect the completion quiz or done criteria.
 
 1. **Feed a constraint Claude could not know.** Tell Claude: "Low-stock alerts must not fire during scheduled reorder windows, and every alert must be reconstructable for a compliance audit." Iterate the **spec**, not the prompt. Note how the design changes (audit log, window suppression). Record it under `## Constraints`.
 
