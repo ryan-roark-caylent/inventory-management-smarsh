@@ -55,7 +55,7 @@ The one-line fix at line 200 is **pattern-consistent** with the rest of `get_das
 2. Add a `"warehouse"` string to every record in `server/data/backlog_items.json`, matching the warehouse names used in inventory.
 3. Re-verify that `apply_filters` checks `warehouse` on the item dict — it already does for inventory items, so the logic generalizes once the field exists.
 
-EC4 is where participants observe this gap directly: they apply the one-liner, re-hit the API, and see the count drop to 0 rather than the true filtered value. That result is the teaching point, not a sign the fix is wrong.
+Step 4 (the core payoff) is where participants observe this gap directly: they have Claude Code apply the one-liner, restart/re-hit the backend, and see the backlog tile in the UI unfreeze — then respond to the warehouse filter by dropping toward 0 rather than the true filtered value. That result is the teaching point, not a sign the fix is wrong. (This beat was formerly EC4; it is now on the core path per the 2026-07-14 rebuild-review ruling.)
 
 ---
 

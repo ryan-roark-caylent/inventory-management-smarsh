@@ -10,7 +10,7 @@
 
 You will work on the same bug twice, using two different Claude surfaces. Claude.ai will reason from the symptom you paste in. Claude Code will open the repo, read the relevant file, and name exactly where the problem is and what a fix looks like. Same underlying model, different surfaces, meaningfully different answers.
 
-The moment that lands is the point: the surface you pick determines whether Claude guesses at your bug or reads your code and identifies the exact location. By the end, you will have a `surface-map.md` in your worktree that maps three surfaces to the kinds of work each handles best, with your own routing decisions and reasoning written in.
+The moment that lands is the point: the surface you pick determines whether Claude guesses at your bug or reads your code and identifies the exact location. Then you have Claude Code apply the fix, run it, and watch the dashboard respond — a real change, not just a diagnosis. By the end, you will have a `surface-map.md` in your worktree that maps three surfaces to the kinds of work each handles best, with your own routing decisions and reasoning written in.
 
 You already know what each surface does from the pre-work. Today is about choosing correctly under ambiguity.
 
@@ -44,7 +44,7 @@ cd ../lab-1-work
 
 Then launch Claude Code from inside `lab-1-work`. (The worktree rule is also in this repo's `CLAUDE.md`.)
 
-- Quick check: run `/model` and confirm you are on **sonnet**. Smarsh defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed. (This is the one place `/model` is taught. Step 4 reuses it as pure reasoning.)
+- Quick check: run `/model` and confirm you are on **sonnet**. Smarsh defaults to Haiku; this lab is tuned for Sonnet. Switch with `/model sonnet` if needed. (This is the one place `/model` is taught. Step 6 reuses it as pure reasoning.)
 - Start the backend and frontend. Ask Claude to start the app (it has a `/start` command), or run the servers yourself in two separate terminals.
 
 > **Fallback (run it yourself, Windows / macOS identical):** run each command on its own line, never joined with `&&`. Backend: `cd server`, then `uv run python main.py`. Frontend (new terminal): `cd client`, then `npm run dev`. (Dependencies were installed in pre-work.)
@@ -52,6 +52,10 @@ Then launch Claude Code from inside `lab-1-work`. (The worktree rule is also in 
 > **macOS only:** if `uv` is not on your PATH, install it with `brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh | sh`, then repeat the pre-work install.
 
 **You know it worked when** the backend terminal prints `Uvicorn running on http://0.0.0.0:8001` and `localhost:3000` renders the inventory dashboard.
+
+Now **explore the app before you touch any tool.** Click through the pages (dashboard, orders, reports, backlog). Change the warehouse and category filters and watch the summary tiles react. Get a feel for what this inventory app actually does — you will be working in it across the next several labs, so build a mental model now. As you click, jot down anything that looks off. One thing to watch for: filter by a warehouse (for example, London) and see whether every tile responds. Note the issues you spot; you will route and diagnose one of them next.
+
+**You know it worked when** you have clicked through the main pages, driven the filters, and written down at least one thing that looks wrong (the frozen backlog count is the one this lab chases).
 
 ---
 
@@ -69,7 +73,7 @@ Open `surface-map.md` at the repo root (it is already on the branch as a templat
 
 ### Step 2 — See the bug, then Round 1: Claude.ai
 
-First, **see the bug in the running app.** On the dashboard at `localhost:3000`, filter by a warehouse (for example, London). Watch most summary numbers change while the **backlog count stays frozen**. That frozen number is the bug.
+You saw it while exploring in Step 0: filter the dashboard by a warehouse (for example, London) and most summary numbers change while the **backlog count stays frozen**. That frozen number is the bug this lab chases.
 
 Now open **Claude.ai** (browser at `claude.ai`) and paste only that symptom, with no repo files attached. Ask it to explain the likely cause. Record its hypothesis under a "Round 1 (Claude.ai)" heading in `surface-map.md`.
 
@@ -98,7 +102,21 @@ In the repo root, launch Claude Code. Ask it to find why the dashboard's total b
 
 ---
 
-### Step 4 — Model and effort selection (reasoning-only)
+### Step 4 — Apply the fix and watch it land (PAYOFF STEP)
+
+Diagnosis is not the finish line. Have **Claude Code apply the change it just proposed** to the backlog count, then run the app and see what happens.
+
+Ask Claude Code to make the edit, then to restart or re-hit the backend so the change takes effect. Back on the dashboard at `localhost:3000`, filter by a warehouse again (London) and watch the backlog tile. It is no longer frozen — it now moves with the filter like the other tiles.
+
+Look closely at what it moves *to*. Ask Claude Code whether the number it shows under a warehouse filter is the true count, and have it explain what it finds. The one-line fix is pattern-consistent with the other metrics, but the underlying data model shapes the result — that gap is the teaching point, not a sign the fix is wrong. Note in `surface-map.md`, under a "Round 2" follow-up, what you observed and what a production-complete fix would still require.
+
+> Stay in normal mode so you approve the edit and see it happen. This is the first time in the labs you have Claude Code change real code and you watch the running app respond.
+
+**You know it worked when** the backlog tile responds to the warehouse filter in the UI (it was frozen before), and you can state — from what Claude Code surfaced — why the one-liner is not yet production-complete.
+
+---
+
+### Step 5 — Model and effort selection (reasoning-only)
 
 Two tasks: (i) rename a variable in one file; (ii) refactor `Reports.vue` off its hardcoded `localhost:8001` and into the shared `api.js` client (touches multiple files).
 
@@ -110,12 +128,12 @@ This is a reasoning habit, not a benchmark. Do not run both tasks and compare ou
 
 ---
 
-### Step 5 — Finalize (local, no commit)
+### Step 6 — Finalize (local, no commit)
 
 Review `surface-map.md`. Confirm it has:
 - A one-line "when I'd use this" for **all three** surfaces (Claude.ai, Claude Code, API / CI)
 - The **three** issue routings with reasoning
-- The Round 1 and Round 2 notes showing the specificity delta
+- The Round 1 and Round 2 notes showing the specificity delta, plus your Step 4 follow-up on what you observed after applying the fix
 
 **Keep this file in your worktree. It is your personal takeaway. Do not commit it.**
 
@@ -133,8 +151,6 @@ These steps absorb extra time and add depth. None are required for the done crit
 
 **EC3 — API/CI framing.** For issue C (the batch/CI script), write one paragraph sketching how you would call Claude via the API in a CI step, with no interactive session. Where does the API surface win over the other two?
 
-**EC4 — Implement the fix.** Apply Claude Code's proposed change to the backlog count, then call `/api/dashboard/summary?warehouse=London` and observe what the count returns. The result is a teaching point about the data model. Think about what a production-complete fix would require beyond the one-liner.
-
 ---
 
 ## Done criteria
@@ -143,7 +159,8 @@ You are done when:
 
 1. `surface-map.md` contains: a one-line "when I'd use this" for all three surfaces, the three issue routings with reasoning, and the Round 1 / Round 2 notes.
 2. Round 1 and Round 2 show the difference in specificity between Claude.ai's response and Claude Code's response.
-3. The file is saved in your worktree (not committed).
+3. You had Claude Code apply the fix and watched the backlog tile respond to the warehouse filter in the running app (it was frozen before), and you can say why the one-liner is not yet production-complete.
+4. The file is saved in your worktree (not committed).
 
 **Personal takeaway:** `surface-map.md`. It holds your three-surface map, your three-issue routing with reasoning, and your Round-1-vs-Round-2 comparison. Keep it; it is yours.
 
