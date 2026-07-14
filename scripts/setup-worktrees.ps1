@@ -13,17 +13,17 @@ foreach ($n in 1..9) {
     $dir    = "..\lab-$n-work"
     $branch = "lab-$n-work"
     if ($worktrees -match "lab-$n-work") {
-        Write-Host "  lab-$n: already set up, skipping"
+        Write-Host "  lab-${n}: already set up, skipping"
         $skipped++
         continue
     }
     git show-ref --verify --quiet "refs/heads/$branch"
     if ($LASTEXITCODE -eq 0) {
         git worktree add $dir $branch
-        Write-Host "  lab-$n: worktree created (existing branch)"
+        Write-Host "  lab-${n}: worktree created (existing branch)"
     } else {
         git worktree add -b $branch $dir "origin/lab-$n-start"
-        Write-Host "  lab-$n: worktree + branch created from origin/lab-$n-start"
+        Write-Host "  lab-${n}: worktree + branch created from origin/lab-$n-start"
     }
     $created++
 }
