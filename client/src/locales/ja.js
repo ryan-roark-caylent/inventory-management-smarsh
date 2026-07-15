@@ -25,7 +25,11 @@ export default {
       goal: '目標'
     },
     summary: {
-      title: '概要'
+      title: '概要',
+      totalInventoryValue: '在庫総額',
+      lowStockItems: '在庫少数品目',
+      pendingOrders: '保留中の注文',
+      totalBacklogItems: '未処理件数'
     },
     orderHealth: {
       title: '注文状況',
