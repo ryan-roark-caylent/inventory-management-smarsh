@@ -25,7 +25,11 @@ export default {
       goal: 'Goal'
     },
     summary: {
-      title: 'Summary'
+      title: 'Summary',
+      totalInventoryValue: 'Total Inventory Value',
+      lowStockItems: 'Low Stock Items',
+      pendingOrders: 'Pending Orders',
+      totalBacklogItems: 'Total Backlog Items'
     },
     orderHealth: {
       title: 'Order Health',
