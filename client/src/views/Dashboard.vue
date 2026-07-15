@@ -71,6 +71,35 @@
       <!-- Summary Section -->
       <div class="summary-section">
         <h3 class="section-title">{{ t('dashboard.summary.title') }}</h3>
+        <div class="summary-grid">
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-label">{{ t('dashboard.summary.totalInventoryValue') }}</span>
+            </div>
+            <div class="kpi-value">{{ formatCurrency(Math.round(summary.total_inventory_value), selectedCurrency) }}</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-label">{{ t('dashboard.summary.lowStockItems') }}</span>
+            </div>
+            <div class="kpi-value">{{ summary.low_stock_items }}</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-label">{{ t('dashboard.summary.pendingOrders') }}</span>
+            </div>
+            <div class="kpi-value">{{ summary.pending_orders }}</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-label">{{ t('dashboard.summary.totalBacklogItems') }}</span>
+            </div>
+            <div class="kpi-value">{{ summary.total_backlog_items }}</div>
+          </div>
+        </div>
       </div>
 
       <!-- Charts Grid -->
@@ -752,7 +781,8 @@ export default {
   margin-bottom: 1rem;
 }
 
-.kpi-grid {
+.kpi-grid,
+.summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
