@@ -241,11 +241,14 @@ Not required for core done or the completion quiz. Work it if you finish early.
 
 ## Stuck? Self-service rescues
 
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-8-work`), not from `server/` or `client/`. If a command referencing `origin/lab-8-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+
+
 **Rescue A — can't spot all four issues (Step 3).**
 Ask Claude to read `server/inventory_ops.py` and, without fixing anything, list every issue it sees grouped by the five review dimensions (correctness, style, edge cases, hallucination, security), naming the exact line for each. Use that to cross-check your own findings. The verdicts and the `CLAUDE.md` rule are still yours to write.
 
 **Rescue B — the test won't run / import errors (Step 6).**
-Run `uv run --project server pytest tests/backend/ -v`, copy the first error line, and ask Claude for the smallest change to make the module importable without adding a dependency.
+Run `uv run --project server pytest tests/backend/test_inventory_ops.py -v` (your Step 6 file: expect its 3 tests to collect; if pytest says the file does not exist, you skipped Step 6 -- go back). Copy the first error line, and ask Claude for the smallest change to make the module importable without adding a dependency.
 
 **Rescue C — fully stuck or out of time.**
 First confirm your remote points at the fork: `git remote -v` should show your fork. Then check out the finished review to SEE the trust calls made:
