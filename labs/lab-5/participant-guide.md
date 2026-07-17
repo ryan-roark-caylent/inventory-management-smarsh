@@ -168,6 +168,9 @@ Be ready to share where you placed the checkpoint, what you hypothesized, and wh
 
 ## Rescue block (self-service)
 
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-5-work`), not from `server/` or `client/`. If a command referencing `origin/lab-5-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+
+
 **Rescue A: the 500 won't go away after you resolve it.** You likely fixed only one path. Ask Claude to check whether `server/data/inventory.json` has a `supplier` key on every record and whether `InventoryItem.supplier` matches that state. Then re-run:
 
 ```
