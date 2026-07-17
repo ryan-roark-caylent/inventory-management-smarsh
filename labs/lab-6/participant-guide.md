@@ -200,6 +200,9 @@ Not required for any quiz or done-criteria. Use these if you finish early.
 
 ## If you get stuck
 
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-6-work`), not from `server/` or `client/`. If a command referencing `origin/lab-6-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+
+
 **Skill won't implicit-trigger after several rewrites.**
 Explicit invocation always works: type `/<its-name>` directly to continue the lab. If it still won't route from natural language, add more trigger phrasings and synonyms to the description (and consider renaming from `helper` to something that names the job), save, relaunch, and retry. The point holds either way: what's in the description is what does the routing.
 
