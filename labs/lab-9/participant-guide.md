@@ -234,7 +234,7 @@ You now have three local artifacts in your `lab-9-work` worktree: your `PROMPT-L
 1. **Promote your entry to a real command.** Take the prompt you contributed and package it as a `.claude/commands/<name>.md` slash command with a description tuned for triggering, then invoke it with `/<name>` on a real endpoint. Record whether the command form was worth it over the plain prompt.
    > **Windows / macOS (identical):** if you add anything under `.claude/settings.json` while wiring the command, relaunch Claude Code before testing it.
 
-2. **Cold-run a peer's entry (async-safe).** In the async cohort thread, swap library entries with another participant, run theirs cold, and post a reuse/reliability rating. This is the test-a-neighbor gate done live, without a synchronous session.
+2. **Cold-run a peer's entry (async-safe).** Swap library entries with a teammate or peer, run theirs cold, and share back a reuse/reliability rating. This is the test-a-neighbor gate done live, without a synchronous session.
 
 3. **Turn the library into a reviewed-merge process.** Write a two-line `## Contribution rules` section for `PROMPT-LIBRARY.md`: open contribution, reviewed merge, and one reuse/reliability check every entry must pass.
 
@@ -243,6 +243,9 @@ You now have three local artifacts in your `lab-9-work` worktree: your `PROMPT-L
 ---
 
 ## If you're stuck
+
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-9-work`), not from `server/` or `client/`. If a command referencing `origin/lab-9-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+
 
 **The strong seeded entry also makes Claude guess.** You may have pasted only part of it. Reopen `PROMPT-LIBRARY.md`, copy the **entire** body of `gen-endpoint-tests` including every line (the endpoint name, the cases to cover, the pattern file, and the output format line), and paste it into a truly fresh `claude` session with no other files open or context loaded.
 
