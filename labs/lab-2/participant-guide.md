@@ -269,6 +269,3 @@ Your completion and mastery quizzes are in the LMS pre-work module.
 
 ---
 
-## Sources
-
-- Lab 2 pre-work module in the LMS (MindTickle) — thinking-partner workflow, critique-not-approval, context richness.
