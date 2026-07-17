@@ -244,7 +244,7 @@ You now have three local artifacts in your `lab-9-work` worktree: your `PROMPT-L
 
 ## If you're stuck
 
-> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-9-work`), not from `server/` or `client/`. If a command referencing `origin/lab-9-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-9-work`), not from `server/` or `client/`. If a command referencing `origin/lab-9-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and re-run the `git worktree add` from the main clone root (worktree management commands run there; every other rescue command runs from the worktree).
 
 
 **The strong seeded entry also makes Claude guess.** You may have pasted only part of it. Reopen `PROMPT-LIBRARY.md`, copy the **entire** body of `gen-endpoint-tests` including every line (the endpoint name, the cases to cover, the pattern file, and the output format line), and paste it into a truly fresh `claude` session with no other files open or context loaded.
