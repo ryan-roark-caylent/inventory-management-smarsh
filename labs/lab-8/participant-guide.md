@@ -194,9 +194,9 @@ uv run --project server pytest tests/backend/ -v
 
 Find the repo's real `allow_origins=["*"]` setting in `server/main.py` (around line 52). Classify it **acceptable / needs modification / never acceptable** and **name the principle behind your call** — this is a live security finding, not a hypothetical.
 
-Then act on it: **ask Claude to** replace the wildcard with an explicit localhost origin list (the client runs on `http://localhost:3000`), then re-run the suite and confirm it stays green. Write one line on why the wildcard would fail a deployment security review.
+Then act on it: **ask Claude to** replace the wildcard with an explicit localhost origin list (the client runs on `http://localhost:3000`), then re-run the suite and confirm it stays green. Also reload the app at `http://localhost:3000` and confirm data still loads: a wrong origin list passes the tests but breaks the browser, and only the reload catches it. Write one line on why the wildcard would fail a deployment security review.
 
-**Success signal:** you classified the CORS setting with a named principle; `server/main.py` no longer uses `["*"]`; the suite is green; you have a one-line rationale.
+**Success signal:** you classified the CORS setting with a named principle; `server/main.py` no longer uses `["*"]`; the suite is green; the app still loads its data at `localhost:3000`; you have a one-line rationale.
 
 ---
 
