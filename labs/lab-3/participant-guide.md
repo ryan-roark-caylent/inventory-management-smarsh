@@ -210,7 +210,7 @@ You are done when all four are true:
 
 ### Stuck? Self-service options
 
-> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-3-work`), not from `server/` or `client/`. If a command referencing `origin/lab-3-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-3-work`), not from `server/` or `client/`. If a command referencing `origin/lab-3-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and re-run the `git worktree add` from the main clone root (worktree management commands run there; every other rescue command runs from the worktree).
 
 
 **If Claude is drifting or producing inconsistent output:** ask Claude to review your current CLAUDE.md set for layering issues — which rules belong at root vs. sub-file, and whether any generic advice slipped back in. Work through the root file first before touching the sub-files.
