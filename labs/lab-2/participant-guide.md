@@ -236,6 +236,9 @@ Extra credit is optional and does not affect the completion quiz or done criteri
 
 ## If you get stuck
 
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-2-work`), not from `server/` or `client/`. If a command referencing `origin/lab-2-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+
+
 **The spec uses invented field names (not real repo fields).**
 Ask Claude to read the server code before rewriting the spec, and confirm you are looking at the actual `InventoryItem` model and existing endpoint shapes. If the output still drifts, open the solution in a second worktree to see a finished example. First confirm your remote points at the fork:
 ```
