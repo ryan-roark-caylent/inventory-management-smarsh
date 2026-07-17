@@ -222,12 +222,3 @@ Note: `/reset-branch` is a **command** on this branch (`.claude/commands/reset-b
 
 ---
 
-## Sources
-
-- Lab 6 design doc (facilitator-tier, not on this branch)
-- [`docs/lab-6/five-abstraction-rubric.md`](../../docs/lab-6/five-abstraction-rubric.md) — 5-abstraction reference matrix (participant-facing)
-- [`docs/lab-6/backend-test-patterns.md`](../../docs/lab-6/backend-test-patterns.md) — backend test-pattern reference (study for structure)
-- Lab 5 multi-step workflow and debugging loop (prerequisite)
-- Lab 3 CLAUDE.md and context patterns (prerequisite)
-
-**Date:** 2026-07-14
