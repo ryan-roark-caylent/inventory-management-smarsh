@@ -171,6 +171,9 @@ You are done when:
 
 ## Stuck path
 
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-1-work`), not from `server/` or `client/`. If a command referencing `origin/lab-1-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+
+
 **Servers won't start (port or `uv` issues).**
 
 Confirm `uv` is installed (`uv --version`) and that the venv was created in pre-work (`server/.venv/` should exist). If ports 3000 or 8001 are already in use:
