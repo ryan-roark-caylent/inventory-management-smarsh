@@ -191,7 +191,7 @@ The backend is conformant. Now build the other half of your contract. Ask Claude
 
 Review the diff against your spec the same way you did for the backend: every changed hunk should trace to a UI line in `specs/purchase-orders.md`; anything extra is scope creep.
 
-**Run it and look.** Ask Claude to start the app (it has a `/start` command), or launch both servers yourself: Windows `scripts/start.ps1`; macOS `scripts/start.sh`. On Windows, if you open the browser with a `claude` command, add `--browser msedge`; on macOS Claude Code opens your default browser. Open `http://localhost:3000`, click **Create PO** on a backlog item — this time the modal opens. Fill it in, submit, and watch the PO get created through your new route. The Console warning from Step 1 is gone.
+**Run it and look.** Ask Claude to start the app (it has a `/start` command), or launch both servers yourself: Windows `scripts/start.ps1`; macOS `scripts/start.sh`. Open `http://localhost:3000` in your own browser. (If you instead ask Claude to check the page via the Playwright MCP server and it cannot launch a browser on Windows, add `--browser msedge` to the playwright args in `.mcp.json`.) Then, click **Create PO** on a backlog item — this time the modal opens. Fill it in, submit, and watch the PO get created through your new route. The Console warning from Step 1 is gone.
 
 **Success signal:** the **Create PO** button opens the modal in the running app, submitting it creates a PO through `POST /api/purchase-orders`, no `PurchaseOrderModal` resolve warning in the Console, and every UI diff hunk traces to a spec line.
 
@@ -236,6 +236,9 @@ These steps are not required for the completion quiz.
 ---
 
 ## Stuck? Self-service rescue
+
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-4-work`), not from `server/` or `client/`. If a command referencing `origin/lab-4-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+
 
 Work through these in order.
 
