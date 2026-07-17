@@ -210,6 +210,9 @@ You are done when all four are true:
 
 ### Stuck? Self-service options
 
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-3-work`), not from `server/` or `client/`. If a command referencing `origin/lab-3-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+
+
 **If Claude is drifting or producing inconsistent output:** ask Claude to review your current CLAUDE.md set for layering issues — which rules belong at root vs. sub-file, and whether any generic advice slipped back in. Work through the root file first before touching the sub-files.
 
 **If you want to start over from the planted state:** run the `/reset-branch` command in Claude Code (this is a slash command, not a skill). Note that it permanently deletes uncommitted work in this worktree, so keep anything you want first. Then relaunch Claude Code.
