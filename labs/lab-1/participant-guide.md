@@ -90,7 +90,7 @@ Notice: no filename, no line number. Claude.ai is reasoning from the symptom you
 
 ### Step 3 — Round 2: Claude Code on the same bug (POINT STEP)
 
-In the repo root, launch Claude Code. Ask it to find why the dashboard's total backlog count ignores the warehouse filter, and to propose the minimal fix. Record the file, line, and proposed change under "Round 2 (Claude Code)" in `surface-map.md`.
+In the repo root, launch Claude Code. Ask it to find why the dashboard's total backlog count ignores the Location filter, and to propose the minimal fix. Record the file, line, and proposed change under "Round 2 (Claude Code)" in `surface-map.md`.
 
 > **Modes and auto mode (quick intro):** Claude Code has permission *modes*. Press **shift-tab** to cycle them and watch the mode indicator change (normal → auto-accept → plan, and back). In **auto mode**, Claude runs its steps without asking you to approve each one. For this lab, stay in normal mode so you see each action. Later labs lean on auto mode, so get comfortable cycling now. This is a light intro; the deep treatment is Lab 7.
 
@@ -106,13 +106,13 @@ In the repo root, launch Claude Code. Ask it to find why the dashboard's total b
 
 Diagnosis is not the finish line. Have **Claude Code apply the change it just proposed** to the backlog count, then run the app and see what happens.
 
-Ask Claude Code to make the edit, then to restart the backend (it does not hot-reload) so the change takes effect. Back on the dashboard at `localhost:3000`, filter by a warehouse again (London) and watch the backlog tile. It is no longer frozen — it now moves with the filter like the other tiles.
+Ask Claude Code to make the edit, then to restart the backend (it does not hot-reload) so the change takes effect. Back on the dashboard at `localhost:3000`, set the Location filter to London again and watch the backlog tile. It is no longer frozen — it now responds to the filter, and it drops to 0. That 0 is expected, not a sign your fix is wrong; the next paragraph is why.
 
-Look closely at what it moves *to*. Ask Claude Code whether the number it shows under a warehouse filter is the true count, and have it explain what it finds. The one-line fix is pattern-consistent with the other metrics, but the underlying data model shapes the result — that gap is the teaching point, not a sign the fix is wrong. Note in `surface-map.md`, under a "Round 2" follow-up, what you observed and what a production-complete fix would still require.
+Look closely at what it moves *to*. Ask Claude Code whether the number it shows under the Location filter is the true count, and have it explain what it finds. The one-line fix is pattern-consistent with the other metrics, but the underlying data model shapes the result — that gap is the teaching point, not a sign the fix is wrong. Note in `surface-map.md`, under a "Round 2" follow-up, what you observed and what a production-complete fix would still require.
 
 > Stay in normal mode so you approve the edit and see it happen. This is the first time in the labs you have Claude Code change real code and you watch the running app respond.
 
-**You know it worked when** the backlog tile responds to the warehouse filter in the UI (it was frozen before), and you can state — from what Claude Code surfaced — why the one-liner is not yet production-complete.
+**You know it worked when** the backlog tile responds to the Location filter in the UI (it was frozen before), and you can state — from what Claude Code surfaced — why the one-liner is not yet production-complete.
 
 ---
 
@@ -162,7 +162,7 @@ You are done when:
 
 1. `surface-map.md` contains: a one-line "when I'd use this" for all three surfaces, the three issue routings with reasoning, and the Round 1 / Round 2 notes.
 2. Round 1 and Round 2 show the difference in specificity between Claude.ai's response and Claude Code's response.
-3. You had Claude Code apply the fix and watched the backlog tile respond to the warehouse filter in the running app (it was frozen before), and you can say why the one-liner is not yet production-complete.
+3. You had Claude Code apply the fix and watched the backlog tile respond to the Location filter in the running app (it was frozen before), and you can say why the one-liner is not yet production-complete.
 4. The file is saved in your worktree (not committed).
 
 **Personal takeaway:** `surface-map.md`. It holds your three-surface map, your three-issue routing with reasoning, and your Round-1-vs-Round-2 comparison. Keep it; it is yours.
@@ -182,7 +182,7 @@ If pre-work was not done, run `uv venv` then `uv sync` in `server/` first (allow
 
 **Claude Code is not finding the bug.**
 
-Try asking with more direction: point it at the specific function in `server/main.py` that builds the dashboard summary, and ask why the backlog count does not respond to the warehouse filter. If still stuck, open `server/main.py` and look at the function that builds the summary response. Compare how the backlog count is computed against how the inventory and order counts are computed.
+Try asking with more direction: point it at the specific function in `server/main.py` that builds the dashboard summary, and ask why the backlog count does not respond to the Location filter. If still stuck, open `server/main.py` and look at the function that builds the summary response. Compare how the backlog count is computed against how the inventory and order counts are computed.
 
 **Out of time or too far stuck.**
 
