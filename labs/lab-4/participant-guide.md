@@ -237,7 +237,7 @@ These steps are not required for the completion quiz.
 
 ## Stuck? Self-service rescue
 
-> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-4-work`), not from `server/` or `client/`. If a command referencing `origin/lab-4-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-4-work`), not from `server/` or `client/`. If a command referencing `origin/lab-4-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and re-run the `git worktree add` from the main clone root (worktree management commands run there; every other rescue command runs from the worktree).
 
 
 Work through these in order.
