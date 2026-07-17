@@ -200,7 +200,7 @@ Not required for any quiz or done-criteria. Use these if you finish early.
 
 ## If you get stuck
 
-> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-6-work`), not from `server/` or `client/`. If a command referencing `origin/lab-6-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and retry from the repo root.
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-6-work`), not from `server/` or `client/`. If a command referencing `origin/lab-6-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and re-run the `git worktree add` from the main clone root (worktree management commands run there; every other rescue command runs from the worktree).
 
 
 **Skill won't implicit-trigger after several rewrites.**
