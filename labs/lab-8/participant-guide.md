@@ -166,7 +166,7 @@ Confirm your Trust-Spectrum verdict for each issue now that you have three opini
 
 ### Step 6 — Now fix it, driving Claude
 
-Only now do you fix the code — and you drive Claude to do it, you don't hand-edit:
+Only now do you fix the code — and you drive Claude to do it, you don't hand-edit: Work the numbered actions **in the order shown** -- the import fix must land first so the module can be imported at all.
 
 1. **Ask Claude to neutralise the hallucinated import** so the module imports (remove or stub it — no new dependency). This is your "reject" action on the hallucination.
 2. **Ask Claude to extract the comparison logic** into a standalone helper `stock_is_sufficient(available, needed)` and **write a pytest** that calls `stock_is_sufficient(850, 850)` and asserts `True`.
@@ -241,7 +241,7 @@ Not required for core done or the completion quiz. Work it if you finish early.
 
 ## Stuck? Self-service rescues
 
-> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-8-work`), not from `server/` or `client/`. If a command referencing `origin/lab-8-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and re-run the `git worktree add` from the main clone root (worktree management commands run there; every other rescue command runs from the worktree).
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-8-work`), not from `server/` or `client/` -- and confirm the worktree is a **sibling** of your main clone, not nested inside it: `git worktree list` (from the main clone) should show its path outside the clone directory; if it is nested, `git worktree remove <path> --force` it and re-create it from the main clone root. If a command referencing `origin/lab-8-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` fails, match the error: "already exists" for a path `git worktree list` shows means a stale entry (`git worktree remove <path> --force`); "already exists" for a path it does NOT show means a plain leftover directory (delete the directory itself and retry); "a branch named `lab-8-work` already exists" means reuse it (`git worktree add ../lab-8-work lab-8-work`) or delete it first (`git branch -D lab-8-work`). Worktree management commands run from the main clone root; every other rescue command runs from the worktree. Worked in the main clone by mistake? The repo's `CLAUDE.md` "Worktree Isolation" section has the exact recovery steps -- ask Claude to walk you through them.
 
 
 **Rescue A — can't spot all four issues (Step 3).**
