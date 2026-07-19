@@ -12,7 +12,7 @@ Steps:
    - Store the branch name
    - Discard all tracked changes FIRST: `git reset --hard HEAD` (a dirty tree would otherwise abort the branch switch below)
    - Remove untracked files: `git clean -fd` to remove untracked files and directories
-   - Switch away: if this checkout is a git worktree (`git rev-parse --git-dir` differs from `git rev-parse --git-common-dir`), `main` is usually held by the main clone and `git checkout main` will fail -- switch to the lab's start branch you began from instead (e.g. `git checkout lab-3-start`); otherwise switch to main: `git checkout main`
+   - Switch away: if this checkout is a git worktree (`git rev-parse --git-dir` differs from `git rev-parse --git-common-dir`), `main` -- and often the lab's start branch too -- is held by the main clone, so `git checkout main` will fail. Use a detached checkout of the start branch instead: `git checkout --detach origin/lab-N-start` (detached is fine for a reset). Otherwise switch to main: `git checkout main`
    - Delete the feature branch: `git branch -D <branch-name>`
    - Show result: `git status` and `git branch`
 
