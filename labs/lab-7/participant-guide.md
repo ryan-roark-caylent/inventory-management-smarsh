@@ -311,7 +311,15 @@ git checkout origin/lab-7-solution -- .claude/settings.local.json structured-han
 
 Open both files. You'll see what a complete least-privilege scope and a signal-preserving handoff look like. You still leave having seen the 3-part model applied.
 
-**Reset everything.** Run the `/reset-branch` command (not a skill). It does `branch -D` + `reset --hard` + `clean -fd` with no confirmation, so save anything you want to keep first. With worktree-per-lab you mostly just move to the next lab's worktree. Delete `.claude/settings.local.json` before your next lab so the allow/deny list doesn't carry over.
+**Reset everything** (this permanently discards your work in this lab -- keep anything you want first): exit Claude Code, then from the **main clone root** run each line on its own:
+
+```
+git worktree remove ../lab-7-work --force
+git branch -D lab-7-work
+git worktree add -b lab-7-work ../lab-7-work lab-7-start
+```
+
+Then `cd ../lab-7-work` and relaunch Claude Code. With worktree-per-lab you mostly just move to the next lab's worktree. Delete `.claude/settings.local.json` before your next lab so the allow/deny list doesn't carry over.
 
 ---
 
