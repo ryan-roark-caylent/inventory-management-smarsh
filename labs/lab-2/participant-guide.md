@@ -236,7 +236,7 @@ Extra credit is optional and does not affect the completion quiz or done criteri
 
 ## If you get stuck
 
-> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-2-work`), not from `server/` or `client/`. If a command referencing `origin/lab-2-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and re-run the `git worktree add` from the main clone root (worktree management commands run there; every other rescue command runs from the worktree).
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-2-work`), not from `server/` or `client/` -- and confirm the worktree is a **sibling** of your main clone, not nested inside it: `git worktree list` (from the main clone) should show its path outside the clone directory; if it is nested, `git worktree remove <path> --force` it and re-create it from the main clone root. If a command referencing `origin/lab-2-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` fails, match the error: "already exists" for a path `git worktree list` shows means a stale entry (`git worktree remove <path> --force`); "already exists" for a path it does NOT show means a plain leftover directory (delete the directory itself and retry); "a branch named `lab-2-work` already exists" means reuse it (`git worktree add ../lab-2-work lab-2-work`) or delete it first (`git branch -D lab-2-work`). Worktree management commands run from the main clone root; every other rescue command runs from the worktree. Worked in the main clone by mistake? The repo's `CLAUDE.md` "Worktree Isolation" section has the exact recovery steps -- ask Claude to walk you through them.
 
 
 **The spec uses invented field names (not real repo fields).**
@@ -247,6 +247,8 @@ git remote -v
 You should see `ryan-roark-caylent/inventory-management-smarsh`. Then open the solution alongside your work:
 ```
 git worktree add ../lab-2-solution lab-2-solution
+
+> The reference opens in a **separate directory** (`../lab-2-solution`); your own draft in this worktree is untouched. Revise your draft against the reference -- the rescue does not replace it.
 ```
 Open `specs/low-stock-alerting.md` and `docs/lab-2/reference-risks.md` in that worktree. You now have a complete, sharp spec on your screen without disturbing your own work.
 
