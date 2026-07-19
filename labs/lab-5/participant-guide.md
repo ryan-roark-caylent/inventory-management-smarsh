@@ -177,7 +177,15 @@ Be ready to share where you placed the checkpoint, what you hypothesized, and wh
 uv run --project server pytest tests/backend/ -v
 ```
 
-**Rescue B: you want a clean restart.** Run the `/reset-branch` command to discard your work and return to a clean state, then redo Step 0. Note: this permanently deletes uncommitted work — keep anything you want first.
+**Rescue B: you want a clean restart** (this permanently discards your work in this lab -- keep anything you want first): exit Claude Code, then from the **main clone root** run each line on its own:
+
+```
+git worktree remove ../lab-5-work --force
+git branch -D lab-5-work
+git worktree add -b lab-5-work ../lab-5-work lab-5-start
+```
+
+Then `cd ../lab-5-work` and relaunch Claude Code.
 
 **Rescue C: you ran out of time.** First confirm your remote points at the fork (`git remote -v` should show the lab fork, not your own working copy). Then check out the finished state so you still see the point of the lab:
 
