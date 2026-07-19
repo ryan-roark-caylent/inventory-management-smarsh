@@ -215,7 +215,15 @@ You are done when all four are true:
 
 **If Claude is drifting or producing inconsistent output:** ask Claude to review your current CLAUDE.md set for layering issues — which rules belong at root vs. sub-file, and whether any generic advice slipped back in. Work through the root file first before touching the sub-files.
 
-**If you want to start over from the planted state:** run the `/reset-branch` command in Claude Code (this is a slash command, not a skill). Note that it permanently deletes uncommitted work in this worktree, so keep anything you want first. Then relaunch Claude Code.
+**If you want to start over from the planted state** (this permanently discards your work in this lab -- keep anything you want first): exit Claude Code, then from the **main clone root** run each line on its own:
+
+```
+git worktree remove ../lab-3-work --force
+git branch -D lab-3-work
+git worktree add -b lab-3-work ../lab-3-work lab-3-start
+```
+
+Then `cd ../lab-3-work` and relaunch Claude Code.
 
 **If you want to see the finished target:** first confirm your remote is the fork — run `!git remote -v` and check that `origin` points at `ryan-roark-caylent/inventory-management-smarsh`. Then run `git checkout origin/lab-3-solution -- CLAUDE.md client/CLAUDE.md server/CLAUDE.md` in a terminal and open all three files. You will see the sharp, layered result and can experience the point of the lab even if you ran out of time.
 
