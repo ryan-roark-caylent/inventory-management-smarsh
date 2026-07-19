@@ -244,7 +244,7 @@ You now have three local artifacts in your `lab-9-work` worktree: your `PROMPT-L
 
 ## If you're stuck
 
-> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-9-work`), not from `server/` or `client/`. If a command referencing `origin/lab-9-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and re-run the `git worktree add` from the main clone root (worktree management commands run there; every other rescue command runs from the worktree).
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-9-work`), not from `server/` or `client/` -- and confirm the worktree is a **sibling** of your main clone, not nested inside it: `git worktree list` (from the main clone) should show its path outside the clone directory; if it is nested, `git worktree remove <path> --force` it and re-create it from the main clone root. If a command referencing `origin/lab-9-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` fails, match the error: "already exists" for a path `git worktree list` shows means a stale entry (`git worktree remove <path> --force`); "already exists" for a path it does NOT show means a plain leftover directory (delete the directory itself and retry); "a branch named `lab-9-work` already exists" means reuse it (`git worktree add ../lab-9-work lab-9-work`) or delete it first (`git branch -D lab-9-work`). Worktree management commands run from the main clone root; every other rescue command runs from the worktree. Worked in the main clone by mistake? The repo's `CLAUDE.md` "Worktree Isolation" section has the exact recovery steps -- ask Claude to walk you through them.
 
 
 **The strong seeded entry also makes Claude guess.** You may have pasted only part of it. Reopen `PROMPT-LIBRARY.md`, copy the **entire** body of `gen-endpoint-tests` including every line (the endpoint name, the cases to cover, the pattern file, and the output format line), and paste it into a truly fresh `claude` session with no other files open or context loaded.
@@ -253,7 +253,7 @@ You now have three local artifacts in your `lab-9-work` worktree: your `PROMPT-L
 
 **You can't decide which subagent to author.** Choose `test-writer`: its tool allowlist and scope are spelled out in `docs/lab-9/subagent-menu.md`, and the reference format is in `.claude/agents/code-reviewer.md`. It's the most directly related to the lab's test-generation theme.
 
-**Fully stuck or out of time.** Check out the reference artifacts from the solution branch to see finished examples. First confirm your remote points at the fork:
+**Fully stuck or out of time.** Check out the reference artifacts from the solution branch to see finished examples. First confirm you are on your `lab-9-work` branch (`git branch --show-current`) -- this checkout overlays the solution files onto whatever branch is currently checked out, silently -- and that your remote points at the fork:
 
 ```
 git remote -v
