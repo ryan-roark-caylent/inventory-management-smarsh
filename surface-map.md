@@ -18,6 +18,8 @@ The backlog count is likely computed from the full dataset rather than the filte
 *(No file or line — Claude.ai reasons from the symptom alone.)*
 
 ### Round 2 (Claude Code) — file, line, fix:
+
+#### Round 2 follow-up (after applying the fix — what you observed, and what a production-complete fix still needs):
 Found in `server/main.py` line 200 inside `get_dashboard_summary`. Every other field uses `filtered_inventory` or `filtered_orders`; the backlog count uses the global `backlog_items`. Minimal fix:
 ```python
 total_backlog_items = len(apply_filters(backlog_items, warehouse, category))
