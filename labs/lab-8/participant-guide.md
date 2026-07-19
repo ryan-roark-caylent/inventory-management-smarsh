@@ -260,7 +260,15 @@ git checkout origin/lab-8-solution -- review-findings.md
 
 Open `review-findings.md` to read the four issues with their Trust-Spectrum verdicts, and run `git diff origin/lab-8-solution -- server/inventory_ops.py` to see the fixes. You leave having seen the checklist applied and the trust calls made.
 
-To reset and try again, run the `/reset-branch` command and redo Step 0. It does `branch -D` + `reset --hard` + `clean -fd` with no confirmation, so keep anything you want first. With worktree-per-lab you mostly just move to the next lab's worktree.
+**To reset and try again** (this permanently discards your work in this lab -- keep anything you want first): exit Claude Code, then from the **main clone root** run each line on its own:
+
+```
+git worktree remove ../lab-8-work --force
+git branch -D lab-8-work
+git worktree add -b lab-8-work ../lab-8-work lab-8-start
+```
+
+Then `cd ../lab-8-work` and relaunch Claude Code. With worktree-per-lab you mostly just move to the next lab's worktree.
 
 ---
 
