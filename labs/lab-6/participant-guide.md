@@ -200,7 +200,7 @@ Not required for any quiz or done-criteria. Use these if you finish early.
 
 ## If you get stuck
 
-> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-6-work`), not from `server/` or `client/`. If a command referencing `origin/lab-6-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` says the path "already exists" or the branch "is already used by worktree", run `git worktree list`, remove the stale entry with `git worktree remove <path> --force`, and re-run the `git worktree add` from the main clone root (worktree management commands run there; every other rescue command runs from the worktree).
+> **Before any rescue:** run every command from your worktree root (`pwd` should end in `lab-6-work`), not from `server/` or `client/` -- and confirm the worktree is a **sibling** of your main clone, not nested inside it: `git worktree list` (from the main clone) should show its path outside the clone directory; if it is nested, `git worktree remove <path> --force` it and re-create it from the main clone root. If a command referencing `origin/lab-6-solution` fails with "invalid reference", run `git remote set-branches origin '*'` and `git fetch origin`, then retry. If `git worktree add` fails, match the error: "already exists" for a path `git worktree list` shows means a stale entry (`git worktree remove <path> --force`); "already exists" for a path it does NOT show means a plain leftover directory (delete the directory itself and retry); "a branch named `lab-6-work` already exists" means reuse it (`git worktree add ../lab-6-work lab-6-work`) or delete it first (`git branch -D lab-6-work`). Worktree management commands run from the main clone root; every other rescue command runs from the worktree. Worked in the main clone by mistake? The repo's `CLAUDE.md` "Worktree Isolation" section has the exact recovery steps -- ask Claude to walk you through them.
 
 
 **Skill won't implicit-trigger after several rewrites.**
@@ -211,6 +211,7 @@ Explicit invocation always works: type `/<its-name>` directly to continue the la
 1. Relaunch Claude Code after saving `.claude/settings.json`. Hooks load at session start on all platforms.
 2. Confirm the file is valid JSON. A trailing comma breaks it.
 3. Confirm `uv` is on PATH: run `uv run --project server pytest tests/backend/ -q` by hand.
+4. Confirm `.claude/settings.json` still contains the `permissions.deny` block. If you overwrote the whole file when adding the hook, restore it (`git checkout -- .claude/settings.json`) and re-add the hook by **editing** the existing file, per the Step 5 warning.
 
 **Pytest errors or can't tell red from green.**
 Run the suite by hand:
