@@ -13,3 +13,5 @@
 ## The bug: Claude.ai vs Claude Code
 ### Round 1 (Claude.ai) hypothesis:
 ### Round 2 (Claude Code) — file, line, fix:
+
+#### Round 2 follow-up (after applying the fix — what you observed, and what a production-complete fix still needs):
