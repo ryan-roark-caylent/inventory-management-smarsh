@@ -264,7 +264,15 @@ git diff origin/lab-4-solution -- server/main.py client/src
 
 to see the backend route and the UI wiring that trace to it. You still leave the lab having seen a spec-to-conformant-diff across the full stack.
 
-**Reset everything:** run the `/reset-branch` **command**, then redo Step 0. **Warning:** `/reset-branch` runs `git branch -D` + `git reset --hard` + `git clean -fd` with **no confirmation** — it permanently deletes uncommitted work. Because you are working in a per-lab worktree, you should not need it for hygiene between labs; keep it only for a hard reset of *this* lab.
+**Reset everything** (this permanently discards your work in this lab -- keep anything you want first): exit Claude Code, then from the **main clone root** run each line on its own:
+
+```
+git worktree remove ../lab-4-work --force
+git branch -D lab-4-work
+git worktree add -b lab-4-work ../lab-4-work lab-4-start
+```
+
+Then `cd ../lab-4-work` and relaunch Claude Code. Because you work in a per-lab worktree, you never need this between labs -- it is only for a hard restart of *this* lab.
 
 ---
 
