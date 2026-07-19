@@ -267,7 +267,15 @@ git checkout origin/lab-9-solution -- PROMPT-LIBRARY.md TEAM-HANDOFF.md docs/lab
 
 Open `PROMPT-LIBRARY.md`, `.claude/agents/test-writer.md`, `docs/lab-9/quality-gate-notes.md`, and `TEAM-HANDOFF.md`. You'll see a complete library entry pointing at an authored subagent, filled-in cold-run ratings, and a checkable handoff note — the LOCAL end state, not a commit history. These are reference files you pulled in; delete them before your next lab so they don't carry over.
 
-**Reset everything.** Run the `/reset-branch` command (not a skill). It does `branch -D` + `reset --hard` + `clean -fd` with no confirmation, so save anything you want to keep first. With worktree-per-lab you mostly just move to the next lab's worktree.
+**Reset everything** (this permanently discards your work in this lab -- keep anything you want first): exit Claude Code, then from the **main clone root** run each line on its own:
+
+```
+git worktree remove ../lab-9-work --force
+git branch -D lab-9-work
+git worktree add -b lab-9-work ../lab-9-work lab-9-start
+```
+
+Then `cd ../lab-9-work` and relaunch Claude Code. With worktree-per-lab you mostly just move to the next lab's worktree.
 
 ---
 
