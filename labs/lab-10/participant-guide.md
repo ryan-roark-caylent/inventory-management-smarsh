@@ -154,9 +154,9 @@ Create these three files:
 - `wiki/index.md` — the article index and a note on when to reach for the wiki vs the graph.
 - `wiki/log.md` — an append-only change log. One line per add or update. Never rewrite a line once written.
 
-Ask Claude to generate one article (the filter system is a natural first choice) from the actual source files. The article should record what the code graph cannot tell you: the HTTP hop between `api.js` and `apply_filters()`, the `selectedPeriod` to `month` rename coupling, and any runtime state the AST cannot see.
+Ask Claude to generate one article (the filter system is a natural first choice) from the actual source files, and to append a matching entry to `log.md` in the same pass. The article should record what the code graph cannot tell you: the HTTP hop between `api.js` and `apply_filters()`, the `selectedPeriod` to `month` rename coupling, and any runtime state the AST cannot see.
 
-After Claude appends to `log.md`, write a second entry yourself to practice the append discipline.
+Then write a second `log.md` entry yourself, by hand, to practice the append discipline. Add a new line; do not edit the line Claude wrote.
 
 **You know this worked when:** `wiki/` holds `SCHEMA.md`, `index.md`, `log.md`, and at least one topic-named article (not named `Community_N.md`). `log.md` has two appended lines, none rewritten.
 
