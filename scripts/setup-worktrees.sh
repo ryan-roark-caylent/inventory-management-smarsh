@@ -9,7 +9,7 @@ git fetch origin --quiet
 
 created=0
 skipped=0
-for n in 1 2 3 4 5 6 7 8 9; do
+for n in 1 2 3 4 5 6 7 8 9 10; do
   dir="../lab-${n}-work"
   branch="lab-${n}-work"
   if git worktree list | grep -q "lab-${n}-work"; then

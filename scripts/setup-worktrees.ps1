@@ -9,7 +9,7 @@ git fetch origin --quiet
 $created = 0
 $skipped = 0
 $worktrees = (git worktree list)
-foreach ($n in 1..9) {
+foreach ($n in 1..10) {
     $dir    = "..\lab-$n-work"
     $branch = "lab-$n-work"
     if ($worktrees -match "lab-$n-work") {
