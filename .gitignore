@@ -52,3 +52,9 @@ logs/
 
 # Environment variables
 .env
+
+# graphify generated artifacts (regenerate in ~3s; never commit)
+graphify-out/
+graph.json
+graph.html
+GRAPH_REPORT.md
