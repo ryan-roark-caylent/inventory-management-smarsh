@@ -12,7 +12,7 @@ You'll build both artifacts on the inventory-management fork, wire them into Cla
 
 ## Where the concept clicks
 
-Step 4 is the moment. You'll ask graphify to trace the path from the Vue filter composable to the FastAPI function that serves inventory data, and get back "No path found." This is correct, not broken. The graph models static imports and calls. The HTTP boundary between client and server is invisible to the AST by design. Once that lands, the wiki's reason to exist is obvious: it records the runtime facts the graph structurally cannot see. The defend step in Step 10 becomes easy instead of arbitrary.
+Step 4 is the moment. You'll ask graphify to trace the path from the Vue filter composable to the FastAPI function that serves inventory data, and get back "No path found." This is correct, not broken. The graph models static imports and calls. The HTTP boundary between client and server is invisible to the AST by design. Once that lands, the wiki's reason to exist is obvious: it records the runtime facts the graph structurally cannot see. The defend step in Step 9 becomes easy instead of arbitrary.
 
 ---
 
@@ -77,7 +77,7 @@ Once you are on `lab-10-work`:
 
 > **Reminder (you know this from labs 1-9):** prefix a shell command with `!` inside Claude Code to run it and drop its output straight into the conversation. It matters *here* because this lab is about Claude reading graphify's output. Put a command's result where Claude can see it and Claude can reason over the graph instead of just watching you run it. You do not need to `!`-prefix every command below; reach for it when you want Claude to see what a command printed.
 
-> **PATH B — we never run `graphify install`.** graphify's installer writes user-global state: `~/.claude/skills/graphify/` and a `# graphify` section in `~/.claude/CLAUDE.md` that `graphify uninstall` does NOT remove. It also hardcodes an absolute path to the graphify binary, which breaks on any other machine. That violates the project-scope rule. This lab invokes graphify only through `uvx --from graphifyy graphify ...`, which resolves the package per-run and writes zero global config. In Step 7 you wire the same integration by hand, at project scope, for the same reason. After the lab, verify: `grep -c graphify ~/.claude/CLAUDE.md` returns `0`, and `~/.claude/skills/graphify/` does not exist.
+> **We never run `graphify install` in this lab.** graphify's installer writes user-global state: `~/.claude/skills/graphify/` and a `# graphify` section in `~/.claude/CLAUDE.md` that `graphify uninstall` does NOT remove. It also hardcodes an absolute path to the graphify binary, which breaks on any other machine. That violates the project-scope rule. This lab invokes graphify only through `uvx --from graphifyy graphify ...`, which resolves the package per-run and writes zero global config. In Step 6 you wire the same integration by hand, at project scope, for the same reason. After the lab, verify: `grep -c graphify ~/.claude/CLAUDE.md` returns `0`, and `~/.claude/skills/graphify/` does not exist.
 
 **You know this worked when:** `graphify --version` prints through `uvx` with no install step, and `.claude/settings.local.json` is absent from `ls .claude/`.
 
@@ -125,67 +125,96 @@ Record your own node, edge, and community counts from the summary line.
 
 **You know this worked when:** the summary line prints `wrote graph.json: N nodes, M edges, K communities` in a few seconds with no API-token or backend message. The run takes 3-4 seconds. Your numbers should land near the reference values in the section below. A warning that `.json` data files or `settings.local.json` produced zero nodes is normal.
 
----
+### Then export graphify's generated notes (3 min)
 
-## Step 3 — Read load-bearing structure (10 min)
-
-Ask which symbols carry the most connections:
-
-```
-uvx --from graphifyy graphify god-nodes --top 10
-```
-
-Inspect the most-connected symbol:
-
-```
-uvx --from graphifyy graphify explain "useI18n()"
-```
-
-Ask what depends on the shared filter state:
-
-```
-uvx --from graphifyy graphify affected "useFilters()"
-```
-
-**You know this worked when:** `god-nodes` shows `useI18n()` at the top. `affected "useFilters()"` lists all 6 views that import it plus `FilterBar.vue`, `App.vue`, and `main.js` (16 connections total). `Reports.vue`, the 7th view, does not import useFilters and is correctly absent. Note that a plain text search for "useFilters" finds the import lines but not this resolved dependency set.
-
----
-
-## Step 4 — The discovery beat (POINT STEP) (9 min)
-
-Ask graphify to trace from the client filter composable to the server endpoint that serves inventory data:
-
-```
-uvx --from graphifyy graphify path "useFilters()" "get_inventory()"
-```
-
-Read the result. Then contrast it with what `affected "useFilters()"` returned in Step 3.
-
-Write one sentence in your own words explaining why `path` finds nothing while `affected` finds plenty.
-
-**You know this worked when:** you can state that graphify models static imports and calls (which `affected` traverses) but not the runtime HTTP request between `client/src/api.js` and the FastAPI backend (which `path` would need to cross), so the Vue-to-FastAPI boundary is invisible to the AST by design, not broken.
-
-> This is the lab's hinge. "No path found" is the graph telling the truth: it knows every symbol your code imports and nothing about the HTTP call between them, so the Vue-to-FastAPI boundary is invisible by design, not broken. Once you understand why the graph cannot cross this boundary, the wiki's reason to exist lands on its own, and the defend step in Step 10 is obvious rather than arbitrary.
-
----
-
-## Step 5 — Export and evaluate the generated wiki (8 min)
-
-Generate graphify's own wiki:
+graphify can turn the graph into a set of markdown files, one per community:
 
 ```
 uvx --from graphifyy graphify export wiki
 ```
 
-Open `graphify-out/wiki/` and list the article filenames.
+Open `graphify-out/wiki/` and look at the filenames. Then try to answer one question without opening anything: *which of these covers the frontend filtering logic?*
 
-Try to answer one navigation question without opening any files: "which article covers the frontend filtering logic?" Record that you cannot tell from the filenames.
+You cannot tell. Most files are named `Community_0.md` through `Community_27.md`, because communities are computed clusters with no inherent names. `uvx --from graphifyy graphify label` assigns readable names, but that call goes to an LLM backend and costs API tokens. **The graph is free; navigable naming is not.** That tradeoff is the whole lesson here.
 
-**You know this worked when:** most article files are named `Community_0.md` through `Community_27.md` and are unnavigable by name alone. Note that `graphify label` assigns human-readable names but calls an LLM backend and costs API tokens. The graph is free; navigable naming is not. See the extra credit section if you have a backend configured and want to try it.
+> **Two different things called "wiki." Keep them straight for the rest of the lab.**
+>
+> - **`graphify-out/wiki/` — graphify's generated notes.** Machine-derived from the graph, one file per community, free to produce, unnavigable until you pay for labeling. This is what you just made.
+> - **`wiki/` — your LLM wiki.** You build this in Step 5, by hand-directing Claude. It records what the code cannot state about itself: runtime behavior, the HTTP seam, conventions and their reasons. Structurally different, and the one the precedence rule in Step 5 points Claude at.
+>
+> When this lab says "the wiki" from here on, it means **your** `wiki/`.
+
+**You know this worked when:** `graphify-out/wiki/` holds mostly `Community_N.md` files, you could not answer the navigation question from the filenames, and you can state why labeling costs money while the graph does not.
 
 ---
 
-## Step 6 — Build the LLM wiki (14 min)
+## Step 3 — Read load-bearing structure (10 min)
+
+### The five commands, in one place
+
+| Command | What it answers |
+|---|---|
+| `god-nodes` | Which symbols carry the most connections. The load-bearing abstractions. |
+| `explain "<symbol>"` | Everything touching one symbol, in both directions, with the edge type on each. |
+| `affected "<symbol>"` | Reverse-only: what would break if you changed this symbol. |
+| `path "<A>" "<B>"` | The shortest chain of references connecting two symbols, if one exists. |
+| `query "<question>"` | A scoped subgraph relevant to a plain-language question. |
+
+**Community:** graphify clusters the graph into groups whose members reference each other more than they reference the rest of the codebase. Those clusters are "communities." They are computed, not curated, which is why they start out named `Community_0`, `Community_1`, and so on. You will see them again in the next step.
+
+### First, find the hubs
+
+```
+uvx --from graphifyy graphify god-nodes --top 10
+```
+
+### Then run `explain` and `affected` on the SAME symbol
+
+This is the point of this step. Same symbol, two commands, so the difference you see is the difference between the commands and nothing else.
+
+```
+uvx --from graphifyy graphify explain "useFilters()"
+```
+
+```
+uvx --from graphifyy graphify affected "useFilters()"
+```
+
+Compare them. `explain` shows the full neighborhood in both directions and labels each edge (`imports`, `calls`, `imports_from`). `affected` answers a narrower and more practical question: if I change this, what breaks? It walks the graph in reverse only.
+
+**You know this worked when:** `god-nodes` shows `useI18n()` at the top. Both `useFilters()` commands return the same 6 views plus `FilterBar.vue`, `App.vue`, and `main.js` (16 connections), but `explain` labels the edge types and includes the symbol's own outbound references, while `affected` gives you only the blast radius. `Reports.vue`, the 7th view, does not import `useFilters` and is correctly absent from both. A plain text search for "useFilters" finds the import lines but not this resolved dependency set.
+
+---
+
+## Step 4 — The discovery beat (POINT STEP) (9 min)
+
+**First, see `path` succeed**, so you know what a hit looks like and can trust the miss that follows. Both of these stay inside one language:
+
+```
+uvx --from graphifyy graphify path "get_inventory()" "apply_filters()"
+```
+
+```
+uvx --from graphifyy graphify path "useFilters()" "FilterBar.vue"
+```
+
+Each returns a 1-hop edge: `get_inventory() --calls--> apply_filters()`, and `useFilters() <--imports-- FilterBar.vue`. The command works, and it names the edge type.
+
+**Now cross the client-server boundary** with the same command:
+
+```
+uvx --from graphifyy graphify path "useFilters()" "get_inventory()"
+```
+
+`No path found.` Nothing is broken. Compare it against the two successes above and the `affected` output from Step 3.
+
+**You know this worked when:** the two same-language paths each return a 1-hop edge, the client-to-server path returns "No path found," and you can say why: graphify models static imports and calls (which `affected` traverses and the working paths follow) but not the runtime HTTP request between `client/src/api.js` and the FastAPI backend. The Vue-to-FastAPI boundary is invisible to the AST by design.
+
+> This is the lab's hinge. "No path found" is the graph telling the truth: it knows every symbol your code imports and nothing about the HTTP call between them, so the Vue-to-FastAPI boundary is invisible by design, not broken. Once you understand why the graph cannot cross this boundary, the wiki's reason to exist lands on its own, and the defend step in Step 9 is obvious rather than arbitrary.
+
+---
+
+## Step 5 — Build the LLM wiki (14 min)
 
 Build the second artifact: a three-layer LLM wiki (not to be confused with Lab 3's three-layer CLAUDE.md, a different idea using the same word; here the three layers are immutable raw sources, LLM-written articles, and a schema-maintainer file). This is Cloud Capture's adaptation of Karpathy's curated-document pattern applied to source code because docs rot.
 
@@ -208,27 +237,37 @@ Shapes to fill in, not answers to copy: thin skeletons for all four files are pl
 
 ---
 
-## Step 7 — Wire the graph into Claude (10 min)
+## Step 6 — Wire the graph into Claude (10 min)
 
 Until now you have run graphify by hand in the terminal. Claude does not know the graph exists. This step wires both artifacts into the project so Claude reaches for them on its own.
 
-You do this by hand, at PROJECT scope, rather than running `graphify install`, for the same reason as Path B: the installer writes user-global state and hardcodes an absolute path to the graphify binary that would not work on your machine. Wiring it yourself also means you see the config instead of an installer hiding it.
+You do this by hand, at PROJECT scope, rather than running `graphify install`, for the reason given in Step 0: the installer writes user-global state and hardcodes an absolute path to the graphify binary that would not work on your machine. Wiring it yourself also means you see the config instead of an installer hiding it.
 
 Two mechanisms, one per artifact:
 
 1. **Tell Claude about the graph and wiki.** Append this block to the project CLAUDE.md at the repo root (`./CLAUDE.md`; create it if there is none):
 
    ```
-   ## graphify
+   ## Code knowledge sources: precedence
 
-   This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+   This project has two knowledge layers over the same codebase. They answer different questions, so the order you consult them matters.
 
-   Rules:
-   - For codebase questions, first run `uvx --from graphifyy graphify query "<question>"` when graphify-out/graph.json exists. Use `uvx --from graphifyy graphify path "<A>" "<B>"` for relationships and `uvx --from graphifyy graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-   - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
-   - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+   **1. The wiki (`wiki/index.md`) — for "how does this work" and "where does X live".**
+   Before reading source files to understand how a feature behaves, check `wiki/index.md` and read any article covering that area. The wiki records what the code cannot state about itself: runtime behavior, cross-boundary contracts (like the HTTP seam between client and server), naming mismatches, and the reasons behind conventions. See `wiki/SCHEMA.md` for the maintainer contract. Distinct from the auto-generated per-community notes under `graphify-out/wiki/`.
+
+   **2. The graph (graphify) — for symbol-level relationships and call chains.**
+   Run `uvx --from graphifyy graphify query "<question>"` for a scoped subgraph, `uvx --from graphifyy graphify path "<A>" "<B>"` to trace a relationship between two symbols, and `uvx --from graphifyy graphify explain "<concept>"` for one symbol's neighborhood. These return far less than `GRAPH_REPORT.md` or raw grep. The graph is deterministic AST output: it knows every import and call, and nothing about runtime behavior or network hops.
+
+   **3. Raw source — last, or first when you already know the location.**
+   Read files directly after the layers above have oriented you, or immediately when a task already names the exact files and lines. When a spec pinpoints locations, there is no navigation problem to solve and skipping both layers is correct.
+
+   Other rules:
+   - Read `graphify-out/GRAPH_REPORT.md` only for broad architecture review, or when query/path/explain do not surface enough context.
    - After modifying code, run `uvx --from graphifyy graphify update .` to keep the graph current (AST-only, no API cost).
+   - Both layers go stale. The graph reports staleness itself; the wiki does not, so treat an old article as a lead rather than truth, and verify against code.
    ```
+
+   Note what this block does and does not do. It gives the wiki an ordering and a job, but the wiki is still only prose in a file. The graph gets a hook in the next sub-step. That asymmetry is deliberate and you will see its effect in Step 7.
 
 2. **Enforce the graph with a hook.** Write this to project-scope `.claude/settings.json`. Note the `uvx` form (not the absolute `.EXE` path the installer would write, which is why we author it by hand):
 
@@ -259,16 +298,18 @@ Two mechanisms, one per artifact:
 
    The hook emits `graphify query` (bare form) and you cannot change that text. The CLAUDE.md rules you just appended already use the `uvx --from graphifyy graphify` form, so Claude follows those rules when it acts. The two signals are equivalent: the hook tells Claude what to do, and the CLAUDE.md rules tell Claude how to invoke it.
 
+   **The notice itself may not be visible to you.** The hook returns it as `additionalContext`, which Claude receives but the transcript does not necessarily render. So do not wait to see the MANDATORY text. **The observable signal is Claude running a `graphify query` / `explain` / `path` call BEFORE it reads a source file.** That ordering is the proof the hook fired and was obeyed.
+
 Now say the mechanism in your own words. **The graph is enforced by a hook; the wiki is adopted by instruction.** Two questions the owner asked, answered directly:
 
 - *Is graphify a hook?* Yes. It is a `PreToolUse` hook on `Bash|Grep` and `Read|Glob`. Claude cannot grep or read raw files without the hook firing and pushing it to the graph first.
-- *Does the wiki need a CLAUDE.md entry?* Yes, and that IS its mechanism. The wiki has no hook. It reaches Claude through the CLAUDE.md pointer above plus the `SCHEMA.md` contract you wrote in Step 6.
+- *Does the wiki need a CLAUDE.md entry?* Yes, and that IS its mechanism. The wiki has no hook. It reaches Claude through the CLAUDE.md pointer above plus the `SCHEMA.md` contract you wrote in Step 5.
 
-**You know this worked when:** after the relaunch, a codebase question triggers either the MANDATORY hook notice or a `uvx --from graphifyy graphify query` call, and you can state which artifact is enforced by a hook versus adopted by instruction.
+**You know this worked when:** after the relaunch, you ask a codebase question and Claude runs a `uvx --from graphifyy graphify query` (or `explain` / `path`) call BEFORE reading any source file, and you can state which artifact is enforced by a hook versus adopted by instruction. Seeing the MANDATORY text is a bonus, not the signal; the call ordering is the signal.
 
 ---
 
-## Step 8 — Run the spec again, wired (12 min)
+## Step 7 — Run the spec again, wired (12 min)
 
 Now measure the difference. Same spec, same starting state, but this time the graph, the wiki, and the hook all exist.
 
@@ -276,17 +317,21 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
 2. **Confirm the starting state matches Run 1.** `git status` should show `server/` and `client/` clean (the code you discarded to in Step 1). `graphify-out/` and `wiki/` should be present; the app code should not be modified.
 
-3. **Hand Claude the SAME spec** (`specs/days-of-cover.md`). Record the same proxies you recorded in Step 1: files read, tool calls, whether it grepped, how it oriented itself. Take a `/context` reading before and after. The hook should visibly push Claude toward `uvx --from graphifyy graphify query` before it greps.
+3. **Override the subagent rule for both measured runs.** This repo's `CLAUDE.md` carries a MANDATORY rule sending any `.vue` work to the `vue-expert` subagent. A subagent runs in its own context window, so the orientation your graph and wiki provided in the main session does not reach it, and its tool calls do not appear in your main-session count. **Left alone, that hides part of the work from your measurement.** So when you hand over the spec, tell Claude to do the client-side work inline in this session rather than delegating it. Do the same in Run 1 if you have not already, or the two runs are not comparable.
 
-4. **Refresh the stale graph.** Run 2 modifies code, so your graph no longer matches. Refresh it (AST-only, costs nothing):
+   This is worth noticing in its own right: **a subagent is a fresh context, so any context engineering you did in the parent does not automatically follow it.** If you wire a repo like this for real, the CLAUDE.md pointer has to reach subagent prompts too. The graphify hook already knows this — read its notice text again and you will see it says the rule applies to subagents and should be included in their prompts.
+
+4. **Hand Claude the SAME spec** (`specs/days-of-cover.md`). Record the same proxies you recorded in Step 1: files read, tool calls, whether it grepped, how it oriented itself. Take a `/context` reading before and after. The hook should visibly push Claude toward `uvx --from graphifyy graphify query` before it greps.
+
+5. **Refresh the stale graph.** Run 2 modifies code, so your graph no longer matches. Refresh it (AST-only, costs nothing):
 
    ```
    uvx --from graphifyy graphify update .
    ```
 
-   This is the CLAUDE.md rule from Step 7 made concrete.
+   This is the CLAUDE.md rule from Step 6 made concrete.
 
-5. **Write the comparison.** What changed in HOW Claude oriented itself between the cold run and the wired run, not just token counts. This comparison is the deliverable and feeds your share-back.
+6. **Write the comparison.** What changed in HOW Claude oriented itself between the cold run and the wired run, not just token counts. This comparison is the deliverable and feeds your share-back.
 
 > **Honesty, non-negotiable.** Report what you measured, including a null or a regression. A run that shows no improvement, or a worse run, is a valid result, and reporting it honestly is the measurement-discipline lesson. Do not report an absolute token count as a claim; per-session readings vary by machine. Cloud Capture's ~30% is a reference point, not a target.
 
@@ -294,7 +339,7 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
 ---
 
-## Step 9 — Measurement discipline (6 min)
+## Step 8 — Measurement discipline (6 min)
 
 Run graphify's benchmark and read the methodology it prints:
 
@@ -306,26 +351,60 @@ Write why the reported reduction (~20x) is a strawman. The baseline is stuffing 
 
 State the honest alternative: Cloud Capture measured roughly 30% fewer tokens on a deliberately simple task (up to ~50% in some spec-kit phases), with their stated caveats, and found the vendor's 70% claim "didn't stand true." No first-party token-reduction percentage exists in graphify's own material. Credit the ~30% measurement to Cloud Capture, not to graphify. Hold your own result to the same standard: if your wired run did not beat your cold run, that is a valid result worth reporting.
 
-**You know this worked when:** your note names the strawman baseline, contrasts it with your own two-run measurement, and attributes the ~30% to Cloud Capture with caveats, without treating either the 20x or the 70% as evidence.
+### Before you judge your own result: check which layers actually got used
+
+Look back at your Step 7 transcript and answer two questions honestly.
+
+1. **Did Claude run a `graphify query` before reading source?** If yes, the graph was consulted. If no, the hook did not take effect (most likely the relaunch was skipped, or `.claude/settings.json` has a syntax error).
+2. **Did Claude open `wiki/index.md` or any article in `wiki/`?** Check honestly. There is a good chance it did not.
+
+**If the wiki went unused, that is information, not a failure — and probably not the wiki's fault.** Two reasons it happens, and they call for different conclusions:
+
+- **The task did not need navigation.** The wiki's job is answering "how does this work" and "where does X live." If a task already tells you exactly which files to touch, there is no navigation problem, and skipping the wiki is the correct call. A spec that pinpoints locations removes the very work these layers exist to reduce.
+- **Prose loses to hooks.** The graph is enforced mechanically on every raw read. The wiki is a paragraph in `CLAUDE.md`. Even with the precedence ordering you added in Step 6, an instruction has to be recalled and applied voluntarily, while a hook simply fires. This is the asymmetry you named in Step 6, showing up in real behavior.
+
+Write one sentence on which of those two explains your run. That sentence is worth more than the tool-call delta, because it tells you what would actually have to change for the wiki to earn its place in a repo you own.
+
+**You know this worked when:** your note names the strawman baseline, contrasts it with your own two-run measurement, attributes the ~30% to Cloud Capture with caveats, and states whether each layer was used and why.
 
 ---
 
-## Step 10 — Defend which artifact answers which question (8 min)
+## Step 9 — Defend which artifact answers which question (8 min)
 
-With both artifacts present, pose two question types:
+### First: trace one flow end to end, using both artifacts
 
-- "What breaks if I change `apply_filters()`?" (structural, static — the graph's territory)
+Take a single question a developer actually has on this repo: **"a user changes the warehouse filter in the UI — what happens, all the way to the data?"**
+
+Ask it of each artifact in turn and watch them fail and succeed in different places.
+
+**Ask the graph.** You already know the answer from Step 4:
+
+```
+uvx --from graphifyy graphify path "useFilters()" "get_inventory()"
+```
+
+`No path found.` The graph traces the client half (`FilterBar.vue` → `useFilters()` → `api.js`) and the server half (`get_inventory()` → `apply_filters()`) as two disconnected islands. It cannot join them, because the join is an HTTP request and the AST has no concept of one.
+
+**Ask your wiki.** Open `wiki/filter-system.md`. It states the seam the graph cannot: which HTTP endpoint `api.js` calls, that the client's internal `selectedPeriod` becomes the API's `month` parameter, and that filter state does not survive a page reload.
+
+**Now you have the whole flow**, and neither artifact could have given it to you alone. The graph supplied the two halves with precise symbols and files; the wiki supplied the bridge and the naming mismatch. That is the argument for keeping both.
+
+### Then: record which artifact answers which question
+
+Pose two questions of different shapes:
+
+- "What breaks if I change `apply_filters()`?" (structural, static — the graph's territory, and note your new spec work made this a live concern across two endpoints)
 - "Why does the app's locale persist across page reloads?" (runtime behavior the graph cannot see — the wiki's territory)
 
-Write `KB-DECISION.md` at the repo root. For each question, name which artifact you reached for and write one sentence defending why.
+Write `KB-DECISION.md` at the repo root. For each question, name which artifact you reached for and one sentence defending why. Add one line on the flow trace above: which artifact gave you which half.
 
-**You know this worked when:** `KB-DECISION.md` records one artifact choice per question with a one-sentence reason for each. The structural question points at the graph (`affected "apply_filters"` lists callers in one command). The runtime question points at the wiki (locale persistence is `localStorage`, which the graph never sees). The solution branch has a reference exemplar once you have written your own.
+**You know this worked when:** `KB-DECISION.md` records one artifact choice per question with a reason, plus the flow-trace note. The structural question points at the graph (`affected "apply_filters"` lists callers in one command, and now spans both endpoints). The runtime question points at the wiki (locale persistence is `localStorage`, which the graph never sees). The solution branch has a reference exemplar once you have written your own.
 
 ---
 
-## Step 11 — Teardown and share-back (4 min)
+## Step 10 — Teardown and share-back (4 min)
 
-Confirm Path B left zero global state. Run both commands:
+Confirm the lab left zero global state. Run both commands:
 
 ```
 grep -c graphify ~/.claude/CLAUDE.md
@@ -369,7 +448,7 @@ For Step 5: `export wiki` produces 38 articles, of which 28 are named `Community
 
 Your Step 2 success signal still holds if your node count lands in the 250-400 range. The run should take 3-4 seconds with zero API tokens.
 
-For Step 9, the `benchmark` reference output:
+For Step 8, the `benchmark` reference output:
 
 ```
 Corpus:          ~20,800 tokens (naive)
@@ -390,9 +469,9 @@ You're done when all nine are true:
 4. `graphify-out/wiki/` exists and you saw the `Community_N` naming.
 5. `wiki/` holds `SCHEMA.md` (rules you authored), `index.md`, an append-only `log.md`, and at least one topic-named article, with log lines appended, none rewritten.
 6. You wired both artifacts into Claude: the graphify section in `./CLAUDE.md`, the PreToolUse hooks in `.claude/settings.json`, relaunched, and verified the hook fires.
-7. You ran the same spec wired (Step 8) in a fresh session and recorded the cold-vs-wired comparison.
+7. You ran the same spec wired (Step 7) in a fresh session and recorded the cold-vs-wired comparison.
 8. `KB-DECISION.md` records a graph choice and a wiki choice with reasons.
-9. Step 11 teardown confirms no graphify global state was written.
+9. Step 10 teardown confirms no graphify global state was written.
 
 ---
 
@@ -461,7 +540,7 @@ Copy the reference wiki and adapt it:
 git checkout origin/lab-10-solution -- wiki
 ```
 
-**(f) The hook does not fire after Step 7.**
+**(f) The hook does not fire after Step 6.**
 
 Check three things, in order: (1) `.claude/settings.json` must be valid JSON — a trailing comma or a missing brace silently disables the hooks. (2) You must have relaunched Claude Code after writing the file; hooks load at startup. (3) `graphify-out/graph.json` must exist — the hook-guard only fires when the graph is present, so if you removed or never built it, rebuild with `uvx --from graphifyy graphify extract . --code-only`. Fix whichever applies, relaunch, and ask a codebase question again.
 
