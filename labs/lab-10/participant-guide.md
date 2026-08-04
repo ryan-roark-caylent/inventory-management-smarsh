@@ -89,15 +89,15 @@ Before you build anything, measure the baseline. You hand Claude a small spec on
 
 Use the fresh session you relaunched in Step 0. No graph, no wiki, no hook exists yet. That is the point.
 
-1. Hand Claude the spec at `specs/days-of-cover.md`. It asks for a **"days of cover"** field on the inventory endpoint: how many days the current stock will last. It is a greenfield addition (no `days_of_cover` concept exists in the repo yet), and finishing it forces genuine cross-file orientation:
-   - It touches `server/main.py` (the `InventoryItem` model and `get_inventory`).
-   - It must respect `apply_filters()`, the shared filter chokepoint.
-   - Surfacing it in `client/src/views/Inventory.vue` means discovering the i18n convention (`useI18n()` and the locale files `client/src/locales/en.js` and `ja.js`), which a cold agent has to find on its own.
-   - It stays in-memory (no database, no new dependency, no app boot required).
+1. Hand Claude the spec at `specs/days-of-cover.md`. Do not read it closely yourself first, and do not add file paths or hints when you hand it over. The spec deliberately states intent without naming locations, because **the orientation work is the thing being measured.** Telling Claude where to look would remove the very cost the graph and wiki are supposed to reduce, and both runs would come out flat.
 
-2. Record observable effort proxies as Claude works: how many files it read, how many tool calls it made, whether it grepped the same thing more than once, how it found the filter chokepoint and the client-server seam. Take a `/context` reading before and after as a directional signal (not a precise number).
+   What it asks for, at a level that spoils nothing: a computed "days of cover" value on inventory data, a related count on the dashboard, and the value surfaced as a translatable column in the UI. It is greenfield (no such concept exists in the repo yet), it spans server and client, and it requires finding a shared helper and an existing convention on its own.
 
-3. Then DISCARD the code changes so Run 2 starts from the identical state:
+2. **Keep the work in this session — same rule as Step 7.** If Claude offers to delegate part of the task to a subagent, decline. A subagent is a fresh context, so its tool calls never appear in your count. If you allow delegation here and not in Step 7 (or the reverse), the two runs are measuring different things and the comparison is void. Whatever you do here, do the same there.
+
+3. Record observable effort proxies as Claude works: how many files it read, how many tool calls it made, whether it grepped the same thing more than once, how it found the filter chokepoint and the client-server seam. Take a `/context` reading before and after as a directional signal (not a precise number).
+
+4. Then DISCARD the code changes so Run 2 starts from the identical state:
 
    ```
    git checkout -- .
@@ -319,7 +319,7 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
 2. **Confirm the starting state matches Run 1.** `git status` should show `server/` and `client/` clean (the code you discarded to in Step 1). `graphify-out/` and `wiki/` should be present; the app code should not be modified.
 
-3. **Keep the work in this session.** If Claude offers to delegate part of the task to a subagent, decline. A subagent is a fresh context: your graph and wiki orientation does not reach it, and its tool calls never appear in your count, so delegating would hide part of what you are measuring. (This branch has no mandatory-delegation rule, for exactly that reason. Worth remembering when you wire a real repo: a `CLAUDE.md` pointer does not automatically follow into subagent prompts, and graphify's own hook notice says as much.)
+3. **Keep the work in this session, exactly as you did in Step 1.** Decline any offer to delegate to a subagent. Beyond keeping the two runs comparable, there is a lesson here worth carrying out of the lab: a subagent is a fresh context, so the graph and wiki orientation you wired into this session does not follow it. If you wire a real repo, the `CLAUDE.md` pointer has to reach subagent prompts too — graphify's own hook notice says as much.
 
 4. **Hand Claude the SAME spec** (`specs/days-of-cover.md`). Record the same proxies you recorded in Step 1: files read, tool calls, whether it grepped, how it oriented itself. Take a `/context` reading before and after. The hook should visibly push Claude toward `uvx --from graphifyy graphify query` before it greps.
 
