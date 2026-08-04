@@ -7,12 +7,11 @@ Factory Inventory Management System Demo with GitHub integration - Full-stack ap
 ### Subagents
 Use the Task tool with these specialized subagents for appropriate tasks:
 
-- **vue-expert**: Use for Vue 3 frontend features, UI components, styling, and client-side functionality
-  - Examples: Creating components, fixing reactivity issues, performance optimization, complex state management
-  - **MANDATORY RULE: ANY time you need to create or significantly modify a .vue file, you MUST delegate to vue-expert**
 - **code-reviewer**: Use after writing significant code to review quality and best practices
 - **Explore**: Use for understanding codebase structure, searching for patterns, or answering questions about how components work
 - **general-purpose**: Use for complex multi-step tasks or when other agents don't fit
+
+> **Note for this branch:** the `vue-expert` subagent and its mandatory-delegation rule are deliberately absent here. A subagent runs in its own context window, so any graph or wiki orientation done in the parent session does not reach it, and its tool calls do not show up in the parent's count. This lab measures how context artifacts change one session's behavior, so delegating part of the work would hide part of the measurement. Subagent delegation is Lab 7's subject, not this one.
 
 ### Skills
 - **backend-api-test** skill: Use when writing or modifying tests in `tests/backend` directory with pytest and FastAPI TestClient
