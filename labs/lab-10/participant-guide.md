@@ -225,7 +225,9 @@ The pattern is: **you read it, the LLM writes it.** So Claude creates and mainta
 2. **Direct Claude to create the rest** from the actual source files:
    - `wiki/index.md` — the article index and a note on when to reach for the wiki vs the graph.
    - `wiki/log.md` — an append-only change log, one line per add or update.
-   - One article (the filter system is a natural first choice). It should record what the graph cannot see: the HTTP hop between `api.js` and `apply_filters()`, the `selectedPeriod` to `month` rename coupling, and runtime state like `localStorage`.
+   - One article covering **the inventory and demand-forecast area** — the same subsystem `specs/days-of-cover.md` asks you to change in Step 7. This targeting is deliberate; see the note below. It should record what the graph cannot see: how the inventory endpoint's response reaches the table in the UI (the HTTP hop between `api.js` and the server), that inventory filtering funnels through one shared helper several endpoints depend on, how the demand-forecast records relate to inventory items (matched by SKU, and the 30-day period their demand figure covers), and any naming mismatch between what the client calls a field and what the API calls it.
+
+> **Why this article and not another.** A wiki with one article can only help with a question that article happens to cover. Point it at the subsystem you are about to modify and the wiki gets a fair test in Step 7. Point it somewhere else and you learn nothing except that a thin wiki misses. Cloud Capture's wiki covers their whole codebase, so theirs gets consulted as a matter of course; yours will cover one corner. You are testing the mechanism at lab scale, not experiencing the benefit at production scale. Choose the corner that matters.
 
 3. **Tell Claude to append a matching entry to `log.md`** in the same pass, and never rewrite a line once written.
 
@@ -317,19 +319,19 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
 2. **Confirm the starting state matches Run 1.** `git status` should show `server/` and `client/` clean (the code you discarded to in Step 1). `graphify-out/` and `wiki/` should be present; the app code should not be modified.
 
-3. **Override the subagent rule for both measured runs.** This repo's `CLAUDE.md` carries a MANDATORY rule sending any `.vue` work to the `vue-expert` subagent. A subagent runs in its own context window, so the orientation your graph and wiki provided in the main session does not reach it, and its tool calls do not appear in your main-session count. **Left alone, that hides part of the work from your measurement.** So when you hand over the spec, tell Claude to do the client-side work inline in this session rather than delegating it. Do the same in Run 1 if you have not already, or the two runs are not comparable.
-
-   This is worth noticing in its own right: **a subagent is a fresh context, so any context engineering you did in the parent does not automatically follow it.** If you wire a repo like this for real, the CLAUDE.md pointer has to reach subagent prompts too. The graphify hook already knows this — read its notice text again and you will see it says the rule applies to subagents and should be included in their prompts.
+3. **Keep the work in this session.** If Claude offers to delegate part of the task to a subagent, decline. A subagent is a fresh context: your graph and wiki orientation does not reach it, and its tool calls never appear in your count, so delegating would hide part of what you are measuring. (This branch has no mandatory-delegation rule, for exactly that reason. Worth remembering when you wire a real repo: a `CLAUDE.md` pointer does not automatically follow into subagent prompts, and graphify's own hook notice says as much.)
 
 4. **Hand Claude the SAME spec** (`specs/days-of-cover.md`). Record the same proxies you recorded in Step 1: files read, tool calls, whether it grepped, how it oriented itself. Take a `/context` reading before and after. The hook should visibly push Claude toward `uvx --from graphifyy graphify query` before it greps.
 
-5. **Refresh the stale graph.** Run 2 modifies code, so your graph no longer matches. Refresh it (AST-only, costs nothing):
+5. **See how cheap maintenance is.** Your run just modified code, so the graph no longer matches the source. Refresh it:
 
    ```
    uvx --from graphifyy graphify update .
    ```
 
-   This is the CLAUDE.md rule from Step 6 made concrete.
+   Watch the clock and the output: a few seconds, AST-only, zero API tokens. That is the point of running it here. Staleness is a solvable problem rather than a reason to distrust the graph, and this is the CLAUDE.md rule from Step 6 made concrete.
+
+   Note the ordering, because it matters more than it looks. You built the graph in Step 2 on clean code and nothing modified code until this run, so the graph was accurate for the whole measured run — no refresh was needed beforehand. If you had implemented something before measuring, the graph would have been describing code that no longer existed, and the hook would have downgraded from MANDATORY to advisory ("reading the file directly is fine"). Refresh before you measure, not just after.
 
 6. **Write the comparison.** What changed in HOW Claude oriented itself between the cold run and the wired run, not just token counts. This comparison is the deliverable and feeds your share-back.
 
@@ -356,14 +358,20 @@ State the honest alternative: Cloud Capture measured roughly 30% fewer tokens on
 Look back at your Step 7 transcript and answer two questions honestly.
 
 1. **Did Claude run a `graphify query` before reading source?** If yes, the graph was consulted. If no, the hook did not take effect (most likely the relaunch was skipped, or `.claude/settings.json` has a syntax error).
-2. **Did Claude open `wiki/index.md` or any article in `wiki/`?** Check honestly. There is a good chance it did not.
+2. **Did Claude open `wiki/index.md` or your article?** Check, do not assume.
 
-**If the wiki went unused, that is information, not a failure — and probably not the wiki's fault.** Two reasons it happens, and they call for different conclusions:
+Because you pointed your Step 5 article at the same subsystem the spec changes, "wrong topic" is not available as an explanation. That makes the answer diagnostic. Three outcomes, and each teaches something different:
 
-- **The task did not need navigation.** The wiki's job is answering "how does this work" and "where does X live." If a task already tells you exactly which files to touch, there is no navigation problem, and skipping the wiki is the correct call. A spec that pinpoints locations removes the very work these layers exist to reduce.
-- **Prose loses to hooks.** The graph is enforced mechanically on every raw read. The wiki is a paragraph in `CLAUDE.md`. Even with the precedence ordering you added in Step 6, an instruction has to be recalled and applied voluntarily, while a hook simply fires. This is the asymmetry you named in Step 6, showing up in real behavior.
+- **Consulted and useful.** The wiki answered something the graph could not — the HTTP hop, the SKU relationship, a naming mismatch — and Claude acted on it. The pattern works at this scale. Note which specific fact earned its keep.
+- **Consulted and not useful.** Claude opened the article and went to the source anyway. That is a lesson about **what belongs in an article**, which is more useful than a lesson about tools. Your article recorded things that were already obvious from the code, or omitted the one thing that was not. Name what it should have said.
+- **Not consulted at all.** Topical relevance cannot explain this one, so what is left is the enforcement gap: the graph fires a hook on every raw read, the wiki is a paragraph in `CLAUDE.md`. Prose loses to mechanism. That is the asymmetry you named in Step 6, showing up in behavior.
 
-Write one sentence on which of those two explains your run. That sentence is worth more than the tool-call delta, because it tells you what would actually have to change for the wiki to earn its place in a repo you own.
+Two honest caveats on the numbers themselves, so you read your own result correctly:
+
+- **The graph can point at the right files and still not save a read.** A structural map tells you *where* to look. If you then read the file anyway to confirm line-level detail, the graph added a step rather than replacing one. That is a real and common outcome; it means the graph's value is orientation, not substitution.
+- **This repo is 52 files.** graphify's own honest benchmark measured coverage gains on a codebase near a million lines. A demo repo caps how much orientation there is to save, so a thin delta here is not evidence the approach fails at scale — and a large delta here would not prove it succeeds.
+
+Write one or two sentences naming which of the three outcomes you got and why. That sentence is worth more than the tool-call delta, because it tells you what would have to change for these layers to earn their place in a repo you own.
 
 **You know this worked when:** your note names the strawman baseline, contrasts it with your own two-run measurement, attributes the ~30% to Cloud Capture with caveats, and states whether each layer was used and why.
 
