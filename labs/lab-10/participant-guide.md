@@ -355,7 +355,13 @@ State the honest alternative: Cloud Capture measured roughly 30% fewer tokens on
 
 ### Before you judge your own result: check which layers actually got used
 
-Look back at your Step 7 transcript and answer two questions honestly.
+**Ask Claude directly, in the same session that just did the work:**
+
+> Did you use graphify or the wiki during the implementation? Be specific about which commands you ran and which files you opened, and say plainly if you skipped either.
+
+Ask it rather than only scanning the transcript. Tool calls scroll past, and a model's own account of what it consulted and what it skipped is more informative than a call count. In the facilitator dry run this question is what surfaced the real result: Claude reported running `graphify query` twice and `explain` once, then volunteered *"Wiki: never opened `wiki/index.md`... I skipped straight to graphify and then raw source."*
+
+Then verify the answer against your transcript, because a model can misremember. Two things to confirm:
 
 1. **Did Claude run a `graphify query` before reading source?** If yes, the graph was consulted. If no, the hook did not take effect (most likely the relaunch was skipped, or `.claude/settings.json` has a syntax error).
 2. **Did Claude open `wiki/index.md` or your article?** Check, do not assume.
@@ -372,6 +378,24 @@ Two honest caveats on the numbers themselves, so you read your own result correc
 - **This repo is 52 files.** graphify's own honest benchmark measured coverage gains on a codebase near a million lines. A demo repo caps how much orientation there is to save, so a thin delta here is not evidence the approach fails at scale — and a large delta here would not prove it succeeds.
 
 Write one or two sentences naming which of the three outcomes you got and why. That sentence is worth more than the tool-call delta, because it tells you what would have to change for these layers to earn their place in a repo you own.
+
+### Now check what skipping the wiki cost you
+
+This part does not depend on whether you used the wiki. Open your article and read what it says about the demand-forecast period field. Then look at what you just implemented.
+
+The spec told you to derive a daily rate from "a demand figure covering a 30-day period." If your article documented the period field honestly, it says something closer to: the values are free text (`"Next 3 months"`, `"Q1 2025"`, plain day counts), and **there is no single canonical 30-day period in the data.** Whatever window a forecast covers is only knowable from that string.
+
+So the spec's premise is wrong, and your implementation almost certainly hardcodes a division by 30 anyway.
+
+Sit with that for a second, because it is the whole argument for a knowledge layer in one example:
+
+- **The graph could not have caught it.** `DemandForecast` is a real symbol with a real `period` field. Structurally everything checks out. An AST has no opinion about what a string field actually contains.
+- **Reading the source might not have caught it either.** The model definition says `period: str`. You would have had to open the fixture data and notice the values disagree with each other.
+- **The wiki caught it**, because a human noticed it once and wrote it down where the next agent would read it. That is the entire value proposition: not navigation, but *the accumulated knowledge that the code does not state about itself.*
+
+Note in your comparison whether you shipped the 30-day assumption, and whether anything in your run would have stopped you. Do not fix it. The bug is the lesson.
+
+This also sharpens the earlier question about what belongs in a wiki article. A note that repeats what the code plainly says earns nothing. A note recording a place where the data contradicts the obvious reading pays for the whole file.
 
 **You know this worked when:** your note names the strawman baseline, contrasts it with your own two-run measurement, attributes the ~30% to Cloud Capture with caveats, and states whether each layer was used and why.
 
@@ -493,9 +517,25 @@ You're done when all nine are true:
 
    Then re-run `export wiki` and compare the article names against your unlabeled set. Token cost: labeling calls the LLM once per community to assign a name, so the cost scales with your community count and is non-trivial relative to the free extract (zero tokens). No backend? Skip it. The unlabeled state is the teaching beat, and a pre-labeled snapshot is on `lab-10-solution` for reference (see rescue path c).
 
-2. **Add graphify's MCP server.** Apply what you built in Lab 7: add a graphify stdio entry to `.mcp.json` at project scope, relaunch, confirm with `/mcp`, and scope its tools using the read/write/block model from Lab 7.
+2. **Close the enforcement gap: give the wiki a hook.** The lab's honest finding is that the graph gets consulted because a hook fires on every raw read, while the wiki is a paragraph that has to be remembered. If that bothers you, fix it. Add a second `PreToolUse` entry to `.claude/settings.json` alongside the graphify ones:
 
-3. **Tune a `query` budget.** Run:
+   ```json
+   {
+     "matcher": "Read|Grep|Glob",
+     "hooks": [{
+       "type": "command",
+       "command": "sh -c 'test -f wiki/index.md && echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PreToolUse\\\",\\\"additionalContext\\\":\\\"Check wiki/index.md for an article covering this area before reading source. It records runtime behavior and data gotchas the code does not state.\\\"}}\" || true'"
+     }]
+   }
+   ```
+
+   On Windows without a POSIX shell, write the same check as a two-line `.cmd` or PowerShell script and point the hook at that instead. Relaunch, then re-run the spec from a clean state and ask Claude the same "did you use the wiki" question.
+
+   Notice what you just did and did not build. There is no wiki equivalent of graphify's `hook-guard` binary, so nothing here validates staleness or tailors the message to the file being read. You wrote a nudge, not a guard. That gap between "a hook fires" and "a hook knows something" is worth understanding before you decide what your own repo needs.
+
+3. **Add graphify's MCP server.** Apply what you built in Lab 7: add a graphify stdio entry to `.mcp.json` at project scope, relaunch, confirm with `/mcp`, and scope its tools using the read/write/block model from Lab 7.
+
+4. **Tune a `query` budget.** Run:
 
    ```
    uvx --from graphifyy graphify query "how does an inventory item get updated when filters change" --budget 800
@@ -503,7 +543,7 @@ You're done when all nine are true:
 
    Observe the `[!] TRUNCATED` warning, then raise `--budget` until the traversal completes. Note where the budget/answer tradeoff sits.
 
-4. **Boot the app.** Run the frontend (`cd client && npm install && npm run dev`, opens `http://localhost:3000`) and backend (`cd server && uv run python main.py`, port 8001). Change the Warehouse filter in `FilterBar` and watch the singleton state drive `Dashboard.vue` — the coupling `god-nodes` surfaced. Requires network for `npm install`, so this is extra credit only.
+5. **Boot the app.** Run the frontend (`cd client && npm install && npm run dev`, opens `http://localhost:3000`) and backend (`cd server && uv run python main.py`, port 8001). Change the Warehouse filter in `FilterBar` and watch the singleton state drive `Dashboard.vue` — the coupling `god-nodes` surfaced. Requires network for `npm install`, so this is extra credit only.
 
 ---
 
