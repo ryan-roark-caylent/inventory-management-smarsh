@@ -1,56 +1,76 @@
 # Spec: Days of Cover
 
-Add a computed "days of cover" field to the inventory endpoint. Days of cover is how many days the current stock on hand will last at the current demand rate.
+Add a computed "days of cover" value to the inventory data the app serves and displays, and surface a related count on the dashboard. Days of cover is how many days the current stock on hand will last at the current demand rate.
+
+This spec states intent, not locations. Working out where each piece belongs is part of the task.
 
 ---
 
 ## What to build
 
-### 1. Server — `server/main.py`
+### 1. Server — enrich the inventory response
 
-Extend `InventoryItem` (the Pydantic model at L59-69) with one optional field:
+The inventory listing endpoint should return a `days_of_cover` value on each item, alongside the fields it already returns.
 
-```
-days_of_cover: Optional[float] = None
-```
+Compute it from data the server already has:
 
-In `get_inventory` (L129), after `apply_filters` returns the filtered item list, compute `days_of_cover` for each item:
-
-- Match each inventory item to its demand forecast by SKU (using `demand_forecasts` imported at L5).
-- The demand forecast records a `current_demand` value for a period of 30 days. Use that to compute a daily rate.
-- `days_of_cover = quantity_on_hand / (current_demand / 30)`
+- Match each inventory item to its demand forecast by SKU. The forecast data is already loaded server-side.
+- A demand forecast records a demand figure covering a 30-day period. Derive a daily rate from it.
+- `days_of_cover = quantity on hand / daily demand rate`
 - Round to one decimal place.
-- If no forecast exists for the item's SKU, set `days_of_cover` to `None`.
+- If no forecast exists for an item's SKU, the value is null.
 
-The result must flow through `apply_filters()` — do not bypass the filter chokepoint. The filtering step runs first; the computation runs over the already-filtered list.
+Two requirements about **where** the computation goes:
 
-Return the enriched items. The endpoint signature (`/api/inventory`) must not change.
+- The response model must declare the new field as optional, so items without a forecast remain valid.
+- The computation must run over the **already-filtered** list. This app funnels inventory filtering through a single shared helper that several endpoints depend on. Filter first, then enrich. Do not bypass or duplicate that helper.
 
-### 2. Client — `client/src/views/Inventory.vue`
+The endpoint's route and existing query parameters must not change.
 
-Surface `days_of_cover` as a new column in the inventory table. Follow the repo's existing i18n convention:
+### 2. Server — add a dashboard metric
 
-- Add a translatable key to `client/src/locales/en.js` under `inventory.table`. Choose a key name that matches the existing naming style (lowercase camelCase, descriptive noun).
-- Add the same key with a Japanese translation to `client/src/locales/ja.js`.
-- In `Inventory.vue`, add a `<th>` for the new column using `t('inventory.table.<yourKey>')`, matching the pattern of the existing column headers.
-- In each `<tr>`, add a `<td>` that renders the value. If `days_of_cover` is `null`, show `—` (an em dash) rather than a blank or "null".
+The dashboard summary endpoint should also report **`at_risk_items`**: the number of inventory items whose days of cover is below 14.
 
-You will need to find where `useI18n()` is set up in this view, where locale strings live, and how the existing table columns are structured. The codebase has a consistent pattern; follow it.
+Requirements:
+
+- It must respect the same filters the dashboard already applies to inventory, so the count reflects what the user is currently looking at.
+- Items with no demand forecast (null days of cover) are not counted as at risk.
+- The dashboard already computes at least one similar count over filtered inventory. Find that pattern and follow it rather than inventing a new one.
+- Do not duplicate the days-of-cover formula. If you find yourself writing the same arithmetic twice, factor it so both call sites share one implementation.
+
+This part is deliberately not self-contained: the two endpoints share filtering machinery, and the value you added in part 1 has to be reachable here too. Work out how they relate before you edit either one.
+
+### 3. Client — surface days of cover in the inventory table
+
+Add the value as a new column in the inventory table view.
+
+The label must be translatable, following the internationalization convention this codebase already uses. That means:
+
+- A new key in the locale files, in the same section and naming style as the existing table-column keys.
+- Every locale the app ships gets the key, including the Japanese translation.
+- The column header renders through the translation helper, not as a hardcoded string.
+- Each row renders the value, showing an em dash (`—`) when it is null. Not blank, not the string "null".
+
+You will need to work out where the inventory view lives, how it obtains the translation helper, where locale strings are kept, and how the existing columns are structured. The codebase is internally consistent; match the pattern you find.
 
 ---
 
 ## Constraints
 
-- **In-memory only.** The server uses `mock_data.py` which loads from JSON files. No database writes. No schema migration.
-- **No new dependencies.** Do not add any new PyPI packages to `server/` or npm packages to `client/`.
-- **No endpoint signature changes.** `/api/inventory` keeps its existing query parameters (`warehouse`, `category`).
-- **No app boot required on the critical path.** The backend tests alone are sufficient to verify the computation is correct.
+- **In-memory only.** The server loads from JSON fixtures. No database, no schema migration, no writes to disk.
+- **No new dependencies.** Nothing added to the Python or npm dependency lists.
+- **No endpoint signature changes.** Both routes keep their existing query parameters.
+- **No app boot required.** The backend test suite alone verifies the computation.
+- **One implementation of the formula.** The days-of-cover arithmetic appears once in the codebase, not once per call site.
 
 ---
 
 ## Acceptance criteria
 
-1. `uv run --project server pytest` passes all 40 existing tests with no new failures.
-2. The inventory endpoint returns `days_of_cover` for items that have a matching SKU in `demand_forecasts`, and `null` for items that do not.
-3. The Inventory view shows a "days of cover" column with a translatable label (not hardcoded English).
-4. Items with no forecast show `—`, not blank or "null".
+1. The full backend test suite passes with no new failures, and no existing test was modified.
+2. The inventory endpoint returns `days_of_cover` on items whose SKU has a matching demand forecast, and null for those that do not.
+3. The dashboard summary endpoint returns `at_risk_items`, counting filtered inventory items with days of cover below 14 and excluding items with no forecast.
+4. Applying a warehouse or category filter changes `at_risk_items` accordingly.
+5. The inventory table shows a days-of-cover column whose header comes from the translation layer, not a hardcoded English string.
+6. Items with no forecast render an em dash.
+7. The days-of-cover formula exists in exactly one place, shared by both endpoints.
