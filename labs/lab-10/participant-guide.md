@@ -95,13 +95,13 @@ Use the fresh session you relaunched in Step 0. No graph, no wiki, no hook exist
 
    What it asks for, at a level that spoils nothing: a computed "days of cover" value on inventory data, a related count on the dashboard, and the value surfaced as a translatable column in the UI. It is greenfield (no such concept exists in the repo yet), it spans server and client, and it requires finding a shared helper and an existing convention on its own.
 
-2. **Keep the work in this session — same rule as Step 7.** If Claude offers to delegate part of the task to a subagent, decline. A subagent is a fresh context, so its tool calls never appear in your count. If you allow delegation here and not in Step 7 (or the reverse), the two runs are measuring different things and the comparison is void. Whatever you do here, do the same there.
+2. **Keep the work in this session (same rule as Step 7).** If Claude offers to delegate part of the task to a subagent, decline. A subagent is a fresh context, so its tool calls never appear in your count. If you allow delegation here and not in Step 7 (or the reverse), the two runs are measuring different things and the comparison is void. Whatever you do here, do the same there.
 
-3. Record observable effort proxies as Claude works: how many files it read, how many tool calls it made, whether it grepped the same thing more than once, how it found the filter chokepoint and the client-server seam. Take a `/context` reading before and after as a directional signal (not a precise number).
+3. Notice how Claude orients itself as it works. Take a `/context` reading before and after as a directional signal (not a precise number).
 
 4. When the implementation completes, ask Claude this retrospective question before you inspect the result:
 
-   > Before I look at the result: report on how you worked. How many tool calls did you make in total, and how many came before your first edit to a source file? Which distinct files did you read, and which of those did you read before your first edit? Did you search for the same thing more than once? In one sentence, how did you work out where the shared inventory filter helper lives? What did you assume about the time period the demand figure covers, and where did that assumption come from? And did you use graphify or the wiki at any point — be specific about commands run and files opened, and say plainly if you skipped either.
+   > Before I look at the result: report on how you worked. How many tool calls did you make in total, and how many came before your first edit to a source file? Which distinct files did you read, and which of those did you read before your first edit? Did you search for the same thing more than once? In one sentence, how did you work out where the shared inventory filter helper lives? What did you assume about the time period the demand figure covers, and where did that assumption come from? And did you use graphify or the wiki at any point: be specific about commands run and files opened, and say plainly if you skipped either.
 
    Record: total calls, calls before first edit, distinct files read, distinct files read before first edit, repeated-search yes/no. These are self-reported and approximate, which is acceptable because both runs are measured identically and the reading is directional, not precise.
 
@@ -120,7 +120,7 @@ Use the fresh session you relaunched in Step 0. No graph, no wiki, no hook exist
    git status
    ```
 
-   `git checkout -- .` restores tracked files to their committed state; the spec file is committed, so it survives. `git clean -fd server client` deletes anything Claude newly created under those directories (a scratch module, a new test file, a new component) — untracked files survive `git checkout` and would otherwise carry into the wired run and invalidate the comparison. `graphify-out/` does not exist yet. `git status` should show `server/` and `client/` clean with no untracked files under either.
+   `git checkout -- .` restores tracked files to their committed state; the spec file is committed, so it survives. `git clean -fd server client` deletes anything Claude newly created under those directories (a scratch module, a new test file, a new component). Untracked files survive `git checkout` and would otherwise carry into the wired run and invalidate the comparison. `graphify-out/` does not exist yet. `git status` should show `server/` and `client/` clean with no untracked files under either.
 
 **You know this worked when:** you have a written cold baseline (files read, tool calls, orientation notes, `/context` delta) and `git status` shows the app code back to clean, with no graph, wiki, or hook present.
 
@@ -240,7 +240,13 @@ The pattern is: **you read it, the LLM writes it.** So Claude creates and mainta
 2. **Direct Claude to create the rest** from the actual source files:
    - `wiki/index.md` — the article index and a note on when to reach for the wiki vs the graph.
    - `wiki/log.md` — an append-only change log, one line per add or update.
-   - One article covering **the inventory and demand-forecast area** — the same subsystem `specs/days-of-cover.md` asks you to change in Step 7. This targeting is deliberate; see the note below. It should record what the graph cannot see: how the inventory endpoint's response reaches the table in the UI (the HTTP hop between `api.js` and the server), that inventory filtering funnels through one shared helper several endpoints depend on, how the demand-forecast records relate to inventory items: matched by SKU, and what the `period` field actually contains. Check the fixture data and the demand view's `translatePeriod` before you write this down, and record what you find rather than what you expect. Also cover the dashboard's existing pattern for counting a subset of filtered inventory (one already exists; name it), and the i18n convention for a new column label: where locale strings live, which locales must receive the key, and how a header reaches the translation helper. Any naming mismatch between what the client calls a field and what the API calls it.
+   - One article covering **the inventory and demand-forecast area** — the same subsystem `specs/days-of-cover.md` asks you to change in Step 7. This targeting is deliberate; see the note below. It should record what the graph cannot see:
+     - How the inventory endpoint's response reaches the table in the UI (the HTTP hop between `api.js` and the server)
+     - That inventory filtering funnels through one shared helper several endpoints depend on
+     - How the demand-forecast records relate to inventory items: matched by SKU, and what the `period` field actually contains. Check the fixture data and the demand view's `translatePeriod` before you write this down, and record what you find rather than what you expect.
+     - The dashboard's existing pattern for counting a subset of filtered inventory (one already exists; name it)
+     - The i18n convention for a new column label: where locale strings live, which locales must receive the key, and how a header reaches the translation helper
+     - Any naming mismatch between what the client calls a field and what the API calls it
 
 > **Why this article and not another.** A wiki with one article can only help with a question that article happens to cover. Point it at the subsystem you are about to modify and the wiki gets a fair test in Step 7. Point it somewhere else and you learn nothing except that a thin wiki misses. Cloud Capture's wiki covers their whole codebase, so theirs gets consulted as a matter of course; yours will cover one corner. You are testing the mechanism at lab scale, not experiencing the benefit at production scale. Choose the corner that matters.
 
@@ -342,12 +348,12 @@ Two mechanisms, one per artifact:
 
    **The notice itself may not be visible to you.** The hook returns it as `additionalContext`, which Claude receives but the transcript does not necessarily render. So do not wait to see the MANDATORY text. **The observable signal is Claude running a `graphify query` / `explain` / `path` call BEFORE it reads a source file.** That ordering is the proof the hook fired and was obeyed.
 
-Now say the mechanism in your own words. **The graph is enforced by a hook; the wiki is adopted by instruction.** Two questions the owner asked, answered directly:
+Now say the mechanism in your own words. **Both artifacts have hooks now, but they're different kinds.** Two questions the owner asked, answered directly:
 
-- *Is graphify a hook?* Yes. It is a `PreToolUse` hook on `Bash|Grep` and `Read|Glob`. Claude cannot grep or read raw files without the hook firing and pushing it to the graph first.
-- *Does the wiki need a CLAUDE.md entry?* Yes, and that IS its mechanism. The wiki has no hook. It reaches Claude through the CLAUDE.md pointer above plus the `SCHEMA.md` contract you wrote in Step 5.
+- *Is graphify a hook?* Yes. It is a `PreToolUse` hook on `Bash|Grep` and `Read|Glob`. Claude cannot grep or read raw files without the hook firing and pushing it to the graph first. The `hook-guard` binary returns a directive that names the tool to run.
+- *Does the wiki need a CLAUDE.md entry?* Yes. The wiki has both: a hook (the nudge you just wired in step 3) and the CLAUDE.md pointer from step 1, plus the `SCHEMA.md` contract you wrote in Step 5. But the hook is a simple nudge, not a guard. It injects a suggestion; it does not validate staleness or tailor the message to the file being read.
 
-**You know this worked when:** after the relaunch, you ask a codebase question and Claude runs a `uvx --from graphifyy graphify query` (or `explain` / `path`) call BEFORE reading any source file, and you can state which artifact is enforced by a hook versus adopted by instruction. Seeing the MANDATORY text is a bonus, not the signal; the call ordering is the signal.
+**You know this worked when:** after the relaunch, you ask a codebase question and Claude runs a `uvx --from graphifyy graphify query` (or `explain` / `path`) call BEFORE reading any source file, and you can state the difference between a hook that guards (graphify's `hook-guard`) versus a hook that nudges (the wiki hook). Seeing the MANDATORY text is a bonus, not the signal; the call ordering is the signal.
 
 ---
 
@@ -359,15 +365,15 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
 2. **Confirm the starting state matches Run 1.** `git status` should show `server/` and `client/` clean (the code you discarded to in Step 1). `graphify-out/` and `wiki/` should be present; the app code should not be modified.
 
-3. **Keep the work in this session, exactly as you did in Step 1.** Decline any offer to delegate to a subagent. Beyond keeping the two runs comparable, there is a lesson here worth carrying out of the lab: a subagent is a fresh context, so the graph and wiki orientation you wired into this session does not follow it. If you wire a real repo, the `CLAUDE.md` pointer has to reach subagent prompts too — graphify's own hook notice says as much.
+3. **Keep the work in this session, exactly as you did in Step 1.** Decline any offer to delegate to a subagent. Beyond keeping the two runs comparable, there is a lesson here worth carrying out of the lab: a subagent is a fresh context, so the graph and wiki orientation you wired into this session does not follow it. If you wire a real repo, the `CLAUDE.md` pointer has to reach subagent prompts too (graphify's own hook notice says as much).
 
-4. **Hand Claude the SAME spec** (`specs/days-of-cover.md`). Record the same proxies you recorded in Step 1: files read, tool calls, whether it grepped, how it oriented itself. Take a `/context` reading before and after. The hook should visibly push Claude toward `uvx --from graphifyy graphify query` before it greps.
+4. **Hand Claude the SAME spec** (`specs/days-of-cover.md`). Notice how Claude orients itself. Take a `/context` reading before and after. The hook should visibly push Claude toward `uvx --from graphifyy graphify query` before it greps.
 
 5. When the implementation completes, ask Claude the same retrospective question you asked in Step 1:
 
-   > Before I look at the result: report on how you worked. How many tool calls did you make in total, and how many came before your first edit to a source file? Which distinct files did you read, and which of those did you read before your first edit? Did you search for the same thing more than once? In one sentence, how did you work out where the shared inventory filter helper lives? What did you assume about the time period the demand figure covers, and where did that assumption come from? And did you use graphify or the wiki at any point — be specific about commands run and files opened, and say plainly if you skipped either.
+   > Before I look at the result: report on how you worked. How many tool calls did you make in total, and how many came before your first edit to a source file? Which distinct files did you read, and which of those did you read before your first edit? Did you search for the same thing more than once? In one sentence, how did you work out where the shared inventory filter helper lives? What did you assume about the time period the demand figure covers, and where did that assumption come from? And did you use graphify or the wiki at any point: be specific about commands run and files opened, and say plainly if you skipped either.
 
-   Record the same proxies as Run 1. Compare the before-first-edit row first — it is the only row a structural map can move.
+   Record the same proxies as Run 1. Compare the before-first-edit row first: it is the only row a structural map can move.
 
 6. **Compare the graph against grep on the structural question.** Ask Claude: *"Which endpoints break if I change the signature of the shared inventory filter helper?"* Note how many calls it took and whether the hook pushed it to the graph first.
 
@@ -388,7 +394,7 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
    Watch the clock and the output: a few seconds, AST-only, zero API tokens. That is the point of running it here. Staleness is a solvable problem rather than a reason to distrust the graph, and this is the CLAUDE.md rule from Step 6 made concrete.
 
-   Note the ordering, because it matters more than it looks. You built the graph in Step 2 on clean code and nothing modified code until this run, so the graph was accurate for the whole measured run — no refresh was needed beforehand. If you had implemented something before measuring, the graph would have been describing code that no longer existed, and the hook would have downgraded from MANDATORY to advisory ("reading the file directly is fine"). Refresh before you measure, not just after.
+   Note the ordering, because it matters more than it looks. You built the graph in Step 2 on clean code and nothing modified code until this run, so the graph was accurate for the whole measured run. No refresh was needed beforehand. If you had implemented something before measuring, the graph would have been describing code that no longer existed, and the hook would have downgraded from MANDATORY to advisory ("reading the file directly is fine"). Refresh before you measure, not just after.
 
 8. **Write the comparison.** What changed in HOW Claude oriented itself between the cold run and the wired run, not just token counts. This comparison is the deliverable and feeds your share-back.
 
@@ -429,7 +435,7 @@ Review your transcript and the retrospective answers. Three outcomes, and each t
 
 - **Consulted and useful.** The wiki answered something the graph could not (the HTTP hop, the SKU relationship, the period trap, a naming mismatch) and Claude acted on it. The pattern works at this scale. Note which specific fact earned its keep.
 - **Consulted and not useful.** Claude opened the article and went to the source anyway. That is a lesson about **what belongs in an article**, which is more useful than a lesson about tools. Your article recorded things that were already obvious from the code, or omitted the one thing that was not. Name what it should have said.
-- **Not consulted at all.** Topical relevance cannot explain this one, so what is left is the enforcement gap: the graph fires a hook on every raw read, the wiki is a paragraph in `CLAUDE.md`. Prose loses to mechanism. That is the asymmetry you named in Step 6, showing up in behavior.
+- **Not consulted at all.** The wiki hook fired on every read (you wired it in Step 6), yet Claude went to source anyway. A nudge injects a suggestion; graphify's `hook-guard` returns a directive that names the tool to run. The lesson is the difference between a hook that fires and a hook that knows something. That is the gap you saw in Step 6.
 
 ### Run graphify's benchmark and read it honestly
 
