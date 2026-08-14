@@ -348,7 +348,7 @@ Two mechanisms, one per artifact:
 
    **The notice itself may not be visible to you.** The hook returns it as `additionalContext`, which Claude receives but the transcript does not necessarily render. So do not wait to see the MANDATORY text. **The observable signal is Claude running a `graphify query` / `explain` / `path` call BEFORE it reads a source file.** That ordering is the proof the hook fired and was obeyed.
 
-Now say the mechanism in your own words. **Both artifacts have hooks now, but they're different kinds.** Two questions the owner asked, answered directly:
+Now say the mechanism in your own words. You started this step with an asymmetry: the graph was enforced by a hook, the wiki was adopted by instruction. You just closed it, so **both artifacts have hooks now, and they are different kinds of hook.** That distinction is the thing worth carrying out of this lab. Two questions it answers directly:
 
 - *Is graphify a hook?* Yes. It is a `PreToolUse` hook on `Bash|Grep` and `Read|Glob`. Claude cannot grep or read raw files without the hook firing and pushing it to the graph first. The `hook-guard` binary returns a directive that names the tool to run.
 - *Does the wiki need a CLAUDE.md entry?* Yes. The wiki has both: a hook (the nudge you just wired in step 3) and the CLAUDE.md pointer from step 1, plus the `SCHEMA.md` contract you wrote in Step 5. But the hook is a simple nudge, not a guard. It injects a suggestion; it does not validate staleness or tailor the message to the file being read.
