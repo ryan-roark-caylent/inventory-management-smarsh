@@ -349,9 +349,9 @@ Run graphify's benchmark and read the methodology it prints:
 uvx --from graphifyy graphify benchmark
 ```
 
-Write why the reported reduction (~20x) is a strawman. The baseline is stuffing the entire repo corpus into context, which no competent agent does, and which is not what your cold run in Step 1 did either. You now hold your own before/after from Steps 1 and 8. Contrast the two: the vendor's number compares against a baseline nobody uses; your number compares two real runs of the same spec on the same repo.
+Read the methodology it prints and notice the baseline: stuffing the entire repo corpus into context. No competent agent does that, and it is not what your cold run did either. So the ~20x is measured against something nobody would do. Your own before/after from Steps 1 and 7 compares two real runs of the same spec on the same repo — a baseline that exists.
 
-State the honest alternative: Cloud Capture measured roughly 30% fewer tokens on a deliberately simple task (up to ~50% in some spec-kit phases), with their stated caveats, and found the vendor's 70% claim "didn't stand true." No first-party token-reduction percentage exists in graphify's own material. Credit the ~30% measurement to Cloud Capture, not to graphify. Hold your own result to the same standard: if your wired run did not beat your cold run, that is a valid result worth reporting.
+The honest alternative: Cloud Capture measured roughly 30% fewer tokens on a deliberately simple task (up to ~50% in some spec-kit phases), with their stated caveats, and found the vendor's 70% claim "didn't stand true." No first-party token-reduction percentage exists in graphify's own material, so the ~30% belongs to Cloud Capture rather than to graphify. Hold your own result to that same standard: if your wired run did not beat your cold run, that is a valid result and it goes into your exit note as-is.
 
 ### Before you judge your own result: check which layers actually got used
 
@@ -377,7 +377,7 @@ Two honest caveats on the numbers themselves, so you read your own result correc
 - **The graph can point at the right files and still not save a read.** A structural map tells you *where* to look. If you then read the file anyway to confirm line-level detail, the graph added a step rather than replacing one. That is a real and common outcome; it means the graph's value is orientation, not substitution.
 - **This repo is 52 files.** graphify's own honest benchmark measured coverage gains on a codebase near a million lines. A demo repo caps how much orientation there is to save, so a thin delta here is not evidence the approach fails at scale — and a large delta here would not prove it succeeds.
 
-Write one or two sentences naming which of the three outcomes you got and why. That sentence is worth more than the tool-call delta, because it tells you what would have to change for these layers to earn their place in a repo you own.
+Decide which of the three outcomes you got. That judgment is worth more than the tool-call delta, because it tells you what would have to change for these layers to earn their place in a repo you own — and it is the judgment call your exit note asks for at the end.
 
 ### Now check what skipping the wiki cost you
 
@@ -393,11 +393,11 @@ Sit with that for a second, because it is the whole argument for a knowledge lay
 - **Reading the source might not have caught it either.** The model definition says `period: str`. You would have had to open the fixture data and notice the values disagree with each other.
 - **The wiki caught it**, because a human noticed it once and wrote it down where the next agent would read it. That is the entire value proposition: not navigation, but *the accumulated knowledge that the code does not state about itself.*
 
-Note in your comparison whether you shipped the 30-day assumption, and whether anything in your run would have stopped you. Do not fix it. The bug is the lesson.
+Check whether you shipped the 30-day assumption, and whether anything in your run would have stopped you. Do not fix it. The bug is the lesson, and it is the sharpest line available for your exit note.
 
 This also sharpens the earlier question about what belongs in a wiki article. A note that repeats what the code plainly says earns nothing. A note recording a place where the data contradicts the obvious reading pays for the whole file.
 
-**You know this worked when:** your note names the strawman baseline, contrasts it with your own two-run measurement, attributes the ~30% to Cloud Capture with caveats, and states whether each layer was used and why.
+**You know this worked when:** you can say why the ~20x compares against a baseline nobody uses, why the ~30% belongs to Cloud Capture rather than graphify, and whether each layer was actually used in your run. Nothing to write down here — this reasoning goes into your exit note at the end.
 
 ---
 
@@ -450,8 +450,8 @@ Both should return `0` and `clean` respectively.
 Write an async exit note (Slack thread to the peer channel, or a private doc) with four things:
 
 1. Your own `extract` summary line and one god-node you found non-obvious.
-2. Your cold-vs-wired comparison from Steps 1 and 8: what changed in how Claude oriented itself, reported honestly (including a null or negative result if that is what you saw).
-3. Which artifact you chose for each of the two Step-10 questions, with one sentence defending each.
+2. Your cold-vs-wired comparison from Steps 1 and 7: what changed in how Claude oriented itself, reported honestly (including a null or negative result if that is what you saw).
+3. Which artifact you chose for each of the two Step-9 questions, with one sentence defending each.
 4. One judgment call you made (for example, choosing not to run `graphify label`).
 
 If sharing to a channel tracked for LMS evidence, include these synthesized competency IDs (assigned for this extra lab, mapped from the existing LMS competency framework rather than inherited from the original 9-lab mapping):
