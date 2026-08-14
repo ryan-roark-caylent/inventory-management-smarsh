@@ -546,7 +546,7 @@ You're done when all nine are true:
 
 ## Extra credit (not required)
 
-1. **Run `graphify label` (requires an LLM backend).** If you have an AWS Bedrock configuration (boto3 + credentials) or an `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` env var, run:
+1. **Run the `label` subcommand (requires an LLM backend).** If you have an AWS Bedrock configuration (boto3 + credentials) or an `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` env var, run:
 
    ```
    uvx --from graphifyy graphify label
