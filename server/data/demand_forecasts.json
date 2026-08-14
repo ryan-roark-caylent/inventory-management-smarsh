@@ -15,7 +15,7 @@
     "current_demand": 150,
     "forecasted_demand": 152,
     "trend": "stable",
-    "period": "Next 30 days"
+    "period": "Next 3 months"
   },
   {
     "id": "3",
@@ -33,7 +33,7 @@
     "current_demand": 50,
     "forecasted_demand": 35,
     "trend": "decreasing",
-    "period": "Next 30 days"
+    "period": "Q1 2025"
   },
   {
     "id": "5",
@@ -51,7 +51,7 @@
     "current_demand": 120,
     "forecasted_demand": 121,
     "trend": "stable",
-    "period": "Next 30 days"
+    "period": "90 days"
   },
   {
     "id": "7",
@@ -69,7 +69,7 @@
     "current_demand": 180,
     "forecasted_demand": 182,
     "trend": "stable",
-    "period": "Next 30 days"
+    "period": "Next 60 days"
   },
   {
     "id": "9",
@@ -78,6 +78,6 @@
     "current_demand": 95,
     "forecasted_demand": 96,
     "trend": "stable",
-    "period": "Next 30 days"
+    "period": "Next 3 months"
   }
 ]
