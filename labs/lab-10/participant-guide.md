@@ -2,11 +2,13 @@
 
 **Extra lab (post-programme, async) | AI Teammate | Depends on: Labs 1-9**
 
-Cloud Capture, a Smarsh team running spec-kit on brownfield repos, hit a hard limit: their codebases "have existed forever," and spec-kit assumes greenfield. To give agents the context they needed without stuffing the whole corpus into context, they built two artifacts: a deterministic code graph and a wiki generated from code. Their reasoning: the code is true, comments may lie, docs lie more, the original spec lies most. "The further you get away from the code, the more lies you accumulate." On a deliberately simple task they measured roughly 30% fewer tokens (up to ~50% in some spec-kit phases), and their reviewers noted slightly better code quality with the graph, which they flagged as unvalidated and accidental. Less context hunting leaves more of the agent's attention on the actual task.
+Cloud Capture, a Smarsh team running spec-kit on brownfield repos, hit a hard limit: their codebases "have existed forever," and spec-kit assumes greenfield. To give agents the context they needed without stuffing the whole corpus into context, they built two knowledge layers: a deterministic code graph and a wiki generated from code. Their reasoning: the code is true, comments may lie, docs lie more, the original spec lies most. "The further you get away from the code, the more lies you accumulate."
 
-graphify and the code-derived LLM wiki are the tools Cloud Capture chose. Other tools cover the same ground: other AST and code-intelligence tools, embedding/vector RAG over a repo, hand-maintained knowledge bases, and IDE-native indexes. This lab does not evaluate the tool landscape and is not a procurement recommendation. The transferable outcome is the judgment these tools embody, not the specific binaries. A cheap, deterministic structural map lets an agent navigate instead of hunt. A maintained knowledge layer records what the code cannot state about itself: runtime behavior, conventions, and the reasons behind decisions. The real skill is knowing where each adds value on a repo you own.
+At this repo size (53 files) these knowledge layers cost extra steps, return slightly smaller context, and stop you shipping a wrong answer. The step overhead is roughly fixed. The token saving and the correctness benefit both grow with the size of the codebase. That is why Cloud Capture runs them across 40-50 services and why you would think twice on a small one. On a deliberately simple task they measured roughly 30% fewer tokens (up to ~50% in some spec-kit phases), and their reviewers noted slightly better code quality with the graph, which they flagged as unvalidated and accidental. Less context hunting leaves more of the agent's attention on the actual task.
 
-You'll build both artifacts on the inventory-management fork, wire them into Claude, and prove the difference with the same spec run twice: once cold, once wired. Then you write down which artifact answers which question and why.
+graphify and the code-derived LLM wiki are the knowledge layers Cloud Capture chose. Other tools cover the same ground: other AST and code-intelligence tools, embedding/vector RAG over a repo, hand-maintained knowledge bases, and IDE-native indexes. This lab does not evaluate the tool landscape and is not a procurement recommendation. The transferable outcome is the judgment these knowledge layers embody, not the specific binaries. A cheap, deterministic structural map lets an agent navigate instead of hunt. A maintained knowledge layer records what the code cannot state about itself: runtime behavior, conventions, and the reasons behind decisions. The real skill is knowing where each adds value on a repo you own.
+
+You'll build both knowledge layers on the inventory-management fork, wire them into Claude, and prove the difference with the same spec run twice: once cold, once wired. Then you write down which knowledge layer answers which question and why.
 
 ---
 
@@ -14,7 +16,7 @@ You'll build both artifacts on the inventory-management fork, wire them into Cla
 
 Step 4 is the moment. You'll ask graphify to trace the path from the Vue filter composable to the FastAPI function that serves inventory data, and get back "No path found." This is correct, not broken. The graph models static imports and calls. The HTTP boundary between client and server is invisible to the AST by design. Once that lands, the wiki's reason to exist is obvious: it records the runtime facts the graph structurally cannot see. The defend step in Step 9 becomes easy instead of arbitrary.
 
-**A note on scale.** This is a 53-file repo and `CLAUDE.md` already supplies orientation, so **expect a thin token delta or none**. graphify's gains were measured near a million lines, and Cloud Capture runs 40-50 microservices. The real evidence in this lab is the correctness scorecard and the demand-forecast period trap, not a token count. A lab that manufactured a token win would be lying to you.
+**A note on scale.** This is a 53-file repo and `CLAUDE.md` already supplies orientation, so **expect a thin token delta or none, and possibly more tool calls**. The two axes split: the graph and wiki produce more, smaller, targeted reads that replace fewer, larger whole-file reads. A scoped `explain` result is cheaper than the file it points at, but querying and then reading the file anyway is net neutral or worse on step count. graphify's gains were measured near a million lines, and Cloud Capture runs 40-50 microservices. The real evidence in this lab is the correctness scorecard and the demand-forecast period trap, not a token count. A lab that manufactured a token win would be lying to you.
 
 ---
 
@@ -231,7 +233,7 @@ uvx --from graphifyy graphify path "useFilters()" "get_inventory()"
 
 ## Step 5 — Build the LLM wiki (14 min)
 
-Build the second artifact: a three-layer LLM wiki (not to be confused with Lab 3's three-layer CLAUDE.md, a different idea using the same word; here the three layers are immutable raw sources, LLM-written articles, and a schema-maintainer file). This is Cloud Capture's adaptation of Karpathy's curated-document pattern applied to source code because docs rot.
+Build the second knowledge layer: a three-layer LLM wiki (not to be confused with Lab 3's three-layer CLAUDE.md, a different idea using the same word; here the three layers are immutable raw sources, LLM-written articles, and a schema-maintainer file). This is Cloud Capture's adaptation of Karpathy's curated-document pattern applied to source code because docs rot.
 
 The pattern is: **you read it, the LLM writes it.** So Claude creates and maintains the files. Your job is to set the rules and verify the discipline held. Directing and reviewing is the work; transcription is not.
 
@@ -262,11 +264,11 @@ Shapes to fill in, not answers to copy: thin skeletons for all four files are pl
 
 ## Step 6 — Wire the graph into Claude (13 min)
 
-Until now you have run graphify by hand in the terminal. Claude does not know the graph exists. This step wires both artifacts into the project so Claude reaches for them on its own.
+Until now you have run graphify by hand in the terminal. Claude does not know the graph exists. This step wires both knowledge layers into the project so Claude reaches for them on its own.
 
 You do this by hand, at PROJECT scope, rather than running `graphify install`, for the reason given in Step 0: the installer writes user-global state and hardcodes an absolute path to the graphify binary that would not work on your machine. Wiring it yourself also means you see the config instead of an installer hiding it.
 
-Two mechanisms, one per artifact:
+Two mechanisms, one per knowledge layer:
 
 1. **Tell Claude about the graph and wiki.** Append this block to the project CLAUDE.md at the repo root (`./CLAUDE.md`; create it if there is none):
 
@@ -358,7 +360,7 @@ Two mechanisms, one per artifact:
 
    **The notice itself may not be visible to you.** The hook returns it as `additionalContext`, which Claude receives but the transcript does not necessarily render. So do not wait to see the MANDATORY text. **The observable signal is Claude running a `graphify query` / `explain` / `path` call BEFORE it reads a source file.** That ordering is the proof the hook fired and was obeyed.
 
-Now say the mechanism in your own words. You started this step with an asymmetry: the graph was enforced by a hook, the wiki was adopted by instruction. You just closed it, so **both artifacts have hooks now, and they are different kinds of hook.** That distinction is the thing worth carrying out of this lab. Two questions it answers directly:
+Now say the mechanism in your own words. You started this step with an asymmetry: the graph was enforced by a hook, the wiki was adopted by instruction. You just closed it, so **both knowledge layers have hooks now, and they are different kinds of hook.** That distinction is the thing worth carrying out of this lab. Two questions it answers directly:
 
 - *Is graphify a hook?* Yes. It is a `PreToolUse` hook on `Bash|Grep` and `Read|Glob`. Claude cannot grep or read raw files without the hook firing and pushing it to the graph first. The `hook-guard` binary returns a directive that names the tool to run.
 - *Does the wiki need a CLAUDE.md entry?* Yes. The wiki has both: a hook (the nudge you just wired in step 3) and the CLAUDE.md pointer from step 1, plus the `SCHEMA.md` contract you wrote in Step 5. But the hook is a simple nudge, not a guard. It injects a suggestion; it does not validate staleness or tailor the message to the file being read.
@@ -427,11 +429,15 @@ Use your retrospective answers from Steps 1 and 7 to score each run out of 6:
 | F1 | Inventory filtering funnels through one shared helper, `apply_filters()`, used by three endpoints (`get_inventory`, `get_orders`, `get_dashboard_summary`). | source or graph |
 | F2 | The dashboard filters inventory before counting, and already computes `low_stock_items` in the shape `at_risk_items` needs. | source |
 | F3 | Client and server are joined by an HTTP call, not a static import: no call path exists between `useFilters()` and `get_inventory()`. | wiki (the graph proves the absence) |
-| F4 | The client's internal `selectedPeriod` becomes the API's `month` parameter. The names differ across the seam. | wiki |
+| F4 | Demand forecasts match inventory items by SKU, and most inventory items have no matching forecast, so `days_of_cover` must be nullable. | wiki or source |
 | F5 | `period` is free text in several shapes, so "a 30-day period" does not hold for every record. | wiki |
 | F6 | A new column label needs a key in every locale file including `ja.js`, rendered through `t()` from `useI18n()`. | source |
 
-Record which facts each run captured before implementing. The cold run has no access to the wiki, so F3, F4, and F5 are structurally unreachable there unless Claude opened the fixture data and client code on its own.
+Record which facts each run captured before implementing. Why F5 (the period trap) is reachable only through the wiki:
+
+- **The graph cannot catch it.** `period: str` is structurally valid. An AST has no opinion on whether a string field contains consistent or varied values.
+- **The cold run can detect it but not override the spec.** A cold run that reads the varied fixture data notices the inconsistency, but when the spec assertively states "a demand figure covering a 30-day period," detection alone is not enough. Authority matters.
+- **The wiki wins by naming the consequence.** A knowledge note that merely describes the inconsistency loses to an assertive spec. One that names the consequence ("a fixed-30-day divisor would be wrong for most records") can outrank the spec. That is the mechanism: the wiki supplied a warning with weight, not a description.
 
 ### Compare the two implementations
 
@@ -468,16 +474,16 @@ Two caveats so you read your own result correctly:
 
 ---
 
-## Step 9 — Defend which artifact answers which question (5 min)
+## Step 9 — Defend which knowledge layer answers which question (5 min)
 
 Pose two questions of different shapes:
 
 - "What breaks if I change `apply_filters()`?" (structural, static — the graph's territory, and note your new spec work made this a live concern across two endpoints)
 - "Why does the app's locale persist across page reloads?" (runtime behavior the graph cannot see — the wiki's territory)
 
-Write `KB-DECISION.md` at the repo root. For each question, name which artifact you reached for and one sentence defending why.
+Write `KB-DECISION.md` at the repo root. For each question, name which knowledge layer you reached for and one sentence defending why.
 
-**You know this worked when:** `KB-DECISION.md` records one artifact choice per question with a reason. The structural question points at the graph (`affected "apply_filters"` lists callers in one command, and now spans both endpoints). The runtime question points at the wiki (locale persistence is `localStorage`, which the graph never sees). The solution branch has a reference exemplar once you have written your own.
+**You know this worked when:** `KB-DECISION.md` records one knowledge layer choice per question with a reason. The structural question points at the graph (`affected "apply_filters"` lists callers in one command, and now spans both endpoints). The runtime question points at the wiki (locale persistence is `localStorage`, which the graph never sees). The solution branch has a reference exemplar once you have written your own.
 
 ---
 
@@ -498,17 +504,17 @@ Write an async exit note (Slack thread to the peer channel, or a private doc) wi
 
 1. Your own `extract` summary line and one god-node you found non-obvious.
 2. Your cold-vs-wired comparison from Steps 1 and 7: what changed in how Claude oriented itself, reported honestly (including a null or negative result if that is what you saw).
-3. Which artifact you chose for each of the two Step-9 questions, with one sentence defending each.
+3. Which knowledge layer you chose for each of the two Step-9 questions, with one sentence defending each.
 4. One judgment call you made (for example, choosing not to run `graphify label`).
 
 If sharing to a channel tracked for LMS evidence, include these synthesized competency IDs (assigned for this extra lab, mapped from the existing LMS competency framework rather than inherited from the original 9-lab mapping):
 
 - **2.6** CLI workflows — the graphify command surface runs entirely via `uvx`
-- **1.3** Context and spec management — choosing which artifact answers which question
+- **1.3** Context and spec management — choosing which knowledge layer answers which question
 - **4.3** Knowledge sharing — establishing a repo knowledge base others read
 - **4.5** AI workflow optimization — token efficiency and the free-graph / paid-navigation tradeoff
 
-**You know this worked when:** the two verification commands return clean, and your exit note names one non-obvious god-node, your cold-vs-wired comparison, your two artifact choices, and one judgment call.
+**You know this worked when:** the two verification commands return clean, and your exit note names one non-obvious god-node, your cold-vs-wired comparison, your two knowledge layer choices, and one judgment call.
 
 ---
 
@@ -547,9 +553,9 @@ You're done when all nine are true:
 3. You ran `path "useFilters()" "get_inventory()"` and can explain "No path found" in one sentence.
 4. `graphify-out/wiki/` exists and you saw the `Community_N` naming.
 5. `wiki/` holds `SCHEMA.md` (rules you authored), `index.md`, an append-only `log.md`, and at least one topic-named article, with log lines appended, none rewritten.
-6. You wired both artifacts into Claude: the graphify section in `./CLAUDE.md`, the PreToolUse hooks in `.claude/settings.json`, relaunched, and verified the hook fires.
+6. You wired both knowledge layers into Claude: the graphify section in `./CLAUDE.md`, the PreToolUse hooks in `.claude/settings.json`, relaunched, and verified the hook fires.
 7. You ran the same spec wired (Step 7) in a fresh session and recorded the cold-vs-wired comparison.
-8. `KB-DECISION.md` records a graph choice and a wiki choice with reasons.
+8. `KB-DECISION.md` records which knowledge layer answered each question, with reasons.
 9. Step 10 teardown confirms no graphify global state was written.
 
 ---
