@@ -389,14 +389,26 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
 6. **Compare the graph against grep on the structural question.** Ask Claude: *"Which endpoints break if I change the signature of the shared inventory filter helper?"* Note how many calls it took and whether the hook pushed it to the graph first.
 
-   Then answer it yourself, both ways:
+   **Expect 0 tool calls.** You just implemented against `server/main.py`, so the answer is already in context and Claude answers from memory. Note that, because it is the first lesson here: a question you can answer for free is not a test of anything. Both routes below only matter on a codebase you have not just finished reading.
+
+   Now answer it yourself, three ways, and compare:
 
    ```
    uvx --from graphifyy graphify affected "apply_filters()"
    grep -rn "apply_filters" server/
    ```
 
-   Record the honest finding: **on a 53-file repo with a single server module, one ripgrep wins.** Then explain the flip. Grep is a complete reverse-dependency engine only when you already know which directory to search and every call site spells the symbol the same way. It degrades on aliased imports, re-export chains, wrapper indirection, and a name that means two different things in two languages. Those are the normal conditions in 40-50 microservices, and they are why the ratio inverts at Cloud Capture's scale and not here.
+   and then, in Claude, ask it to search for `apply_filters` using its own Grep tool.
+
+   Record what each one cost and whether it was complete:
+
+   - **`affected`** returns the resolved set (`get_inventory`, `get_orders`, `get_dashboard_summary`) in one call, with no false positives. It answers by resolving symbols.
+   - **Shell `grep -rn` over `server/`** answers by matching strings, and on this repo that is a mess. `server/.venv/` is on disk, and **pygments ships its own unrelated `apply_filters` function**, so you get a real semantic false positive plus binary `.pyc` matches plus the `graphify-out/` cache. In the reference run this produced 78KB of output and had to be truncated to a file. To get a clean answer you have to already know it lives in `server/main.py`, which is the orientation problem you were trying to solve.
+   - **Claude's Grep tool** uses ripgrep and honours `.gitignore`, so it skips `.venv/` and `graphify-out/` and should come back clean in one call.
+
+   The honest finding is not "the graph wins" or "grep wins," it is **what each one is answering.** The graph resolves symbols; text search matches strings. They agree until a name means two different things, and then only the graph is right. You did not need 40-50 microservices to hit that: one virtualenv on disk was enough. Aliased imports, re-export chains, and wrapper indirection do the same thing, and they are the normal condition at Cloud Capture's scale.
+
+   Note also which tool you reached for. A well-configured search that respects `.gitignore` is a genuinely good answer here, and it is cheaper than the graph. The graph's edge is resolution, not speed.
 
 7. **See how cheap maintenance is.** Your run just modified code, so the graph no longer matches the source. Refresh it:
 
