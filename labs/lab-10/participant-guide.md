@@ -311,7 +311,9 @@ Two mechanisms, one per artifact:
    }
    ```
 
-3. **Give the wiki a hook too.** The graph is enforced (step 2 above), but the wiki is only prose in `CLAUDE.md`. Close that gap. Add a third `PreToolUse` entry to `.claude/settings.json`, alongside the two graphify hooks above. The file should now contain:
+3. **Give the wiki a hook too.** The graph is enforced (step 2 above), but the wiki is only prose in `CLAUDE.md`. Close that gap by adding a third `PreToolUse` entry alongside the two graphify hooks.
+
+   > **REPLACE the file with the block below. Do not paste it after the block above.** This is the complete final `.claude/settings.json`, the same two graphify hooks plus one new entry, **three entries in total.** Appending it to the previous block would leave two top-level JSON objects in one file, which is invalid JSON, and Claude Code disables every hook without telling you. That is rescue path (f).
 
    ```json
    {
@@ -333,6 +335,14 @@ Two mechanisms, one per artifact:
      }
    }
    ```
+
+   **Check the file before you relaunch.** A malformed `settings.json` disables every hook silently, and you would spend the rest of the lab wondering why nothing fires:
+
+   ```
+   python -c "import json;h=json.load(open('.claude/settings.json'))['hooks']['PreToolUse'];print(len(h),'entries');[print(' ',e['matcher']) for e in h]"
+   ```
+
+   Expect `3 entries` and the matchers `Bash|Grep`, `Read|Glob`, `Read|Grep|Glob`. Any other count means you appended when you should have replaced. A `JSONDecodeError` means the file is invalid and no hook is active.
 
    The script `.claude/hooks/pre-tool-use-wiki.sh` already exists on this branch. It checks for `wiki/index.md` and nudges Claude to consult it before reading source. Notice what you just wired and what you did not. There is no wiki equivalent of graphify's `hook-guard` binary, so nothing here validates staleness or tailors the message to the file being read. You wired a nudge, not a guard. That gap between "a hook fires" and "a hook knows something" is worth understanding before you decide what your own repo needs.
 
