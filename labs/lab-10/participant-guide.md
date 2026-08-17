@@ -14,7 +14,7 @@ You'll build both artifacts on the inventory-management fork, wire them into Cla
 
 Step 4 is the moment. You'll ask graphify to trace the path from the Vue filter composable to the FastAPI function that serves inventory data, and get back "No path found." This is correct, not broken. The graph models static imports and calls. The HTTP boundary between client and server is invisible to the AST by design. Once that lands, the wiki's reason to exist is obvious: it records the runtime facts the graph structurally cannot see. The defend step in Step 9 becomes easy instead of arbitrary.
 
-**A note on scale.** This is a 52-file repo and `CLAUDE.md` already supplies orientation, so **expect a thin token delta or none**. graphify's gains were measured near a million lines, and Cloud Capture runs 40-50 microservices. The real evidence in this lab is the correctness scorecard and the demand-forecast period trap, not a token count. A lab that manufactured a token win would be lying to you.
+**A note on scale.** This is a 53-file repo and `CLAUDE.md` already supplies orientation, so **expect a thin token delta or none**. graphify's gains were measured near a million lines, and Cloud Capture runs 40-50 microservices. The real evidence in this lab is the correctness scorecard and the demand-forecast period trap, not a token count. A lab that manufactured a token win would be lying to you.
 
 ---
 
@@ -394,7 +394,7 @@ Now measure the difference. Same spec, same starting state, but this time the gr
    grep -rn "apply_filters" server/
    ```
 
-   Record the honest finding: **on a 52-file repo with a single server module, one ripgrep wins.** Then explain the flip. Grep is a complete reverse-dependency engine only when you already know which directory to search and every call site spells the symbol the same way. It degrades on aliased imports, re-export chains, wrapper indirection, and a name that means two different things in two languages. Those are the normal conditions in 40-50 microservices, and they are why the ratio inverts at Cloud Capture's scale and not here.
+   Record the honest finding: **on a 53-file repo with a single server module, one ripgrep wins.** Then explain the flip. Grep is a complete reverse-dependency engine only when you already know which directory to search and every call site spells the symbol the same way. It degrades on aliased imports, re-export chains, wrapper indirection, and a name that means two different things in two languages. Those are the normal conditions in 40-50 microservices, and they are why the ratio inverts at Cloud Capture's scale and not here.
 
 7. **See how cheap maintenance is.** Your run just modified code, so the graph no longer matches the source. Refresh it:
 
@@ -462,7 +462,7 @@ Cloud Capture measured roughly 30% fewer tokens on a deliberately simple task (u
 Two caveats so you read your own result correctly:
 
 - **The graph can point at the right files and still not save a read.** A structural map tells you *where* to look. If you then read the file anyway to confirm line-level detail, the graph added a step rather than replacing one. That is a real and common outcome; it means the graph's value is orientation, not substitution.
-- **This repo is 52 files.** graphify's own honest benchmark measured coverage gains on a codebase near a million lines. A demo repo caps how much orientation there is to save, so a thin delta here is not evidence the approach fails at scale, and a large delta here would not prove it succeeds.
+- **This repo is 53 files.** graphify's own honest benchmark measured coverage gains on a codebase near a million lines. A demo repo caps how much orientation there is to save, so a thin delta here is not evidence the approach fails at scale, and a large delta here would not prove it succeeds.
 
 **You know this worked when:** you have scored both runs out of 6 on the key-fact table, compared the two implementations' `days_of_cover` values for non-30-day forecasts, and identified which of the three consultation outcomes you got. This reasoning feeds your exit note.
 
@@ -517,11 +517,11 @@ If sharing to a channel tracked for LMS evidence, include these synthesized comp
 These are reference values from a verified run. **Your numbers may differ by a few** — the repo drifts. Expect a summary line similar to:
 
 ```
-[graphify extract] found 52 code, 0 docs, 0 papers, 0 images
-[graphify extract] wrote graph.json: 312 nodes, 416 edges, 28 communities
+[graphify extract] found 53 code, 0 docs, 0 papers, 0 images
+[graphify extract] wrote graph.json: 314 nodes, 417 edges, 28 communities
 ```
 
-Reference: 52 code files, 312 nodes, 416 edges, 28 communities.
+Reference: 53 code files, 314 nodes, 417 edges, 28 communities.
 
 For Step 5: `export wiki` produces 38 articles, of which 28 are named `Community_0.md` through `Community_27.md`, plus 10 auto-named god-node articles.
 
@@ -531,7 +531,7 @@ For Step 8, the `benchmark` reference output:
 
 ```
 Corpus:          ~20,800 tokens (naive)
-Graph:           312 nodes, 416 edges
+Graph:           314 nodes, 417 edges
 Avg query cost:  ~1,035 tokens
 Reduction:       ~20x fewer tokens per query
 ```
