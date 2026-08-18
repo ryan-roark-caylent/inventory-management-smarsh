@@ -389,26 +389,32 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
 6. **Compare the graph against grep on the structural question.** Ask Claude: *"Which endpoints break if I change the signature of the shared inventory filter helper?"* Note how many calls it took and whether the hook pushed it to the graph first.
 
-   **Expect 0 tool calls.** You just implemented against `server/main.py`, so the answer is already in context and Claude answers from memory. Note that, because it is the first lesson here: a question you can answer for free is not a test of anything. Both routes below only matter on a codebase you have not just finished reading.
+   **First, run `/clear`.** This matters more than it looks. You have just implemented against `server/main.py`, so its contents are already in your context and Claude will answer from memory in zero tool calls. That measures nothing. Clear the context and the question becomes a real one.
 
-   Now answer it yourself, three ways, and compare:
+   Then ask it, and watch which files it opens. In the reference run Claude used **three tool calls and never opened `server/main.py`**:
+
+   1. `wiki/index.md`, following the precedence rule you wrote in Step 6
+   2. `wiki/filter-system.md`, which already carried the answer and the location
+   3. `uvx --from graphifyy graphify explain "apply_filters"`, to confirm the callers deterministically
+
+   It then said it deliberately skipped the source because the wiki and the graph already agreed. **That is the only place in this lab where the two layers replace reading source rather than adding to it**, and it is worth sitting with, because it explains the result you just measured in Steps 1 and 7:
+
+   > These layers are **additive when you are editing** (you still have to open every file you change) and **substitutive when you are asking** (a question can be answered without opening the source at all). Your implementation run cost more tool calls. This question cost three and zero source reads.
+
+   Notice too that each layer did a different job on one question. The wiki gave the location and the answer, the graph confirmed the caller set with line numbers, and the wiki volunteered something the graph structurally cannot see: the client's filter names do not match the server's parameters, so a rename has to be chased into `useFilters.js` and `api.js` as well. Neither layer alone was sufficient.
+
+   **Now compare against text search.** Run:
 
    ```
    uvx --from graphifyy graphify affected "apply_filters()"
    grep -rn "apply_filters" server/
    ```
 
-   and then, in Claude, ask it to search for `apply_filters` using its own Grep tool.
+   The graph returns the resolved set. The shell `grep` returns your three real call sites **mixed with matches that are not your code at all**: `server/.venv/` holds the third-party libraries this project downloaded, and one of them (`pygments`) defines its own unrelated function also called `apply_filters`, alongside binary cache files and `graphify-out/`. In the reference run that came back as 78KB and had to be written to a file.
 
-   Record what each one cost and whether it was complete:
+   Ask Claude to search for the same symbol with its own Grep tool and you get a third result: that tool runs ripgrep, which honours `.gitignore`, so it skips `.venv/` and returns cleanly.
 
-   - **`affected`** returns the resolved set (`get_inventory`, `get_orders`, `get_dashboard_summary`) in one call, with no false positives. It answers by resolving symbols.
-   - **Shell `grep -rn` over `server/`** answers by matching strings, and on this repo that is a mess. `server/.venv/` is on disk, and **pygments ships its own unrelated `apply_filters` function**, so you get a real semantic false positive plus binary `.pyc` matches plus the `graphify-out/` cache. In the reference run this produced 78KB of output and had to be truncated to a file. To get a clean answer you have to already know it lives in `server/main.py`, which is the orientation problem you were trying to solve.
-   - **Claude's Grep tool** uses ripgrep and honours `.gitignore`, so it skips `.venv/` and `graphify-out/` and should come back clean in one call.
-
-   The honest finding is not "the graph wins" or "grep wins," it is **what each one is answering.** The graph resolves symbols; text search matches strings. They agree until a name means two different things, and then only the graph is right. You did not need 40-50 microservices to hit that: one virtualenv on disk was enough. Aliased imports, re-export chains, and wrapper indirection do the same thing, and they are the normal condition at Cloud Capture's scale.
-
-   Note also which tool you reached for. A well-configured search that respects `.gitignore` is a genuinely good answer here, and it is cheaper than the graph. The graph's edge is resolution, not speed.
+   **The finding, stated fairly.** The graph answers "what references this symbol" by resolving the code. Text search answers "what contains this text." Those agree until the same name means two different things, and then only the graph is right. A well-configured search is a good and cheap answer on a repo this size, and you should say so. What it will not give you is the confidence that the list is complete, or the client-side naming gotcha the wiki supplied. The graph's edge is resolution, not speed, and that edge grows as a codebase accumulates repeated names, wrappers, and re-exports, which is the normal condition across 40-50 services.
 
 7. **See how cheap maintenance is.** Your run just modified code, so the graph no longer matches the source. Refresh it:
 
