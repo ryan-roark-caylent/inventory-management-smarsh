@@ -399,7 +399,11 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
    It then said it deliberately skipped the source because the wiki and the graph already agreed. **That is the only place in this lab where the two layers replace reading source rather than adding to it**, and it is worth sitting with, because it explains the result you just measured in Steps 1 and 7:
 
-   > These layers are **additive when you are editing** (you still have to open every file you change) and **substitutive when you are asking** (a question can be answered without opening the source at all). Your implementation run cost more tool calls. This question cost three and zero source reads.
+   > These layers are **substitutive when you are planning** and **additive when you are changing code.** A question can be answered without opening the source. An edit cannot, because you have to open every file you touch. Your implementation run cost more tool calls. This question cost three and zero source reads.
+
+   That sounds like a narrow case until you notice how much of the job is question-shaped. *Where does this live, what else calls it, what breaks if I change it, what does this field actually contain* is planning, and planning comes before every change you make. It is not an occasional activity, it is the first half of all of them.
+
+   Agentic workflows make this larger rather than smaller. Hand a spec to an agent and it does that planning on your behalf, asking far more of those questions than you would, most of which you never see in the transcript. The payoff lands there, before the first edit is written.
 
    Notice too that each layer did a different job on one question. The wiki gave the location and the answer, the graph confirmed the caller set with line numbers, and the wiki volunteered something the graph structurally cannot see: the client's filter names do not match the server's parameters, so a rename has to be chased into `useFilters.js` and `api.js` as well. Neither layer alone was sufficient.
 
@@ -480,6 +484,8 @@ uvx --from graphifyy graphify benchmark
 Read the methodology it prints and notice the baseline: stuffing the entire repo corpus into context. No competent agent does that, and it is not what your cold run did either. So the ~20x is measured against something nobody would do. Your own before/after compares two real runs of the same spec on the same repo.
 
 Cloud Capture measured roughly 30% fewer tokens on a deliberately simple task (up to ~50% in some spec-kit phases), with their stated caveats, and found the vendor's 70% claim "didn't stand true." Hold your own result to that same standard: if your wired run did not beat your cold run, that is a valid result and it goes into your exit note as-is.
+
+**Notice that their number varied by phase, and think about why.** spec-kit splits work into specify, plan, tasks, and implement. The first three are question-shaped and the last one is edit-shaped, which is exactly the split you measured in Step 7. If their strongest phases were the planning ones, your own result explains the variance rather than contradicting it. That is a hypothesis consistent with both sets of numbers, not a confirmed fact, and Anirudh's team can tell you whether it holds. Worth asking, because the answer changes where you would spend the effort on a repo you own.
 
 ### Scale-limit honesty
 
