@@ -8,7 +8,7 @@ At the inventory-management repo size (53 files) these knowledge layers cost ext
 
 graphify and the code-derived LLM wiki are the knowledge layers Cloud Capture chose. Other tools cover the same ground: other AST and code-intelligence tools, embedding/vector RAG over a repo, hand-maintained knowledge bases, and IDE-native indexes. The transferable outcome is the judgment these knowledge layers embody, not the specific binaries. A cheap, deterministic structural map lets an agent navigate instead of hunt. A maintained knowledge layer records what the code cannot state about itself: runtime behavior, conventions, and the reasons behind decisions. The real skill is knowing where each adds value on a repo you own.
 
-You'll build both knowledge layers on the inventory-management fork, wire them into Claude, and prove the difference with the same spec run twice: once cold, once wired. Then you write down which knowledge layer answers which question and why.
+You'll build both knowledge layers on the inventory-management fork, wire them into Claude, and measure the difference with the same spec run twice: once cold, once wired. By the end you should be able to say which knowledge layer answers which question, and why, on a repo you own.
 
 ---
 
@@ -233,13 +233,13 @@ uvx --from graphifyy graphify path "useFilters()" "get_inventory()"
 
 Build the second knowledge layer: a three-layer LLM wiki (not to be confused with Lab 3's three-layer CLAUDE.md, a different idea using the same word; here the three layers are immutable raw sources, LLM-written articles, and a schema-maintainer file). This is Cloud Capture's adaptation of Karpathy's curated-document pattern applied to source code because docs rot.
 
-The pattern is: **you read it, the LLM writes it.** So Claude creates and maintains the files. Your job is to set the rules and verify the discipline held. Directing and reviewing is the work; transcription is not.
+The pattern is: **you read it, the LLM writes it.** So Claude creates and maintains the files. Your job is to decide what the wiki must cover and to verify the discipline held. Directing and reviewing is the work; transcription is not, which is why the prompt below is supplied rather than something you compose.
 
 **Review this prompt before running it.** It directs Claude to build the four wiki files with the right targeting for Step 7's spec. Once you have reviewed it and understand what it asks for, hand it to Claude:
 
 > Build a three-layer LLM wiki for this repo at `wiki/`. Create four files:
 >
-> 1. `wiki/SCHEMA.md` — the maintainer contract. State when to ADD a new article versus UPDATE an existing one, and that code is always ground truth. This is the schema I own, not you.
+> 1. `wiki/SCHEMA.md` — the maintainer contract. State when to ADD a new article versus UPDATE an existing one, and that code is always ground truth. Keep it short; I will review it and it governs your future edits to this wiki.
 >
 > 2. `wiki/index.md` — the article index and a note on when to reach for the wiki versus the graph.
 >
@@ -259,7 +259,7 @@ After Claude completes, **verify the append discipline held.** Confirm `log.md` 
 
 > **Why this article and not another.** A wiki with one article can only help with a question that article happens to cover. Point it at the subsystem you are about to modify (Step 7's spec) and the wiki gets a fair test. Point it somewhere else and you learn nothing except that a thin wiki misses. Cloud Capture's wiki covers their whole codebase, so theirs gets consulted as a matter of course; yours will cover one corner. You are testing the mechanism at lab scale, not experiencing the benefit at production scale.
 
-**You know this worked when:** `wiki/` holds `SCHEMA.md` (the rules you wrote), `index.md`, `log.md`, and at least one topic-named article (not named `Community_N.md`). `log.md` shows one appended line per add or update, with none rewritten.
+**You know this worked when:** `wiki/` holds `SCHEMA.md` (which you have read and agree with), `index.md`, `log.md`, and at least one topic-named article (not named `Community_N.md`). `log.md` shows one appended line per add or update, with none rewritten.
 
 ---
 
@@ -511,7 +511,7 @@ Cloud Capture measured roughly 30% fewer tokens on a deliberately simple task (u
 
 Two caveats so you read your own result correctly:
 
-- **The graph can point at the right files and still not save a read.** A structural map tells you *where* to look. If you then read the file anyway to confirm line-level detail, the graph added a step rather than replacing one. That is a real and common outcome; it means the graph's value is orientation, not substitution.
+- **A knowledge layer can point at the right file and still not save a read.** It tells you *where* to look. If you then read the file anyway to confirm line-level detail, it added a step rather than replacing one. That happens when you are about to edit the file, because you cannot avoid opening what you change. It does not happen when you are only asking, which is why the structural question in Step 7 cost three calls and no source read at all. Whether these layers substitute or merely add depends on whether you are planning or changing code.
 - **This repo is 53 files.** graphify's own honest benchmark measured coverage gains on a codebase near a million lines. A demo repo caps how much orientation there is to save, so a thin delta here is not evidence the approach fails at scale, and a large delta here would not prove it succeeds.
 
 **You know this worked when:** you can state the key-fact scorecard, understand why the period trap is nondeterministic, and have identified which knowledge layers your runs consulted and whether they were useful.
@@ -561,7 +561,7 @@ These are reference values from a verified run. **Your numbers may differ by a f
 
 Reference: 53 code files, 314 nodes, 417 edges, 28 communities.
 
-For Step 5: `export wiki` produces 38 articles, of which 28 are named `Community_0.md` through `Community_27.md`, plus 10 auto-named god-node articles.
+For the `export wiki` sub-step in Step 2: it produces 38 articles, of which 28 are named `Community_0.md` through `Community_27.md`, plus 10 auto-named god-node articles.
 
 Your Step 2 success signal still holds if your node count lands in the 250-400 range. The run should take 3-4 seconds with zero API tokens.
 
@@ -584,7 +584,7 @@ You're done when all eight are true:
 2. `graphify extract . --code-only` produced a graph and you recorded your own counts.
 3. You ran `path "useFilters()" "get_inventory()"` and can explain "No path found" in one sentence.
 4. `graphify-out/wiki/` exists and you saw the `Community_N` naming.
-5. `wiki/` holds `SCHEMA.md` (rules you authored), `index.md`, an append-only `log.md`, and at least one topic-named article, with log lines appended, none rewritten.
+5. `wiki/` holds `SCHEMA.md` (which you reviewed), `index.md`, an append-only `log.md`, and at least one topic-named article, with log lines appended, none rewritten.
 6. You wired both knowledge layers into Claude: the graphify section in `./CLAUDE.md`, the PreToolUse hooks in `.claude/settings.json`, relaunched, and verified a hook fired.
 7. You ran the same spec wired (Step 7) in a fresh session, recorded the proxies, and observed which layers Claude consulted and how the implementations differed.
 8. Step 10 teardown confirms no graphify global state was written.
