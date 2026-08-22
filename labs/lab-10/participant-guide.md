@@ -441,7 +441,7 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 8. **Observe the implementation differences.** Compare the wired run's output against your saved cold patch. One concrete check: how many inventory items ended up with a non-null `days_of_cover` value? Run this from the repo root to count them:
 
    ```
-   cd server && uv run python -c "from fastapi.testclient import TestClient; from main import app; c = TestClient(app); r = c.get('/inventory'); print(sum(1 for i in r.json() if i.get('days_of_cover') is not None), 'of', len(r.json()), 'items have days_of_cover')"
+   cd server && uv run python -c "from fastapi.testclient import TestClient; from main import app; c = TestClient(app); r = c.get('/api/inventory'); print(sum(1 for i in r.json() if i.get('days_of_cover') is not None), 'of', len(r.json()), 'items have days_of_cover')"
    ```
 
    Record what you see. The count depends on how many inventory SKUs have a matching demand forecast, which is a fixture fact independent of whether you fell into the period trap. This is a completion observable: you will need it for the quiz.
