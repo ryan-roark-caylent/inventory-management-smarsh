@@ -10,7 +10,7 @@ This repository is the code substrate for the 9-lab Claude Code training series.
    git fetch origin
    git checkout -b lab-N-work origin/lab-N-start
    ```
-   (Replace `N` with the lab number, 1 through 9.)
+   (Replace `N` with the lab number, 1 through 10.)
 3. Open the lab card on that branch: `labs/lab-N/participant-guide.md`. It has everything you need — the scenario, the steps, and how to know you're done.
 4. Work through the card in a fresh Claude Code session.
 5. When you finish, take that lab's **completion** and **mastery** quizzes in the LMS (MindTickle).
@@ -30,3 +30,5 @@ This repository is the code substrate for the 9-lab Claude Code training series.
 | `lab-N-solution` | The reference answer for lab N (for the stuck path and facilitators). |
 
 Labs 1-9 cover: tool/surface selection, Claude as a thinking partner, CLAUDE.md + context, spec-driven development, multi-step workflows, Claude skills, sub-agents/MCP/automation, code review + responsible use, and team adoption.
+
+Lab 10 is an extra, post-programme lab covering code knowledge bases: building a deterministic code graph and an LLM wiki over this repo, wiring both into Claude, and measuring which one answers which kind of question. It depends on labs 1-9.
