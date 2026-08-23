@@ -345,17 +345,21 @@ Two mechanisms, one per knowledge layer:
 
 4. **Relaunch Claude Code.** Hooks load at startup, so they do not take effect until you relaunch (you know this from labs 1-9).
 
-5. **Verify the hooks fire.** Ask two questions in the relaunched session, and ask them in this order, because the pair demonstrates the precedence rule you just wrote.
+5. **Verify the hooks fire.** Ask two questions in the relaunched session, in this order. The pair shows the precedence rule you just wrote deciding where each one goes.
 
-   **First, a structural question**, the kind the rule routes to the graph:
+   **First, a structural question:**
 
    > What calls `apply_filters()`?
 
-   **Then a behavioral question**, the kind the rule routes to the wiki:
+   **Then a runtime-behavior question:**
 
-   > Where is inventory filtering handled?
+   > What happens if a locale key exists in `en.js` but is missing from `ja.js`?
 
-   Expect them to go to different layers. The structural one should reach the graph, because "what calls what" is a symbol-level question the graph resolves deterministically. The behavioral one should reach the wiki, because your article already carries the answer with file and line detail. **If the behavioral question never touches graphify, that is the rule working, not a broken hook.** Claude may tell you as much if you ask: the wiki answered completely, so no structural gap remained for graphify to fill.
+   **Watch which layer answers, and notice that the wiki can route as well as answer.** The structural question should reach the graph directly, in about one call, because "what calls what" is exactly what an AST resolves and your `SCHEMA.md` forbade the wiki from recording it. The second should reach the wiki and stay there, because a silent runtime fallback is invisible to any AST.
+
+   A third outcome is common and worth expecting: Claude opens `wiki/index.md`, finds that the index itself says structural questions belong to the graph, and forwards itself to graphify. **That is the two layers cooperating, not a failure.** Because the wiki no longer records symbol locations, its index has become a router for the questions it deliberately does not answer.
+
+   **What none of these should do is open a source file.** If Claude reads `server/main.py` or a Vue file to answer either question, the precedence rule is not being followed, and that is worth investigating before you run Step 7.
 
    The PreToolUse hook may also inject its notice:
 
@@ -378,7 +382,7 @@ Now say the mechanism in your own words. You started this step with an asymmetry
 - *Is graphify a hook?* Yes. It is a `PreToolUse` hook on `Bash|Grep` and `Read|Glob`. Claude cannot grep or read raw files without the hook firing and pushing it to the graph first. The `hook-guard` binary returns a directive that names the tool to run.
 - *Does the wiki need a CLAUDE.md entry?* Yes. The wiki has both: a hook (the nudge you just wired in step 3) and the CLAUDE.md pointer from step 1, plus the `SCHEMA.md` contract you wrote in Step 5. But the hook is a simple nudge, not a guard. It injects a suggestion; it does not validate staleness or tailor the message to the file being read.
 
-**You know this worked when:** after the relaunch, Claude confirms it received both hook notices when you ask, your two questions went to different layers (the structural one to the graph, the behavioral one to the wiki), and you can state the difference between a hook that guards (graphify's `hook-guard`) versus a hook that nudges (the wiki hook). Which layer Claude picked is the precedence rule at work, not a pass or fail. Seeing the MANDATORY text yourself is a bonus, not the signal; what Claude reports receiving is the signal.
+**You know this worked when:** after the relaunch, Claude confirms it received both hook notices when you ask, neither question was answered by opening a source file, and you can state the difference between a hook that guards (graphify's `hook-guard`) versus a hook that nudges (the wiki hook). Which layer answered each question is the precedence rule at work, not a pass or fail, and the wiki forwarding a question to the graph counts as the rule working. Seeing the MANDATORY text yourself is a bonus, not the signal; what Claude reports receiving is the signal.
 
 ---
 
