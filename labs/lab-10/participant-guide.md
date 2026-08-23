@@ -69,15 +69,29 @@ Once you are on `lab-10-work`:
    uv --version
    ```
 
-   Expect `0.11.7` or higher. On Windows, `uv` installs to `%APPDATA%\Roaming\Python\Python3xx\Scripts`. If `uv` is not found, open a new terminal or run `uv tool update-shell` and recheck.
+   `0.11.7` is the version this lab was verified against, so anything at or above it is known good. An older `uv` will
+   probably work; there is no tested minimum, so do not upgrade just to match a number.
 
-4. Warm the graphify cache. This is the one network operation the lab needs:
+   **If `uv` is not found**, work out which case you are in. You have used `uv` in earlier labs (1, 5, and 7 all call it,
+   and the repo's own start scripts run `uv run`), so it is most likely installed but missing from this shell's PATH:
+   open a new terminal, or run `uv tool update-shell`, and recheck. On Windows it installs to
+   `%APPDATA%\Roaming\Python\Python3xx\Scripts`. **If it is genuinely not installed**, install it from
+   https://astral.sh/uv (or follow the prerequisites checklist in the LMS pre-work) before going further. Nothing in this
+   lab works without it, because every graphify call runs through `uvx`.
+
+4. Warm the graphify cache. This is the one network operation the lab needs, and it is a real download rather than a quick check:
 
    ```
    uvx --from graphifyy graphify --version
    ```
 
-   Expect `graphify 0.9.31` or higher. Every step after this runs offline.
+   Expect `graphify 0.9.31` or higher. **Give it a minute.** This resolves the `graphifyy` package plus roughly 25
+   tree-sitter grammar wheels, and if `uv` has no suitable Python interpreter it fetches one too. The wheels are prebuilt,
+   so no compiler is involved. It is not hung; it is downloading. Every step after this runs offline, and later runs on the
+   same machine reuse the cache.
+
+   **You never install graphify itself.** Every call in this lab goes through `uvx --from graphifyy graphify ...`, which
+   resolves the package per run and writes no global config. See the note below on why that matters.
 
 > **Reminder (you know this from labs 1-9):** prefix a shell command with `!` inside Claude Code to run it and drop its output straight into the conversation. It matters *here* because this lab is about Claude reading graphify's output. Put a command's result where Claude can see it and Claude can reason over the graph instead of just watching you run it. You do not need to `!`-prefix every command below; reach for it when you want Claude to see what a command printed.
 
