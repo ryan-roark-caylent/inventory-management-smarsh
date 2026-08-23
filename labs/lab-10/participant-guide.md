@@ -242,7 +242,7 @@ The pattern is: **you read it, the LLM writes it.** So Claude creates and mainta
 >    - How the inventory endpoint's response reaches the table in the UI (the HTTP hop between `api.js` and the FastAPI server)
 >    - How demand-forecast records relate to inventory items: matched by SKU, and what the `period` field actually contains. Check `server/data/demand_forecasts.json` and `client/src/views/Demand.vue`'s `translatePeriod` function before writing this down, and record what you find rather than what you expect.
 >    - The dashboard's existing pattern for counting a subset of filtered inventory (one already exists; name it)
->    - The i18n convention for a new column label: where locale strings live, which locales must receive the key, and how a header reaches the translation helper
+>    - The i18n convention for a new column label: where locale strings live, which locales must receive the key, how a header reaches the translation helper, and what happens at runtime if a key exists in one locale file but not the other
 >    - Any place the same value carries different names across a boundary. Check two kinds: between what the client calls a field and what the API calls it, and between what two data files call the same identifier. Name both if both exist.
 >
 > Append a matching entry to `log.md` as you create each file. Shapes to fill in (not answers to copy) are planted at `wiki/TEMPLATES.md` if you need to see the structure.
@@ -359,7 +359,7 @@ Two mechanisms, one per knowledge layer:
 
    A third outcome is common and worth expecting: Claude opens `wiki/index.md`, finds that the index itself says structural questions belong to the graph, and forwards itself to graphify. **That is the two layers cooperating, not a failure.** Because the wiki no longer records symbol locations, its index has become a router for the questions it deliberately does not answer.
 
-   **What none of these should do is open a source file.** If Claude reads `server/main.py` or a Vue file to answer either question, the precedence rule is not being followed, and that is worth investigating before you run Step 7.
+   **Watch whether either question ends up opening a source file.** With the hooks live it should not need to, because both answers exist in a layer. If it does, that is diagnostic rather than broken, and it usually means one of two things: the hooks did not load (ask Claude whether it received the notices), or **your wiki under-covered the area the question asks about**, so there was nothing to find and source was the only option left. The second is the more common and more useful finding, because it tells you what your article should have recorded.
 
    The PreToolUse hook may also inject its notice:
 
@@ -382,7 +382,7 @@ Now say the mechanism in your own words. You started this step with an asymmetry
 - *Is graphify a hook?* Yes. It is a `PreToolUse` hook on `Bash|Grep` and `Read|Glob`. Claude cannot grep or read raw files without the hook firing and pushing it to the graph first. The `hook-guard` binary returns a directive that names the tool to run.
 - *Does the wiki need a CLAUDE.md entry?* Yes. The wiki has both: a hook (the nudge you just wired in step 3) and the CLAUDE.md pointer from step 1, plus the `SCHEMA.md` contract you wrote in Step 5. But the hook is a simple nudge, not a guard. It injects a suggestion; it does not validate staleness or tailor the message to the file being read.
 
-**You know this worked when:** after the relaunch, Claude confirms it received both hook notices when you ask, neither question was answered by opening a source file, and you can state the difference between a hook that guards (graphify's `hook-guard`) versus a hook that nudges (the wiki hook). Which layer answered each question is the precedence rule at work, not a pass or fail, and the wiki forwarding a question to the graph counts as the rule working. Seeing the MANDATORY text yourself is a bonus, not the signal; what Claude reports receiving is the signal.
+**You know this worked when:** after the relaunch, Claude confirms it received both hook notices when you ask, you noted whether either question needed a source file and what that told you, and you can state the difference between a hook that guards (graphify's `hook-guard`) versus a hook that nudges (the wiki hook). Which layer answered each question is the precedence rule at work, not a pass or fail, and the wiki forwarding a question to the graph counts as the rule working. Seeing the MANDATORY text yourself is a bonus, not the signal; what Claude reports receiving is the signal.
 
 ---
 
