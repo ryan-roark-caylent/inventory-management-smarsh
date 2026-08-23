@@ -463,6 +463,9 @@ Now measure the difference. Same spec, same starting state, but this time the gr
    ```
    cd server && uv run python -c "from fastapi.testclient import TestClient; from main import app; c = TestClient(app); r = c.get('/api/inventory'); print(sum(1 for i in r.json() if i.get('days_of_cover') is not None), 'of', len(r.json()), 'items have days_of_cover')"
    ```
+   <roark: should we have them run this command before step 1 is over and write down the answer so they can compare later?>
+
+   <roark: also, i think we need an explainer in step 1 about this trap and calling out the failure and what hapened in more detail.  I'm not really sure the issue without digging in more and lab runners may not either... but the learning still feels very useful either way>
 
    Record what you see. The count depends on how many inventory SKUs have a matching demand forecast, which is a fixture fact independent of whether you fell into the period trap. This is a completion observable: you will need it for the quiz.
 
@@ -497,6 +500,7 @@ Two human dry runs disagreed on F5:
 
 - **Run 1 (2026-08-17):** read the wiki's warning about varied period values, wrote a parser, and handled `"Next 60 days"` / `"90 days"` / `"Q1 2025"` correctly.
 - **Run 2 (2026-08-18, owner):** read the same wiki warning and overrode it anyway, dividing by 30 for every record because the spec assertively stated "a demand figure covering a 30-day period."
+<roark: we shouldn't expose dates and dry run details - can we just specify that things are non-determnistic so everyone's run will be a little different.  This reads as lab-creation triage>
 
 Both runs consulted the wiki. One acted on F5, one deferred to the spec. This is nondeterminism, and it is also the stronger lesson:
 
@@ -545,7 +549,7 @@ Pose two questions of different shapes and note which knowledge layer you reach 
 - "What breaks if I change `apply_filters()`?" (structural, static)
 - "Why does the app's locale persist across page reloads?" (runtime behavior)
 
-The first question is the graph's territory: `affected "apply_filters"` lists callers in one command, and it now spans two endpoints after your spec work. But in the owner's dry run, the wiki answered first because it already carried the caller list with file/line specifics, and graphify was reached for only to confirm. At 53 files with a maintained wiki, either layer can answer, and the precedence rule you wrote in Step 6 determines which one Claude tries first. That is the lesson: the ordering matters, and you control it.
+The first question is the graph's territory: `affected "apply_filters"` lists callers in one command, and it now spans two endpoints after your spec work. But in the owner's dry run, the wiki answered first because it already carried the caller list with file/line specifics, and graphify was reached for only to confirm. At 53 files with a maintained wiki, either layer can answer, and the precedence rule you wrote in Step 6 determines which one Claude tries first. That is the lesson: the ordering matters, and you control it. <roark: this also reads like lab-creation triage when we talk about dry run>
 
 The second question is the wiki's territory: locale persistence is `localStorage`, which the graph structurally cannot see. No AST traversal reaches runtime browser APIs.
 
@@ -692,3 +696,4 @@ The first should print a `MANDATORY` notice, the second a line of JSON mentionin
 ---
 
 Your completion and mastery assessments are in the LMS.
+<roark: version tag>
