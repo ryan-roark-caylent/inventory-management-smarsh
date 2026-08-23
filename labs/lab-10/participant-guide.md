@@ -243,7 +243,7 @@ The pattern is: **you read it, the LLM writes it.** So Claude creates and mainta
 >    - How demand-forecast records relate to inventory items: matched by SKU, and what the `period` field actually contains. Check `server/data/demand_forecasts.json` and `client/src/views/Demand.vue`'s `translatePeriod` function before writing this down, and record what you find rather than what you expect.
 >    - The dashboard's existing pattern for counting a subset of filtered inventory (one already exists; name it)
 >    - The i18n convention for a new column label: where locale strings live, which locales must receive the key, and how a header reaches the translation helper
->    - Any naming mismatch between what the client calls a field and what the API calls it
+>    - Any place the same value carries different names across a boundary. Check two kinds: between what the client calls a field and what the API calls it, and between what two data files call the same identifier. Name both if both exist.
 >
 > Append a matching entry to `log.md` as you create each file. Shapes to fill in (not answers to copy) are planted at `wiki/TEMPLATES.md` if you need to see the structure.
 
@@ -526,16 +526,18 @@ Two caveats so you read your own result correctly:
 
 ## Step 9 — Defend which knowledge layer answers which question (3 min)
 
-Pose two questions of different shapes and note which knowledge layer you reach for:
+Pose two questions of different shapes and note which knowledge layer answers each:
 
-- "What breaks if I change `apply_filters()`?" (structural, static)
-- "Why does the app's locale persist across page reloads?" (runtime behavior)
+- "What breaks if I change `apply_filters()`?" (structural)
+- "Why does joining an inventory item to its demand forecast require knowing two different field names?" (a data-shape convention)
 
-The first question is the graph's territory: `affected "apply_filters"` lists callers in one command, and it now spans two endpoints after your spec work. Note what your own run did. If your wiki recorded caller lists, the wiki may have answered first and graphify only confirmed, which is why `SCHEMA.md` tells the wiki not to record what the graph can derive. The precedence rule you wrote in Step 6 decides which layer Claude tries first. That is the lesson: the ordering matters, and you control it.
+**The first is the graph's territory.** `uvx --from graphifyy graphify affected "apply_filters()"` lists every caller in one command, and after your spec work that now spans two endpoints. Because `SCHEMA.md` forbade the wiki from recording caller lists, the wiki has nothing to offer here and should either send you to the graph or stay silent.
 
-The second question is the wiki's territory: locale persistence is `localStorage`, which the graph structurally cannot see. No AST traversal reaches runtime browser APIs.
+**The second is the wiki's territory.** Inventory items carry `sku`; every dataset that references an inventory item (demand forecasts, backlog items) calls the same value `item_sku`. So any code joining across them has to know both names, and **there is no single field name you can grep for.** The graph cannot tell you this: it resolves symbols, and these are string keys in two JSON files that never reference each other in code.
 
-**You know this worked when:** you can state which layer answers which question, and you understand that at this repo size the wiki may answer nearly everything if it is well-targeted, leaving graphify to earn its keep on completeness checks (the full caller set, boundary proofs) rather than primary orientation.
+That second one is worth sitting with, because it is the same limitation you saw in Step 7's grep comparison arriving from the other direction. Text search fails because the name differs. The graph fails because there is no symbol relationship to resolve. A human noticed the mismatch once and wrote it down, and that note is the only thing that answers the question.
+
+**You know this worked when:** you can say which layer answered each question and why, and you can name at least one question in this codebase that neither the graph nor a text search can answer, only a note a human left behind.
 
 ---
 
