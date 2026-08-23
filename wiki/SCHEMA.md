@@ -15,7 +15,11 @@ collections, adapted to source code by Cloud Capture (generate from code because
   never by community number.
 - ADD a new article when a concept has no article yet. UPDATE the existing article when
   the concept is already covered. Never create a second article for the same concept.
-- Every article states its evidence: the source files it came from, and whether a claim
-  came from the code (cite file:line) or from runtime knowledge the graph cannot see.
+- **Never record anything the code graph can derive.** No caller lists, no import
+  relationships, no symbol locations, no line numbers. Those go stale the moment someone
+  refactors, and the graph regenerates them for free. If a reader needs them, they query
+  the graph. This wiki records only what the graph structurally cannot see.
+- Every article names the source files it was derived from, at file level, so a reader can
+  verify it. Do not pin claims to line numbers; lines move.
 - Append one line to log.md for every add or update. Never rewrite an existing log line.
 - If an article conflicts with the code, the code wins. Fix the article and log it.
