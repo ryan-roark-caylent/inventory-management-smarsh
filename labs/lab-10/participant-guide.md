@@ -108,10 +108,16 @@ Use the fresh session you relaunched in Step 0. No graph, no wiki, no hook exist
 4. **Record what the cold run computed, before you throw it away.** You are about to discard the code, so these numbers are the only thing that survives to compare against. Run this from the repo root:
 
    ```
-   cd server && uv run python -c "import json; from fastapi.testclient import TestClient; from main import app; p={f['item_sku']:f['period'] for f in json.load(open('data/demand_forecasts.json'))}; it=TestClient(app).get('/api/inventory').json(); r=[(i['sku'],p.get(i['sku'],'?'),i.get('days_of_cover')) for i in it if i.get('days_of_cover') is not None]; print('SKU        forecast period    days_of_cover'); [print(f'{s:10} {q:18} {d}') for s,q,d in r]; print(f'{len(r)} of {len(it)} items have a value')"
+   cd server && uv run python -c "import json; from fastapi.testclient import TestClient; from main import app; f={x['item_sku']:x for x in json.load(open('data/demand_forecasts.json'))}; it=TestClient(app).get('/api/inventory').json(); r=[(i['sku'],f.get(i['sku'],{}).get('period','?'),i['quantity_on_hand'],f.get(i['sku'],{}).get('current_demand','?'),i['days_of_cover'],round(i['quantity_on_hand']/i['days_of_cover'],1)) for i in it if i.get('days_of_cover') is not None]; print(f\"{'SKU':9} {'period':15} {'on hand':>8} {'demand for period':>18} {'days_of_cover':>14} {'implied units/day':>18}\"); [print(f'{a:9} {b:15} {c:>8} {d:>18} {e:>14} {g:>18}') for a,b,c,d,e,g in r]; print(f'{len(r)} of {len(it)} items have a value')"
    ```
 
-   **Write down the whole table**, all three columns. You will run the same command in Step 7 and compare.
+
+   Two of those columns are derived, so read them deliberately:
+
+   - **`demand for period`** is the forecast record's own demand figure, and the `period` column states the window it covers. `TMP-201` expects 400 units across three months, not 400 per month.
+   - **`implied units/day`** is `on hand ÷ days_of_cover`. It is reverse-engineered from what your implementation produced, so it is the daily rate the code actually used.
+
+   **Write down the whole table**, every column. You will run the same command in Step 7 and compare.
 
    Two things to look at while it is in front of you, and **change nothing**:
 
@@ -466,8 +472,14 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 8. **Print the same table you recorded in Step 1 and compare them side by side.** Identical command:
 
    ```
-   cd server && uv run python -c "import json; from fastapi.testclient import TestClient; from main import app; p={f['item_sku']:f['period'] for f in json.load(open('data/demand_forecasts.json'))}; it=TestClient(app).get('/api/inventory').json(); r=[(i['sku'],p.get(i['sku'],'?'),i.get('days_of_cover')) for i in it if i.get('days_of_cover') is not None]; print('SKU        forecast period    days_of_cover'); [print(f'{s:10} {q:18} {d}') for s,q,d in r]; print(f'{len(r)} of {len(it)} items have a value')"
+   cd server && uv run python -c "import json; from fastapi.testclient import TestClient; from main import app; f={x['item_sku']:x for x in json.load(open('data/demand_forecasts.json'))}; it=TestClient(app).get('/api/inventory').json(); r=[(i['sku'],f.get(i['sku'],{}).get('period','?'),i['quantity_on_hand'],f.get(i['sku'],{}).get('current_demand','?'),i['days_of_cover'],round(i['quantity_on_hand']/i['days_of_cover'],1)) for i in it if i.get('days_of_cover') is not None]; print(f\"{'SKU':9} {'period':15} {'on hand':>8} {'demand for period':>18} {'days_of_cover':>14} {'implied units/day':>18}\"); [print(f'{a:9} {b:15} {c:>8} {d:>18} {e:>14} {g:>18}') for a,b,c,d,e,g in r]; print(f'{len(r)} of {len(it)} items have a value')"
    ```
+
+
+   Two of those columns are derived, so read them deliberately:
+
+   - **`demand for period`** is the forecast record's own demand figure, and the `period` column states the window it covers. `TMP-201` expects 400 units across three months, not 400 per month.
+   - **`implied units/day`** is `on hand ÷ days_of_cover`. It is reverse-engineered from what your implementation produced, so it is the daily rate the code actually used.
 
    Two comparisons, and they answer different questions:
 
