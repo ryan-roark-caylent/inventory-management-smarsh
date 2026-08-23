@@ -16,7 +16,7 @@ You'll build both knowledge layers on the inventory-management fork, wire them i
 
 Step 4 is the moment. You'll ask graphify to trace the path from the Vue filter composable to the FastAPI function that serves inventory data, and get back "No path found." This is correct, not broken. The graph models static imports and calls. The HTTP boundary between client and server is invisible to the AST by design. Once that lands, the wiki's reason to exist is obvious: it records the runtime facts the graph structurally cannot see. The defend step in Step 9 becomes easy instead of arbitrary.
 
-**A note on scale.** This is a 53-file repo and `CLAUDE.md` already supplies orientation, so **expect a thin token delta or none, and possibly more tool calls**. The two axes split: the graph and wiki produce more, smaller, targeted reads that replace fewer, larger whole-file reads. A targeted subgraph query is cheaper than the file it points at, but querying and then reading the file anyway is net neutral or worse on step count. graphify's gains were measured near a million lines, and Cloud Capture runs 40-50 microservices. The real evidence in this lab is the correctness scorecard and the demand-forecast period trap, not a token count. A lab that manufactured a token win would be disingenuous.
+**A note on scale.** This is a 53-file repo and `CLAUDE.md` already supplies orientation, so **expect a thin token delta or none, and possibly more tool calls**. The two axes split: the graph and wiki produce more, smaller, targeted reads that replace fewer, larger whole-file reads. A targeted graphify query is cheaper than reading the file, but querying and then reading the file anyway is net neutral or worse on step count. graphify's gains were measured on a repo near a million lines, and Cloud Capture runs 40-50 microservices. The real evidence in this lab is the correctness scorecard and the demand-forecast period trap, not a token count. A lab that manufactured a token win would be disingenuous.
 
 ---
 
@@ -111,6 +111,8 @@ Use the fresh session you relaunched in Step 0. No graph, no wiki, no hook exist
    git diff > ../cold-run.patch
    git status --porcelain > ../cold-run-untracked.txt
    ```
+
+<roark: i think there is an opportunity here to just ask them to rename their claude session instead of saving their code.  what's the point of saving the code for step 8?>
 
 5. Then DISCARD the code changes so Run 2 starts from the identical state:
 
@@ -233,7 +235,7 @@ uvx --from graphifyy graphify path "useFilters()" "get_inventory()"
 
 Build the second knowledge layer: a three-layer LLM wiki (not to be confused with Lab 3's three-layer CLAUDE.md, a different idea using the same word; here the three layers are immutable raw sources, LLM-written articles, and a schema-maintainer file). This is Cloud Capture's adaptation of Karpathy's curated-document pattern applied to source code because docs rot.
 
-The pattern is: **you read it, the LLM writes it.** So Claude creates and maintains the files. Your job is to decide what the wiki must cover and to verify the discipline held. Directing and reviewing is the work; transcription is not, which is why the prompt below is supplied rather than something you compose.
+The pattern is: **you read it, the LLM writes it.** So Claude creates and maintains the files. Your job is to decide what the wiki must cover and to verify the discipline held. Directing and reviewing is the work; transcription is not.
 
 **Review this prompt before running it.** It directs Claude to build the four wiki files with the right targeting for Step 7's spec. Once you have reviewed it and understand what it asks for, hand it to Claude:
 
@@ -255,7 +257,7 @@ The pattern is: **you read it, the LLM writes it.** So Claude creates and mainta
 >
 > Append a matching entry to `log.md` as you create each file. Shapes to fill in (not answers to copy) are planted at `wiki/TEMPLATES.md` if you need to see the structure.
 
-After Claude completes, **verify the append discipline held.** Confirm `log.md` grew by appended lines and none were rewritten. This check is yours.
+After Claude completes, **verify the append discipline held.** Confirm `log.md` grew by appended lines and none were rewritten. 
 
 > **Why this article and not another.** A wiki with one article can only help with a question that article happens to cover. Point it at the subsystem you are about to modify (Step 7's spec) and the wiki gets a fair test. Point it somewhere else and you learn nothing except that a thin wiki misses. Cloud Capture's wiki covers their whole codebase, so theirs gets consulted as a matter of course; yours will cover one corner. You are testing the mechanism at lab scale, not experiencing the benefit at production scale.
 
@@ -351,7 +353,19 @@ Two mechanisms, one per knowledge layer:
 
 4. **Relaunch Claude Code.** Hooks load at startup, so they do not take effect until you relaunch (you know this from labs 1-9).
 
-5. **Verify the hooks fire.** In the relaunched session, ask Claude a codebase question that would normally send it grepping (for example, ask where inventory filtering is handled). Watch for one of two signals: Claude runs `uvx --from graphifyy graphify query` instead of grepping, or the PreToolUse hook injects its notice:
+5. **Verify the hooks fire.** Ask two questions in the relaunched session, and ask them in this order, because the pair demonstrates the precedence rule you just wrote.
+
+   **First, a structural question**, the kind the rule routes to the graph:
+
+   > What calls `apply_filters()`?
+
+   **Then a behavioral question**, the kind the rule routes to the wiki:
+
+   > Where is inventory filtering handled?
+
+   Expect them to go to different layers. The structural one should reach the graph, because "what calls what" is a symbol-level question the graph resolves deterministically. The behavioral one should reach the wiki, because your article already carries the answer with file and line detail. **If the behavioral question never touches graphify, that is the rule working, not a broken hook.** In the reference run Claude explained its own choice: the wiki answered completely, so no structural gap remained for graphify to fill.
+
+   The PreToolUse hook may also inject its notice:
 
    ```
    MANDATORY: graphify-out/graph.json exists. You MUST run `graphify query "<question>"` before grepping raw files. Only grep after graphify has oriented you, or to modify/debug specific lines.
@@ -359,14 +373,20 @@ Two mechanisms, one per knowledge layer:
 
    The hook emits `graphify query` (bare form) and you cannot change that text. The CLAUDE.md rules you just appended already use the `uvx --from graphifyy graphify` form, so Claude follows those rules when it acts. The two signals are equivalent: the hook tells Claude what to do, and the CLAUDE.md rules tell Claude how to invoke it.
 
-   **The notice itself may not be visible to you.** The hook returns it as `additionalContext`, which Claude receives but the transcript does not necessarily render. So do not wait to see the MANDATORY text. **The observable signal is Claude running a `graphify query` / `explain` / `path` call BEFORE it reads a source file.** That ordering is the proof the hook fired and was obeyed.
+   **The notice itself may not be visible to you.** The hook returns it as `additionalContext`, which Claude receives but the transcript does not necessarily render. So do not wait to see the MANDATORY text, and do not use "did graphify run" as your test either, because the precedence rule legitimately sends some questions elsewhere.
+
+   **Ask Claude instead.** It receives the notices even when you cannot see them:
+
+   > In the message you just answered, did you receive any injected notice or additionalContext from a PreToolUse hook before making your tool calls? Quote it verbatim if you did. If you received nothing, say so plainly.
+
+   Both hooks are working if Claude quotes both notices: the graph's `MANDATORY: graphify-out/graph.json exists...` and the wiki's `Check wiki/index.md for an article covering this area...`. **That is the signal, and it is independent of which layer Claude then chose to use.** If Claude reports receiving nothing, the hooks did not load: see rescue (f).
 
 Now say the mechanism in your own words. You started this step with an asymmetry: the graph was enforced by a hook, the wiki was adopted by instruction. You just closed it, so **both knowledge layers have hooks now, and they are different kinds of hook.** That distinction is the thing worth carrying out of this lab. Two questions it answers directly:
 
 - *Is graphify a hook?* Yes. It is a `PreToolUse` hook on `Bash|Grep` and `Read|Glob`. Claude cannot grep or read raw files without the hook firing and pushing it to the graph first. The `hook-guard` binary returns a directive that names the tool to run.
 - *Does the wiki need a CLAUDE.md entry?* Yes. The wiki has both: a hook (the nudge you just wired in step 3) and the CLAUDE.md pointer from step 1, plus the `SCHEMA.md` contract you wrote in Step 5. But the hook is a simple nudge, not a guard. It injects a suggestion; it does not validate staleness or tailor the message to the file being read.
 
-**You know this worked when:** after the relaunch, you ask a codebase question and Claude runs a `uvx --from graphifyy graphify query` (or `explain` / `path`) call BEFORE reading any source file, and you can state the difference between a hook that guards (graphify's `hook-guard`) versus a hook that nudges (the wiki hook). Seeing the MANDATORY text is a bonus, not the signal; the call ordering is the signal.
+**You know this worked when:** after the relaunch, Claude confirms it received both hook notices when you ask, your two questions went to different layers (the structural one to the graph, the behavioral one to the wiki), and you can state the difference between a hook that guards (graphify's `hook-guard`) versus a hook that nudges (the wiki hook). Which layer Claude picked is the precedence rule at work, not a pass or fail. Seeing the MANDATORY text yourself is a bonus, not the signal; what Claude reports receiving is the signal.
 
 ---
 
@@ -658,7 +678,16 @@ git checkout origin/lab-10-solution -- wiki
 
 **(f) The hook does not fire after Step 6.**
 
-Check three things, in order: (1) `.claude/settings.json` must be valid JSON — a trailing comma or a missing brace silently disables the hooks. (2) You must have relaunched Claude Code after writing the file; hooks load at startup. (3) `graphify-out/graph.json` must exist — the hook-guard only fires when the graph is present, so if you removed or never built it, rebuild with `uvx --from graphifyy graphify extract . --code-only`. Fix whichever applies, relaunch, and ask a codebase question again.
+First make sure you have the right problem. **Claude choosing the wiki over graphify is not a hook failure**, it is the precedence rule you wrote. You are in this rescue path only if Claude reports receiving no hook notice at all when you ask it.
+
+Confirm the commands themselves work, outside any session:
+
+```
+echo '{"tool_name":"Read","tool_input":{"file_path":"server/main.py"}}' | uvx --from graphifyy graphify hook-guard read
+bash .claude/hooks/pre-tool-use-wiki.sh
+```
+
+The first should print a `MANDATORY` notice, the second a line of JSON mentioning `wiki/index.md`. If the first says the graph "may be STALE" instead, rebuild it (`uvx --from graphifyy graphify extract . --code-only`); a stale graph downgrades the guard to advisory. If both commands work but Claude still receives nothing, the wiring is the problem, so check three things, in order: (1) `.claude/settings.json` must be valid JSON — a trailing comma or a missing brace silently disables the hooks. (2) You must have relaunched Claude Code after writing the file; hooks load at startup. (3) `graphify-out/graph.json` must exist — the hook-guard only fires when the graph is present, so if you removed or never built it, rebuild with `uvx --from graphifyy graphify extract . --code-only`. Fix whichever applies, relaunch, and ask a codebase question again.
 
 ---
 
