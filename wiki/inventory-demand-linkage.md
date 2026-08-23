@@ -9,7 +9,8 @@ The `period` field is **free text in several shapes**, not a standardized value.
 fixture data (16 records): "Next 30 days", "Next 3 months", "Q1 2025", "90 days", "Next 60 days".
 A function that assumes every period is 30 days will compute the wrong value for non-30-day records.
 
-client/src/views/Demand.vue:192-207 defines `translatePeriod()` to handle these formats:
+The demand view defines a `translatePeriod()` helper that handles these formats, which is the
+clearest evidence the values were never meant to be uniform:
 - "Next N months" / "Next N days" / "N days"
 - "QN 2025" (Q1, Q2, Q3, Q4)
 
@@ -28,4 +29,4 @@ MCU-401), enabling the days_of_cover calculation to demonstrate correctness acro
 
 ## Sources
 - server/data/demand_forecasts.json (16 records, ids 1-16)
-- client/src/views/Demand.vue:192-207 (translatePeriod function)
+- client/src/views/Demand.vue (the translatePeriod helper)
