@@ -1,32 +1,31 @@
-# Demand forecasts
+# Inventory-demand linkage
 
-## What they are
-Demand forecast records in `server/data/demand_forecasts.json` relate to inventory items by SKU.
-Each record carries `current_demand`, `forecasted_demand`, `trend`, and a `period` field.
+## What it does
+The Inventory and Demand Forecast views both start from the in-memory inventory dataset, but they reach it through different paths and join to it differently. This article covers the parts of that relationship a code graph can't see: the network hop, the join convention between demand records and inventory items, a counting pattern reused across views, and where a new column's translation has to land.
 
-## The period field (critical: it's free text)
-The `period` field is **free text in several shapes**, not a standardized value. Verified against
-fixture data (16 records): "Next 30 days", "Next 3 months", "Q1 2025", "90 days", "Next 60 days".
-A function that assumes every period is 30 days will compute the wrong value for non-30-day records.
+## The HTTP hop between the client and the server
+The client never reads server data directly; every view goes through the shared API client, which issues an `axios` GET to a FastAPI server running on a separate port (client dev server on 3000, API on 8001). The request carries filters as query-string params, not a request body, and the server applies filtering to its in-memory list before responding — the client receives an already-filtered array, not the full dataset. There is no shared type between the Pydantic response model and the JS caller; the client trusts the JSON shape it gets back. If the two drift, the failure shows up at runtime (a missing/undefined field in the UI), not at build or lint time.
 
-The demand view defines a `translatePeriod()` helper that handles these formats, which is the
-clearest evidence the values were never meant to be uniform:
-- "Next N months" / "Next N days" / "N days"
-- "QN 2025" (Q1, Q2, Q3, Q4)
+## How demand forecasts join to inventory
+Demand forecast records and inventory items are two independent JSON files with no foreign key enforcement. They join at runtime, in the client, by matching the demand record's SKU field against the inventory item's SKU field (see the naming mismatch below). The join is used to make the Demand view filter-aware: the demand endpoint itself takes no filter params, so the client fetches all forecasts, fetches the filtered inventory list separately, builds a set of SKUs from that filtered inventory, and keeps only forecast records whose SKU is in that set. This is a client-side filter join, not a server-side one — filtering demand by warehouse or category only works because the client already has the filtered inventory list in hand.
 
-The regex branches confirm the values are matched patterns, not database enums.
+The forecast's `period` field is a free-text string written into the source JSON, not a structured value (examples in the data: `"Next 30 days"`, `"Next 3 months"`, `"Q1 2025"`). There is no enum or fixed set of periods — whatever string is in the JSON is displayed close to verbatim. For the Japanese locale, the UI doesn't translate `period` through the normal i18n key lookup; it runs the raw string through a set of regex substitutions (matching fragments like "Next ", "months", "days", "Q1"–"Q4") to produce a Japanese rendering. A period string that doesn't match one of those patterns (e.g. a newly authored period like "Rest of FY25") passes through untranslated in Japanese.
 
-## Why this article exists (what the graph cannot tell you)
-The demand forecast fixture data lives in a JSON file (`server/data/demand_forecasts.json`). JSON
-data files produce zero graph nodes (verified: graphify warns "0 code nodes from .json"). So the
-graph models the `get_demand_forecasts()` endpoint and the `translatePeriod()` function, but it
-cannot tell you what the `period` field actually contains across the 16 fixture records. Only
-reading the data file or this article reveals the variation.
+## The dashboard's subset-count pattern
+The dashboard shows a count of backlog items next to the "Inventory Shortages" heading by rendering the length of the same client-side filtered-join array described above (backlog matched against the filtered inventory's SKU set), interpolated directly into the heading text rather than going through the `itemsCount`-style pluralization key used elsewhere (e.g. in the Demand view's trend cards). Any new "count of a filtered subset" display should follow one of these two existing conventions rather than inventing a third: interpolate a computed array's `.length` directly, or use an `itemsCount` translation key with a `{count}` placeholder.
 
-Records 1-9 predate the days_of_cover feature and use orphaned SKUs. Records 10-16 (added
-2026-08-17) link to real inventory items (TMP-201, PSU-503, DSP-403, PSU-507, SRV-302, PSU-508,
-MCU-401), enabling the days_of_cover calculation to demonstrate correctness across varying periods.
+## The i18n convention for a new column label
+Locale strings live in two parallel files, `client/src/locales/en.js` and `client/src/locales/ja.js`, each exporting one object with matching nested keys. There is no key-completeness check between the two files at build time — a key present in `en.js` but missing in `ja.js` silently falls back to the English string at runtime (the translation helper walks the current locale's object, and on a missing key retries the same path against English before giving up). Adding a table column's header means adding the same new key under both files' matching nested path (e.g. `demand.table.<newKey>`), in both locales, or the Japanese UI will silently show English for that header. A header reaches the page through the translation helper by calling it with the dotted key path (`t('demand.table.newKey')`); there's no separate registration step beyond adding the key to the locale files.
+
+## Naming mismatch: SKU field
+The inventory item's SKU field is named `sku` in both the JSON data and the API response model. Every other dataset that references an inventory item by SKU (demand forecasts, backlog items) names that same value `item_sku` instead. Any code joining across these datasets has to know to compare `inventoryItem.sku` against `otherRecord.item_sku` — there's no shared field name to grep for.
 
 ## Sources
-- server/data/demand_forecasts.json (16 records, ids 1-16)
-- client/src/views/Demand.vue (the translatePeriod helper)
+- client/src/api.js
+- server/main.py
+- server/data/demand_forecasts.json
+- client/src/views/Demand.vue
+- client/src/views/Dashboard.vue
+- client/src/composables/useI18n.js
+- client/src/locales/en.js
+- client/src/locales/ja.js
