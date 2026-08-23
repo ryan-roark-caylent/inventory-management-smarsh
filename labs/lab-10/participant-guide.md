@@ -16,7 +16,7 @@ You'll build both knowledge layers on the inventory-management fork, wire them i
 
 Step 4 is the moment. You'll ask graphify to trace the path from the Vue filter composable to the FastAPI function that serves inventory data, and get back "No path found." This is correct, not broken. The graph models static imports and calls. The HTTP boundary between client and server is invisible to the AST by design. Once that lands, the wiki's reason to exist is obvious: it records the runtime facts the graph structurally cannot see. The defend step in Step 9 becomes easy instead of arbitrary.
 
-**A note on scale.** This is a 53-file repo and `CLAUDE.md` already supplies orientation, so **expect a thin token delta or none, and possibly more tool calls**. The two axes split: the graph and wiki produce more, smaller, targeted reads that replace fewer, larger whole-file reads. A targeted graphify query is cheaper than reading the file, but querying and then reading the file anyway is net neutral or worse on step count. graphify's gains were measured on a repo near a million lines, and Cloud Capture runs 40-50 microservices. The real evidence in this lab is the correctness scorecard and the demand-forecast period trap, not a token count. A lab that manufactured a token win would be disingenuous.
+**A note on scale.** This is a 53-file repo and `CLAUDE.md` already supplies orientation, so **expect a thin token delta or none, and possibly more tool calls**. The two axes split: the graph and wiki produce more, smaller, targeted reads that replace fewer, larger whole-file reads. A targeted graphify query is cheaper than reading the file, but querying and then reading the file anyway is net neutral or worse on step count. graphify's gains were measured on a repo near a million lines, and Cloud Capture runs 40-50 microservices. The real evidence in this lab is what each knowledge layer could and could not answer, not a token count. A lab that manufactured a token win would be disingenuous.
 
 ---
 
@@ -87,7 +87,7 @@ Once you are on `lab-10-work`:
 
 ---
 
-## Step 1 — Run the spec, cold (12 min)
+## Step 1 — Run the spec, cold (9 min)
 
 Before you build anything, measure the baseline. You hand Claude a small spec on the untouched repo, watch how it orients itself, then throw the code changes away. The recording is the keeper, not the code.
 
@@ -105,26 +105,7 @@ Use the fresh session you relaunched in Step 0. No graph, no wiki, no hook exist
 
    Record: total calls, calls before first edit, distinct files read, distinct files read before first edit, repeated-search yes/no. These are self-reported and approximate, which is acceptable because both runs are measured identically and the reading is directional, not precise.
 
-4. **Record what the cold run computed, before you throw it away.** You are about to discard the code, so these numbers are the only thing that survives to compare against. Run this from the repo root:
-
-   ```
-   cd server && uv run python -c "import json; from fastapi.testclient import TestClient; from main import app; f={x['item_sku']:x for x in json.load(open('data/demand_forecasts.json'))}; it=TestClient(app).get('/api/inventory').json(); r=[(i['sku'],f.get(i['sku'],{}).get('period','?'),i['quantity_on_hand'],f.get(i['sku'],{}).get('current_demand','?'),i['days_of_cover'],round(i['quantity_on_hand']/i['days_of_cover'],1)) for i in it if i.get('days_of_cover') is not None]; print(f\"{'SKU':9} {'period':15} {'on hand':>8} {'demand for period':>18} {'days_of_cover':>14} {'implied units/day':>18}\"); [print(f'{a:9} {b:15} {c:>8} {d:>18} {e:>14} {g:>18}') for a,b,c,d,e,g in r]; print(f'{len(r)} of {len(it)} items have a value')"
-   ```
-
-
-   Two of those columns are derived, so read them deliberately:
-
-   - **`demand for period`** is the forecast record's own demand figure, and the `period` column states the window it covers. `TMP-201` expects 400 units across three months, not 400 per month.
-   - **`implied units/day`** is `on hand ÷ days_of_cover`. It is reverse-engineered from what your implementation produced, so it is the daily rate the code actually used.
-
-   **Write down the whole table**, every column. You will run the same command in Step 7 and compare.
-
-   Two things to look at while it is in front of you, and **change nothing**:
-
-   - **The count on the last line.** How many of the 32 inventory items got a value, and how many did not. You need this number later.
-   - **The rows whose forecast period is not `Next 30 days`.** Put your finger on those rows and compare their `days_of_cover` against the rows that *are* `Next 30 days`. Note what you notice. Do not act on it, do not fix anything, and do not mention it to Claude in Step 7. Step 8 comes back to this.
-
-5. Then DISCARD the code changes so Run 2 starts from the identical state:
+4. Then DISCARD the code changes so Run 2 starts from the identical state:
 
    ```
    git checkout -- .
@@ -134,7 +115,7 @@ Use the fresh session you relaunched in Step 0. No graph, no wiki, no hook exist
 
    `git checkout -- .` restores tracked files to their committed state; the spec file is committed, so it survives. `git clean -fd server client` deletes anything Claude newly created under those directories (a scratch module, a new test file, a new component). Untracked files survive `git checkout` and would otherwise carry into the wired run and invalidate the comparison. `graphify-out/` does not exist yet. `git status` should show `server/` and `client/` clean with no untracked files under either.
 
-**You know this worked when:** you have a written cold baseline (files read, tool calls, orientation notes, and the `days_of_cover` table) and `git status` shows the app code back to clean, with no graph, wiki, or hook present.
+**You know this worked when:** you have a written cold baseline (files read, tool calls, orientation notes) and `git status` shows the app code back to clean, with no graph, wiki, or hook present.
 
 ---
 
@@ -401,7 +382,7 @@ Now say the mechanism in your own words. You started this step with an asymmetry
 
 ---
 
-## Step 7 — Run the spec again, wired (16 min)
+## Step 7 — Run the spec again, wired (14 min)
 
 Now measure the difference. Same spec, same starting state, but this time the graph, the wiki, and the hook all exist.
 
@@ -469,30 +450,21 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
    Note the ordering, because it matters more than it looks. You built the graph in Step 2 on clean code and nothing modified code until this run, so the graph was accurate for the whole measured run. No refresh was needed beforehand. If you had implemented something before measuring, the graph would have been describing code that no longer existed, and the hook would have downgraded from MANDATORY to advisory ("reading the file directly is fine"). Refresh before you measure, not just after.
 
-8. **Print the same table you recorded in Step 1 and compare them side by side.** Identical command:
+8. **Check how many items got a value.** The spec says `days_of_cover` is null when a SKU has no matching demand forecast, so this tells you how much of the inventory the feature actually covers:
 
    ```
-   cd server && uv run python -c "import json; from fastapi.testclient import TestClient; from main import app; f={x['item_sku']:x for x in json.load(open('data/demand_forecasts.json'))}; it=TestClient(app).get('/api/inventory').json(); r=[(i['sku'],f.get(i['sku'],{}).get('period','?'),i['quantity_on_hand'],f.get(i['sku'],{}).get('current_demand','?'),i['days_of_cover'],round(i['quantity_on_hand']/i['days_of_cover'],1)) for i in it if i.get('days_of_cover') is not None]; print(f\"{'SKU':9} {'period':15} {'on hand':>8} {'demand for period':>18} {'days_of_cover':>14} {'implied units/day':>18}\"); [print(f'{a:9} {b:15} {c:>8} {d:>18} {e:>14} {g:>18}') for a,b,c,d,e,g in r]; print(f'{len(r)} of {len(it)} items have a value')"
+   cd server && uv run python -c "from fastapi.testclient import TestClient; from main import app; r=TestClient(app).get('/api/inventory').json(); print(sum(1 for i in r if i.get('days_of_cover') is not None), 'of', len(r), 'items have a value')"
    ```
 
-
-   Two of those columns are derived, so read them deliberately:
-
-   - **`demand for period`** is the forecast record's own demand figure, and the `period` column states the window it covers. `TMP-201` expects 400 units across three months, not 400 per month.
-   - **`implied units/day`** is `on hand ÷ days_of_cover`. It is reverse-engineered from what your implementation produced, so it is the daily rate the code actually used.
-
-   Two comparisons, and they answer different questions:
-
-   - **The count on the last line should be the same in both runs.** It depends on how many inventory SKUs have a matching demand forecast, which is a fixture fact that no implementation choice changes. Keep this number; the quiz asks for it.
-   - **The per-SKU values may not be the same**, and that is the interesting part. Look again at the rows whose forecast period is not `Next 30 days`. If a value moved between your two runs, the two implementations disagree about the same input, and one of them is wrong. Step 8 explains which.
+   **Write the number down; the quiz asks for it.** Most inventory items have no forecast, which is why the field had to be nullable. That is F4 on the scorecard in Step 8, and it is a fixture fact rather than an implementation choice, so it does not change between your two runs.
 
 > **Honesty, non-negotiable.** Report what you measured, including a null or a regression. A run that shows no improvement, or a worse run, is a valid result, and reporting it honestly is the measurement-discipline lesson. Do not report an absolute token count as a claim; per-session readings vary by machine. Cloud Capture's ~30% is a reference point, not a target.
 
-**You know this worked when:** you have two sets of proxies (cold vs wired), you recorded how many items got `days_of_cover`, and you noted whether the two implementations' values matched. The graph is refreshed with `uvx --from graphifyy graphify update .`.
+**You know this worked when:** you have two sets of proxies (cold vs wired) and you recorded how many items got a `days_of_cover` value. The graph is refreshed with `uvx --from graphifyy graphify update .`.
 
 ---
 
-## Step 8 — Correctness scorecard and measurement discipline (5 min)
+## Step 8 — Correctness scorecard and measurement discipline (3 min)
 
 This step names the key facts that realistically matter for implementing the spec, maps them to which knowledge layer can supply them, and states the findings from two human dry runs. This mirrors graphify's own published measurement axis (key-fact coverage), not token reduction. No first-party token-reduction figure exists in graphify's material.
 
@@ -509,30 +481,19 @@ Six facts determined whether an implementation was correct and complete:
 | F5 | `period` is free text in several shapes, so "a 30-day period" does not hold for every record. | wiki |
 | F6 | A new column label needs a key in every locale file including `ja.js`, rendered through `t()` from `useI18n()`. | source |
 
-### The period trap (F5) — why writing a fact down is necessary and not sufficient
+### One fact worth noticing about F5
 
-**Go back to the `days_of_cover` table you wrote down in Step 1, and the one you printed in Step 7.** Look at the rows whose forecast period is not `Next 30 days`. Here is what the spec set up:
+The spec states, assertively, that "a demand forecast records a demand figure covering a 30-day period." The fixture data disagrees: `period` is free text, and the values include `Next 3 months`, `Q1 2025`, `90 days`, and `Next 60 days`. So a fixed 30-day divisor computes the wrong daily rate for most records, and it does so without erroring. The numbers stay plausible and the tests still pass.
 
-- The spec states, assertively, that "a demand forecast records a demand figure covering a 30-day period."
-- The fixture data disagrees. `period` is free text, and the values include `Next 3 months`, `Q1 2025`, `90 days`, and `Next 60 days`.
-- So for a SKU whose forecast covers three months, dividing its demand by 30 instead of 90 triples the daily rate and makes days-of-cover **three times too low.** An item with 28 days of cover gets reported as having 9. If a dashboard flags anything under 14 days as at risk, that item is flagged as a problem when it is fine.
+Note whether your run questioned that or coded straight to the spec. Both happen, and runs are nondeterministic, so yours is not a pass or a fail.
 
-The spec's premise is wrong, and it is wrong in a direction that produces plausible-looking numbers rather than an error. Nothing crashes. The tests pass. You only catch it by knowing what the `period` field actually contains.
-
-**This is where runs differ, and yours may have gone either way.** These are nondeterministic: two runs against the same wiki, the same spec, and the same data can reach opposite conclusions. One reads the wiki's warning and writes a parser. Another reads the same warning and divides by 30 anyway, because the spec stated it so plainly. Both have been observed. Whichever you got, it is a valid result, and the lesson is the same:
-
-- **Writing a fact down is necessary, not sufficient.** The wiki recorded F5. One run carried it through to the code, the other did not.
-- **An agent can hold the correct fact and still defer to an assertive spec.** Authority matters. Detection alone is not enough.
-- **If a fact must not be overridden, it needs more force than an article.** A test, a schema constraint, a lint rule, or a corrected spec. A knowledge note that merely describes the inconsistency can lose. One that names the consequence ("a fixed-30-day divisor would be wrong for most records") has more weight, but even that is not guaranteed.
-- **Both outcomes are informative.** A run that misses F5 is not a failed lab. It is evidence of what a knowledge layer can and cannot enforce, which is the judgment you came here to build.
-
-Why F5 is reachable only through the wiki: the graph cannot catch it (`period: str` is structurally valid; an AST has no opinion on string field contents), and a cold run that reads the fixture data detects the inconsistency but has no reason to distrust an assertive spec.
+**The transferable point:** the wiki can record a fact and the agent can still override it, because an assertive instruction carries more weight than a note. If a fact cannot afford to be overridden, put it somewhere with teeth: a test, a schema constraint, or a corrected spec. A knowledge layer informs; it does not enforce.
 
 ### Check which layers actually got used
 
 Review your transcript and the retrospective answers from Steps 1 and 7. Which layer answered which question, and why? Three possible outcomes:
 
-- **Consulted and useful.** The wiki or graph answered something the other could not (the HTTP hop, the complete caller set, the period trap, a naming mismatch) and Claude acted on it. Note which specific fact earned its keep.
+- **Consulted and useful.** The wiki or graph answered something the other could not (the HTTP hop, the complete caller set, a data gotcha, a naming mismatch) and Claude acted on it. Note which specific fact earned its keep.
 - **Consulted and not useful.** Claude opened the knowledge layer and went to source anyway. That is a lesson about **what belongs in an article or when to query the graph**, which is more useful than a lesson about tools. Note what should have been recorded or asked differently.
 - **Not consulted at all, despite the hook.** The wiki hook nudges, but graphify's `hook-guard` returns a directive. At 53 files with a good wiki, Claude may get its orientation entirely from the wiki and skip graphify for the implementation run. That is a valid outcome: the wiki answered completely, so no structural gap remained. It is also evidence of the asymmetry you wired in Step 6.
 
@@ -555,7 +516,7 @@ Two caveats so you read your own result correctly:
 - **A knowledge layer can point at the right file and still not save a read.** It tells you *where* to look. If you then read the file anyway to confirm line-level detail, it added a step rather than replacing one. That happens when you are about to edit the file, because you cannot avoid opening what you change. It does not happen when you are only asking, which is why the structural question in Step 7 cost three calls and no source read at all. Whether these layers substitute or merely add depends on whether you are planning or changing code.
 - **This repo is 53 files.** graphify's own honest benchmark measured coverage gains on a codebase near a million lines. A demo repo caps how much orientation there is to save, so a thin delta here is not evidence the approach fails at scale, and a large delta here would not prove it succeeds.
 
-**You know this worked when:** you can state the key-fact scorecard, understand why the period trap is nondeterministic, and have identified which knowledge layers your runs consulted and whether they were useful.
+**You know this worked when:** you can state the key-fact scorecard, say why a knowledge layer informs rather than enforces, and identify which layers your runs consulted and whether they were useful.
 
 ---
 
@@ -621,7 +582,7 @@ Reduction:       ~20x fewer tokens per query
 
 You're done when all eight are true:
 
-1. You ran `specs/days-of-cover.md` cold (Step 1), recorded the baseline proxies and the `days_of_cover` table, and fully discarded the code changes (`git checkout -- .` plus `git clean -fd server client`, leaving no untracked files behind).
+1. You ran `specs/days-of-cover.md` cold (Step 1), recorded the baseline proxies, and fully discarded the code changes (`git checkout -- .` plus `git clean -fd server client`, leaving no untracked files behind).
 2. `graphify extract . --code-only` produced a graph and you recorded your own counts.
 3. You ran `path "useFilters()" "get_inventory()"` and can explain "No path found" in one sentence.
 4. `graphify-out/wiki/` exists and you saw the `Community_N` naming.
