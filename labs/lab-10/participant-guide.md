@@ -105,14 +105,18 @@ Use the fresh session you relaunched in Step 0. No graph, no wiki, no hook exist
 
    Record: total calls, calls before first edit, distinct files read, distinct files read before first edit, repeated-search yes/no. These are self-reported and approximate, which is acceptable because both runs are measured identically and the reading is directional, not precise.
 
-4. Save the cold implementation before discarding it, so Step 8 has both runs to compare:
+4. **Record what the cold run computed, before you throw it away.** You are about to discard the code, so these numbers are the only thing that survives to compare against. Run this from the repo root:
 
    ```
-   git diff > ../cold-run.patch
-   git status --porcelain > ../cold-run-untracked.txt
+   cd server && uv run python -c "import json; from fastapi.testclient import TestClient; from main import app; p={f['item_sku']:f['period'] for f in json.load(open('data/demand_forecasts.json'))}; it=TestClient(app).get('/api/inventory').json(); r=[(i['sku'],p.get(i['sku'],'?'),i.get('days_of_cover')) for i in it if i.get('days_of_cover') is not None]; print('SKU        forecast period    days_of_cover'); [print(f'{s:10} {q:18} {d}') for s,q,d in r]; print(f'{len(r)} of {len(it)} items have a value')"
    ```
 
-<roark: i think there is an opportunity here to just ask them to rename their claude session instead of saving their code.  what's the point of saving the code for step 8?>
+   **Write down the whole table**, all three columns. You will run the same command in Step 7 and compare.
+
+   Two things to look at while it is in front of you, and **change nothing**:
+
+   - **The count on the last line.** How many of the 32 inventory items got a value, and how many did not. You need this number later.
+   - **The rows whose forecast period is not `Next 30 days`.** Put your finger on those rows and compare their `days_of_cover` against the rows that *are* `Next 30 days`. Note what you notice. Do not act on it, do not fix anything, and do not mention it to Claude in Step 7. Step 8 comes back to this.
 
 5. Then DISCARD the code changes so Run 2 starts from the identical state:
 
@@ -124,7 +128,7 @@ Use the fresh session you relaunched in Step 0. No graph, no wiki, no hook exist
 
    `git checkout -- .` restores tracked files to their committed state; the spec file is committed, so it survives. `git clean -fd server client` deletes anything Claude newly created under those directories (a scratch module, a new test file, a new component). Untracked files survive `git checkout` and would otherwise carry into the wired run and invalidate the comparison. `graphify-out/` does not exist yet. `git status` should show `server/` and `client/` clean with no untracked files under either.
 
-**You know this worked when:** you have a written cold baseline (files read, tool calls, orientation notes) and `git status` shows the app code back to clean, with no graph, wiki, or hook present.
+**You know this worked when:** you have a written cold baseline (files read, tool calls, orientation notes, and the `days_of_cover` table) and `git status` shows the app code back to clean, with no graph, wiki, or hook present.
 
 ---
 
@@ -241,15 +245,14 @@ The pattern is: **you read it, the LLM writes it.** So Claude creates and mainta
 
 > Build a three-layer LLM wiki for this repo at `wiki/`. Create four files:
 >
-> 1. `wiki/SCHEMA.md` — the maintainer contract. State when to ADD a new article versus UPDATE an existing one, and that code is always ground truth. Keep it short; I will review it and it governs your future edits to this wiki.
+> 1. `wiki/SCHEMA.md` — the maintainer contract. State when to ADD a new article versus UPDATE an existing one, and that code is always ground truth. Include this rule explicitly: **never record anything the code graph can derive.** No caller lists, no import relationships, no symbol locations, no line numbers. Those go stale the moment someone refactors, and the graph regenerates them for free in seconds. This wiki records only what the graph structurally cannot see. Keep it short; I will review it and it governs your future edits to this wiki.
 >
 > 2. `wiki/index.md` — the article index and a note on when to reach for the wiki versus the graph.
 >
 > 3. `wiki/log.md` — an append-only change log, one line per add or update. Never rewrite a line once written.
 >
-> 4. One article covering the inventory and demand-forecast area. Name it `inventory-demand-linkage.md`. Record what the graph cannot see:
+> 4. One article covering the inventory and demand-forecast area. Name it `inventory-demand-linkage.md`. Record only what the graph cannot see. Do not name functions, callers, or line numbers; if a reader needs those, they should query the graph:
 >    - How the inventory endpoint's response reaches the table in the UI (the HTTP hop between `api.js` and the FastAPI server)
->    - That inventory filtering funnels through one shared helper (`apply_filters`) that several endpoints depend on
 >    - How demand-forecast records relate to inventory items: matched by SKU, and what the `period` field actually contains. Check `server/data/demand_forecasts.json` and `client/src/views/Demand.vue`'s `translatePeriod` function before writing this down, and record what you find rather than what you expect.
 >    - The dashboard's existing pattern for counting a subset of filtered inventory (one already exists; name it)
 >    - The i18n convention for a new column label: where locale strings live, which locales must receive the key, and how a header reaches the translation helper
@@ -285,6 +288,8 @@ Two mechanisms, one per knowledge layer:
 
    **2. The graph (graphify) — for symbol-level relationships and call chains.**
    Run `uvx --from graphifyy graphify query "<question>"` for a scoped subgraph, `uvx --from graphifyy graphify path "<A>" "<B>"` to trace a relationship between two symbols, and `uvx --from graphifyy graphify explain "<concept>"` for one symbol's neighborhood. These return far less than `GRAPH_REPORT.md` or raw grep. The graph is deterministic AST output: it knows every import and call, and nothing about runtime behavior or network hops.
+
+   **Run the graph for any structural question even if the wiki appears to answer it.** Who calls what, what a change breaks, where a symbol is defined: the wiki is prose a human wrote at some point in the past and it can be silently out of date, while the graph is regenerated from the current source in seconds. Treat a structural claim in the wiki as a lead to confirm, not an answer to trust.
 
    **3. Raw source — last, or first when you already know the location.**
    Read files directly after the layers above have oriented you, or immediately when a task already names the exact files and lines. When a spec pinpoints locations, there is no navigation problem to solve and skipping both layers is correct.
@@ -363,7 +368,7 @@ Two mechanisms, one per knowledge layer:
 
    > Where is inventory filtering handled?
 
-   Expect them to go to different layers. The structural one should reach the graph, because "what calls what" is a symbol-level question the graph resolves deterministically. The behavioral one should reach the wiki, because your article already carries the answer with file and line detail. **If the behavioral question never touches graphify, that is the rule working, not a broken hook.** In the reference run Claude explained its own choice: the wiki answered completely, so no structural gap remained for graphify to fill.
+   Expect them to go to different layers. The structural one should reach the graph, because "what calls what" is a symbol-level question the graph resolves deterministically. The behavioral one should reach the wiki, because your article already carries the answer with file and line detail. **If the behavioral question never touches graphify, that is the rule working, not a broken hook.** Claude may tell you as much if you ask: the wiki answered completely, so no structural gap remained for graphify to fill.
 
    The PreToolUse hook may also inject its notice:
 
@@ -410,7 +415,7 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
 6. **Compare the graph against grep on the structural question.** First, run `/clear`. This matters more than it looks: you have just implemented against `server/main.py`, so its contents are already in your context and Claude will answer from memory in zero tool calls, which measures nothing. Clear the context and the question becomes a real one.
 
-   Then ask Claude: *"Which endpoints break if I change the signature of the shared inventory filter helper?"* Note how many calls it took and which layer answered first. In the reference run Claude used **three tool calls and never opened `server/main.py`**:
+   Then ask Claude: *"Which endpoints break if I change the signature of the shared inventory filter helper?"* Note how many calls it took and which layer answered first. A run that uses both layers well needs about **three tool calls and never opens `server/main.py`**:
 
    1. `wiki/index.md`, following the precedence rule you wrote in Step 6
    2. `wiki/filter-system.md`, which already carried the answer and the location
@@ -438,7 +443,7 @@ Now measure the difference. Same spec, same starting state, but this time the gr
    grep -rn "apply_filters" server/
    ```
 
-   The shell `grep` returns your three real call sites **mixed with matches that are not your code at all**: `server/.venv/` holds the third-party libraries this project downloaded, and one of them (`pygments`) defines its own unrelated function also called `apply_filters`, alongside binary cache files and `graphify-out/`. In the reference run that came back as 78KB and had to be written to a file.
+   The shell `grep` returns your three real call sites **mixed with matches that are not your code at all**: `server/.venv/` holds the third-party libraries this project downloaded, and one of them (`pygments`) defines its own unrelated function also called `apply_filters`, alongside binary cache files and `graphify-out/`. That can come back as tens of kilobytes and get truncated to a file.
 
    Now ask Claude to search for the same symbol with its own Grep tool:
 
@@ -458,18 +463,16 @@ Now measure the difference. Same spec, same starting state, but this time the gr
 
    Note the ordering, because it matters more than it looks. You built the graph in Step 2 on clean code and nothing modified code until this run, so the graph was accurate for the whole measured run. No refresh was needed beforehand. If you had implemented something before measuring, the graph would have been describing code that no longer existed, and the hook would have downgraded from MANDATORY to advisory ("reading the file directly is fine"). Refresh before you measure, not just after.
 
-8. **Observe the implementation differences.** Compare the wired run's output against your saved cold patch. One concrete check: how many inventory items ended up with a non-null `days_of_cover` value? Run this from the repo root to count them:
+8. **Print the same table you recorded in Step 1 and compare them side by side.** Identical command:
 
    ```
-   cd server && uv run python -c "from fastapi.testclient import TestClient; from main import app; c = TestClient(app); r = c.get('/api/inventory'); print(sum(1 for i in r.json() if i.get('days_of_cover') is not None), 'of', len(r.json()), 'items have days_of_cover')"
+   cd server && uv run python -c "import json; from fastapi.testclient import TestClient; from main import app; p={f['item_sku']:f['period'] for f in json.load(open('data/demand_forecasts.json'))}; it=TestClient(app).get('/api/inventory').json(); r=[(i['sku'],p.get(i['sku'],'?'),i.get('days_of_cover')) for i in it if i.get('days_of_cover') is not None]; print('SKU        forecast period    days_of_cover'); [print(f'{s:10} {q:18} {d}') for s,q,d in r]; print(f'{len(r)} of {len(it)} items have a value')"
    ```
-   <roark: should we have them run this command before step 1 is over and write down the answer so they can compare later?>
 
-   <roark: also, i think we need an explainer in step 1 about this trap and calling out the failure and what hapened in more detail.  I'm not really sure the issue without digging in more and lab runners may not either... but the learning still feels very useful either way>
+   Two comparisons, and they answer different questions:
 
-   Record what you see. The count depends on how many inventory SKUs have a matching demand forecast, which is a fixture fact independent of whether you fell into the period trap. This is a completion observable: you will need it for the quiz.
-
-   Also note: did the two runs produce the same `days_of_cover` values for items that got them, or did one divide by 30 while the other parsed the period correctly? If they differ, one is wrong. That is the correctness axis, and it is why the wiki matters.
+   - **The count on the last line should be the same in both runs.** It depends on how many inventory SKUs have a matching demand forecast, which is a fixture fact that no implementation choice changes. Keep this number; the quiz asks for it.
+   - **The per-SKU values may not be the same**, and that is the interesting part. Look again at the rows whose forecast period is not `Next 30 days`. If a value moved between your two runs, the two implementations disagree about the same input, and one of them is wrong. Step 8 explains which.
 
 > **Honesty, non-negotiable.** Report what you measured, including a null or a regression. A run that shows no improvement, or a worse run, is a valid result, and reporting it honestly is the measurement-discipline lesson. Do not report an absolute token count as a claim; per-session readings vary by machine. Cloud Capture's ~30% is a reference point, not a target.
 
@@ -496,13 +499,15 @@ Six facts determined whether an implementation was correct and complete:
 
 ### The period trap (F5) — why writing a fact down is necessary and not sufficient
 
-Two human dry runs disagreed on F5:
+**Go back to the `days_of_cover` table you wrote down in Step 1, and the one you printed in Step 7.** Look at the rows whose forecast period is not `Next 30 days`. Here is what the spec set up:
 
-- **Run 1 (2026-08-17):** read the wiki's warning about varied period values, wrote a parser, and handled `"Next 60 days"` / `"90 days"` / `"Q1 2025"` correctly.
-- **Run 2 (2026-08-18, owner):** read the same wiki warning and overrode it anyway, dividing by 30 for every record because the spec assertively stated "a demand figure covering a 30-day period."
-<roark: we shouldn't expose dates and dry run details - can we just specify that things are non-determnistic so everyone's run will be a little different.  This reads as lab-creation triage>
+- The spec states, assertively, that "a demand forecast records a demand figure covering a 30-day period."
+- The fixture data disagrees. `period` is free text, and the values include `Next 3 months`, `Q1 2025`, `90 days`, and `Next 60 days`.
+- So for a SKU whose forecast covers three months, dividing its demand by 30 instead of 90 triples the daily rate and makes days-of-cover **three times too low.** An item with 28 days of cover gets reported as having 9. If a dashboard flags anything under 14 days as at risk, that item is flagged as a problem when it is fine.
 
-Both runs consulted the wiki. One acted on F5, one deferred to the spec. This is nondeterminism, and it is also the stronger lesson:
+The spec's premise is wrong, and it is wrong in a direction that produces plausible-looking numbers rather than an error. Nothing crashes. The tests pass. You only catch it by knowing what the `period` field actually contains.
+
+**This is where runs differ, and yours may have gone either way.** These are nondeterministic: two runs against the same wiki, the same spec, and the same data can reach opposite conclusions. One reads the wiki's warning and writes a parser. Another reads the same warning and divides by 30 anyway, because the spec stated it so plainly. Both have been observed. Whichever you got, it is a valid result, and the lesson is the same:
 
 - **Writing a fact down is necessary, not sufficient.** The wiki recorded F5. One run carried it through to the code, the other did not.
 - **An agent can hold the correct fact and still defer to an assertive spec.** Authority matters. Detection alone is not enough.
@@ -549,7 +554,7 @@ Pose two questions of different shapes and note which knowledge layer you reach 
 - "What breaks if I change `apply_filters()`?" (structural, static)
 - "Why does the app's locale persist across page reloads?" (runtime behavior)
 
-The first question is the graph's territory: `affected "apply_filters"` lists callers in one command, and it now spans two endpoints after your spec work. But in the owner's dry run, the wiki answered first because it already carried the caller list with file/line specifics, and graphify was reached for only to confirm. At 53 files with a maintained wiki, either layer can answer, and the precedence rule you wrote in Step 6 determines which one Claude tries first. That is the lesson: the ordering matters, and you control it. <roark: this also reads like lab-creation triage when we talk about dry run>
+The first question is the graph's territory: `affected "apply_filters"` lists callers in one command, and it now spans two endpoints after your spec work. Note what your own run did. If your wiki recorded caller lists, the wiki may have answered first and graphify only confirmed, which is why `SCHEMA.md` tells the wiki not to record what the graph can derive. The precedence rule you wrote in Step 6 decides which layer Claude tries first. That is the lesson: the ordering matters, and you control it.
 
 The second question is the wiki's territory: locale persistence is `localStorage`, which the graph structurally cannot see. No AST traversal reaches runtime browser APIs.
 
@@ -604,7 +609,7 @@ Reduction:       ~20x fewer tokens per query
 
 You're done when all eight are true:
 
-1. You ran `specs/days-of-cover.md` cold (Step 1), recorded the baseline proxies, and fully discarded the code changes (`git checkout -- .` plus `git clean -fd server client`, leaving no untracked files behind).
+1. You ran `specs/days-of-cover.md` cold (Step 1), recorded the baseline proxies and the `days_of_cover` table, and fully discarded the code changes (`git checkout -- .` plus `git clean -fd server client`, leaving no untracked files behind).
 2. `graphify extract . --code-only` produced a graph and you recorded your own counts.
 3. You ran `path "useFilters()" "get_inventory()"` and can explain "No path found" in one sentence.
 4. `graphify-out/wiki/` exists and you saw the `Community_N` naming.
@@ -696,4 +701,3 @@ The first should print a `MANDATORY` notice, the second a line of JSON mentionin
 ---
 
 Your completion and mastery assessments are in the LMS.
-<roark: version tag>
